@@ -1,0 +1,48 @@
+# Android Generic
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Kotlin
+/build
+*.gradle.kts
+*.kt.dump
+
+# Android Studio
+*.ipr
+*.iws
+.idea/
+/captures
+/secrets.properties
+
+# Gradle
+.gradle/
+build/
+
+# Log files
+*.log
+
+# NDK
+obj/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services
+google-services.json
+
+# Mapbox / Secrets
+secrets.xml

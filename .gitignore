@@ -17,7 +17,6 @@ local.properties
 
 # Kotlin
 /build
-*.gradle.kts
 *.kt.dump
 
 # Android Studio

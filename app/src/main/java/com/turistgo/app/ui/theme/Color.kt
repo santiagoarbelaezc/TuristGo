@@ -2,10 +2,17 @@ package com.turistgo.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Paleta personalizada - TuristGo
+val VibrantRed = Color(0xFFE53935) // Rojo más vivo y energético
+val Charcoal = Color(0xFF2D2D2D)
+val Smoke = Color(0xFF8A8A8A)
+val Mist = Color(0xFFF0F0F0)
+val OffWhite = Color(0xFFFAF7F2)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Mantenemos los nombres estándar para compatibilidad
+val Primary = VibrantRed
+val OnPrimary = Color.White
+val Background = OffWhite
+val OnBackground = Charcoal
+val Surface = Mist
+val OnSurface = Charcoal

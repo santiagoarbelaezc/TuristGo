@@ -7,10 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.turistgo.app.ui.navigation.BottomNavigationBar
+import com.turistgo.app.ui.navigation.NavGraph
 import com.turistgo.app.ui.theme.TuristGoTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,9 +20,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TuristGoTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
+                val navController = rememberNavController()
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { BottomNavigationBar(navController) }
+                ) { innerPadding ->
+                    NavMain(
+                        navController = navController, 
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -31,17 +36,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TuristGoTheme {
-        Greeting("Android")
+fun NavMain(
+    navController: androidx.navigation.NavHostController, 
+    modifier: Modifier
+) {
+    // Aplicamos el padding del Scaffold al NavHost para que el contenido no quede debajo del menú
+    androidx.compose.foundation.layout.Box(modifier = modifier) {
+        NavGraph(navController = navController)
     }
 }

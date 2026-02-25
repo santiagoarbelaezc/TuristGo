@@ -2,7 +2,9 @@ package com.turistgo.app.ui.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -29,6 +31,7 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771968044/ChatGPT_Image_24_feb_2026_12_45_26_p.m._f2ztlp.png"
 
@@ -36,17 +39,21 @@ fun LoginScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            // Contenedor redondo para la imagen (Aumentado a 250dp)
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Imagen adaptada (un poco más pequeña para pantallas compactas)
             Box(
                 modifier = Modifier
-                    .size(250.dp)
+                    .size(180.dp) 
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
@@ -61,21 +68,19 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Título de la App
             Text(
                 text = "TuristGo",
-                fontSize = 42.sp,
+                fontSize = 36.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "Descubre tu próxima aventura",
-                fontSize = 16.sp,
+                fontSize = 15.sp,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
-            // Campos de texto...
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -120,11 +125,13 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("¿No tienes cuenta?", color = MaterialTheme.colorScheme.secondary)
+                Text("¿No tienes cuenta?", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
                 TextButton(onClick = { navController.navigate(Screen.Register.route) }) {
-                    Text("Regístrate", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    Text("Regístrate", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 }
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

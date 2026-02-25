@@ -43,10 +43,10 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Contenedor redondo para la imagen (200dp)
+            // Contenedor redondo para la imagen (Aumentado a 250dp)
             Box(
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(250.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center

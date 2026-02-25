@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.turistgo.app.ui.auth.LoginScreen
 import com.turistgo.app.ui.auth.RegisterScreen
+import com.turistgo.app.ui.feed.FeedScreen
+import com.turistgo.app.ui.profile.ProfileScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -28,7 +30,7 @@ fun NavGraph(navController: NavHostController) {
         
         // Pantallas principales con Bottom Nav
         composable(Screen.Feed.route) {
-            PlaceholderScreen("Inicio / Feed")
+            FeedScreen() // Cargamos la pantalla real de Inicio
         }
         composable(Screen.Trips.route) {
             PlaceholderScreen("Mis Viajes")
@@ -36,11 +38,11 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Create.route) {
             PlaceholderScreen("Crear nuevo post")
         }
-        composable(Screen.Saved.route) {
-            PlaceholderScreen("Posts Guardados")
+        composable(Screen.Notifications.route) { // Cambiado de Saved a Notifications
+            PlaceholderScreen("Centro de Notificaciones")
         }
         composable(Screen.Profile.route) {
-            PlaceholderScreen("Mi Perfil")
+            ProfileScreen()
         }
     }
 }

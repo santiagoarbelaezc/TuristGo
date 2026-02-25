@@ -16,7 +16,7 @@ sealed class BottomNavItem(
     object Home : BottomNavItem("Inicio", Screen.Feed.route, Icons.Default.Home)
     object Trips : BottomNavItem("Viajes", Screen.Trips.route, Icons.Default.Map)
     object Create : BottomNavItem("Crear", Screen.Create.route, Icons.Default.Add)
-    object Notifications : BottomNavItem("Notificaciones", Screen.Notifications.route, Icons.Default.Notifications)
+    object Notifications : BottomNavItem("Alertas", Screen.Notifications.route, Icons.Default.Notifications)
     object Profile : BottomNavItem("Perfil", Screen.Profile.route, Icons.Default.Person)
 
     companion object {

@@ -8,12 +8,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun FeedSearchBar(
     query: String,
-    onQueryChange: (String) -> Unit
+    onQueryChange: (String) -> Unit,
+    onFocusChange: (Boolean) -> Unit = {}
 ) {
     OutlinedTextField(
         value = query,
@@ -22,7 +24,8 @@ fun FeedSearchBar(
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 20.dp)
+            .onFocusChanged { onFocusChange(it.isFocused) },
         shape = RoundedCornerShape(16.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(

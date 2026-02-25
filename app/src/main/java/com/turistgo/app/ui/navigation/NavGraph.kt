@@ -13,7 +13,12 @@ import androidx.navigation.compose.composable
 import com.turistgo.app.ui.auth.LoginScreen
 import com.turistgo.app.ui.auth.RegisterScreen
 import com.turistgo.app.ui.feed.FeedScreen
+import com.turistgo.app.ui.notifications.NotificationsScreen
+import com.turistgo.app.ui.post.CreatePostScreen
+import com.turistgo.app.ui.post.PostDetailScreen
 import com.turistgo.app.ui.profile.ProfileScreen
+import com.turistgo.app.ui.profile.SettingsScreen
+import com.turistgo.app.ui.route.RouteListScreen
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -30,19 +35,46 @@ fun NavGraph(navController: NavHostController) {
         
         // Pantallas principales con Bottom Nav
         composable(Screen.Feed.route) {
-            FeedScreen() // Cargamos la pantalla real de Inicio
+            FeedScreen { postId ->
+                navController.navigate("post_detail/$postId")
+            }
         }
         composable(Screen.Trips.route) {
-            PlaceholderScreen("Mis Viajes")
+            RouteListScreen()
         }
         composable(Screen.Create.route) {
-            PlaceholderScreen("Crear nuevo post")
+            CreatePostScreen()
         }
-        composable(Screen.Notifications.route) { // Cambiado de Saved a Notifications
-            PlaceholderScreen("Centro de Notificaciones")
+        composable(Screen.Notifications.route) {
+            NotificationsScreen()
         }
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(
+                onNavigateToSettings = {
+                    navController.navigate("settings")
+                },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("settings") {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onLogout = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("post_detail/{postId}") { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")
+            PostDetailScreen(postId) {
+                navController.popBackStack()
+            }
         }
     }
 }

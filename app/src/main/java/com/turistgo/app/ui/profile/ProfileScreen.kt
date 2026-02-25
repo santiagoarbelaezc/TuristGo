@@ -3,13 +3,12 @@ package com.turistgo.app.ui.profile
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,34 +18,38 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onNavigateToSettings: () -> Unit, onLogout: () -> Unit) {
     val profileImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
-    Scaffold(
-        topBar = {
-            CenterAlignedTopAppBar(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Custom TopBar Area
+        CenterAlignedTopAppBar(
                 title = { Text("Mi Perfil", fontWeight = FontWeight.Bold) },
                 actions = {
-                    IconButton(onClick = { /* Settings */ }) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Configuración")
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        }
-    ) { paddingValues ->
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
+        )
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally,
             contentPadding = PaddingValues(bottom = 24.dp)
@@ -107,16 +110,84 @@ fun ProfileScreen() {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Estadísticas
+                // Estadísticas Dashboard
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = "Viajes", value = "12")
-                    StatItem(label = "Fotos", value = "48")
-                    StatItem(label = "Puntos", value = "1.2k")
+                    StatItem(label = "Activas", value = "5")
+                    StatItem(label = "Resueltas", value = "8")
+                    StatItem(label = "Pendientes", value = "2")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Reputación e Insignias
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Text(
+                        text = "Mi Reputación",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Nivel 2: Explorador", fontWeight = FontWeight.SemiBold)
+                                Text("1,250 pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            LinearProgressIndicator(
+                                progress = { 0.65f },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(8.dp)
+                                    .clip(CircleShape),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "Faltan 250 pts para Nivel 3: Guía",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = "Mis Insignias",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        BadgeItem("Primera", Icons.Default.Public)
+                        BadgeItem("10 Check", Icons.Default.Verified)
+                        BadgeItem("Destacado", Icons.Default.Star)
+                        BadgeItem("Coment.", Icons.Default.Chat)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -124,25 +195,92 @@ fun ProfileScreen() {
 
             // Opciones del Menú
             item {
-                ProfileMenuItem(icon = Icons.Default.Star, title = "Mis Reseñas")
+                ProfileMenuItem(icon = Icons.Default.Person, title = "Editar Datos Personales")
                 ProfileMenuItem(icon = Icons.Default.Bookmark, title = "Favoritos")
-                ProfileMenuItem(icon = Icons.Default.Map, title = "Historial de Rutas")
+                ProfileMenuItem(icon = Icons.Default.BarChart, title = "Estadísticas Detalladas")
                 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceVariant)
                 
                 Button(
-                    onClick = { /* Logout */ },
+                    onClick = onLogout,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.error
+                        contentColor = MaterialTheme.colorScheme.onBackground
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
                 }
+
+                // Eliminamos el botón de aquí ya que se movió a ajustes
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Nueva Sección: Mis publicaciones
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Text(
+                        text = "Mis publicaciones",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    
+                    val myPosts = listOf(0, 1, 2)
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(bottom = 16.dp)
+                    ) {
+                        items(myPosts) { index ->
+                            MyPostItem(index)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MyPostItem(index: Int) {
+    val labels = listOf("Avistamiento de aves", "Camping en el Ruiz", "Café en Salento")
+    val images = listOf(
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg",
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036016/Nevado_del_Ruiz_by_Edgar_mi099q.png",
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg"
+    )
+
+    Card(
+        modifier = Modifier.size(140.dp, 180.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column {
+            AsyncImage(
+                model = images[index % images.size],
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(110.dp),
+                contentScale = ContentScale.Crop
+            )
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = labels[index % labels.size],
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                Text(
+                    text = "Verificado",
+                    fontSize = 10.sp,
+                    color = Color(0xFF2E7D32)
+                )
             }
         }
     }
@@ -161,6 +299,30 @@ fun StatItem(label: String, value: String) {
             text = label,
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.secondary
+        )
+    }
+}
+
+@Composable
+fun BadgeItem(label: String, icon: ImageVector) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Surface(
+            modifier = Modifier.size(60.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(top = 4.dp),
+            textAlign = TextAlign.Center
         )
     }
 }

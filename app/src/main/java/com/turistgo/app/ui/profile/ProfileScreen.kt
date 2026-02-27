@@ -1,6 +1,7 @@
 package com.turistgo.app.ui.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -22,10 +23,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import androidx.navigation.NavController
+import com.turistgo.app.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onNavigateToSettings: () -> Unit, onLogout: () -> Unit) {
+fun ProfileScreen(
+    navController: NavController,
+    onNavigateToSettings: () -> Unit, 
+    onLogout: () -> Unit
+) {
+    // Import needed for NavController
+    // (Already imported or handled by NavGraph)
     val profileImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
     Column(
@@ -198,6 +207,11 @@ fun ProfileScreen(onNavigateToSettings: () -> Unit, onLogout: () -> Unit) {
                 ProfileMenuItem(icon = Icons.Default.Person, title = "Editar Datos Personales")
                 ProfileMenuItem(icon = Icons.Default.Bookmark, title = "Favoritos")
                 ProfileMenuItem(icon = Icons.Default.BarChart, title = "Estadísticas Detalladas")
+                ProfileMenuItem(
+                    icon = Icons.Default.Security, 
+                    title = "Panel de Moderador",
+                    onClick = { navController.navigate(Screen.ModeratorDashboard.route) }
+                )
                 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceVariant)
                 
@@ -237,7 +251,9 @@ fun ProfileScreen(onNavigateToSettings: () -> Unit, onLogout: () -> Unit) {
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
                         items(myPosts) { index ->
-                            MyPostItem(index)
+                            MyPostItem(index) {
+                                navController.navigate(Screen.EditPost.createRoute(index.toString()))
+                            }
                         }
                     }
                 }
@@ -247,7 +263,7 @@ fun ProfileScreen(onNavigateToSettings: () -> Unit, onLogout: () -> Unit) {
 }
 
 @Composable
-fun MyPostItem(index: Int) {
+fun MyPostItem(index: Int, onClick: () -> Unit = {}) {
     val labels = listOf("Avistamiento de aves", "Camping en el Ruiz", "Café en Salento")
     val images = listOf(
         "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg",
@@ -256,7 +272,9 @@ fun MyPostItem(index: Int) {
     )
 
     Card(
-        modifier = Modifier.size(140.dp, 180.dp),
+        modifier = Modifier
+            .size(140.dp, 180.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -328,9 +346,9 @@ fun BadgeItem(label: String, icon: ImageVector) {
 }
 
 @Composable
-fun ProfileMenuItem(icon: ImageVector, title: String) {
+fun ProfileMenuItem(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
     Surface(
-        onClick = { /* Navigate */ },
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 4.dp),

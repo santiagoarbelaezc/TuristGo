@@ -19,37 +19,71 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Solo mostramos la barra si no estamos en Login o Register
-    if (currentRoute != Screen.Login.route && currentRoute != Screen.Register.route) {
+    // Solo mostramos la barra si no estamos en Login o Register o ForgotPassword o ReviewPost o EditPost
+    val hideBars = listOf(
+        Screen.Login.route, 
+        Screen.Register.route, 
+        Screen.ForgotPassword.route, 
+        Screen.ResetPassword.route,
+        Screen.ReviewPost.route,
+        Screen.EditPost.route
+    )
+    if (currentRoute !in hideBars && currentRoute != null) {
+        
+        // Determinar si estamos en modo moderador
+        val isModeratorMode = currentRoute == Screen.ModeratorDashboard.route || 
+                             currentRoute == Screen.UserManagement.route ||
+                             currentRoute == Screen.ModeratorProfile.route
+
         NavigationBar(
-            modifier = Modifier
-                .navigationBarsPadding(), // Ajuste sobre los botones del sistema
+            modifier = Modifier.navigationBarsPadding(),
             containerColor = MaterialTheme.colorScheme.surface,
             tonalElevation = 8.dp
         ) {
-            BottomNavItem.items.forEach { item ->
-                NavigationBarItem(
-                    icon = { Icon(item.icon, contentDescription = item.title) },
-                    label = { Text(item.title) },
-                    selected = currentRoute == item.route,
-                    onClick = {
-                        navController.navigate(item.route) {
-                            // Evita múltiples copias de la misma pantalla en el stack
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
+            if (isModeratorMode) {
+                // Barra de Moderador
+                ModeratorBottomNavItem.items.forEach { item ->
+                    NavigationBarItem(
+                        icon = { Icon(item.icon, contentDescription = item.title) },
+                        label = { Text(item.title) },
+                        selected = currentRoute == item.route,
+                        onClick = {
+                            navController.navigate(item.route) {
+                                popUpTo(Screen.ModeratorDashboard.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor = MaterialTheme.colorScheme.secondary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.secondary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                        )
                     )
-                )
+                }
+            } else {
+                // Barra Normal
+                BottomNavItem.items.forEach { item ->
+                    NavigationBarItem(
+                        icon = { Icon(item.icon, contentDescription = item.title) },
+                        label = { Text(item.title) },
+                        selected = currentRoute == item.route,
+                        onClick = {
+                            navController.navigate(item.route) {
+                                navController.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) { saveState = true }
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.secondary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    )
+                }
             }
         }
     }

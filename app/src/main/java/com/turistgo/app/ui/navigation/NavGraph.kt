@@ -32,6 +32,29 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Register.route) {
             RegisterScreen(navController)
         }
+        composable(Screen.ForgotPassword.route) {
+            com.turistgo.app.ui.auth.ForgotPasswordScreen(navController)
+        }
+        composable(Screen.ResetPassword.route) {
+            com.turistgo.app.ui.auth.ResetPasswordScreen(navController)
+        }
+        composable(Screen.ModeratorDashboard.route) {
+            com.turistgo.app.ui.moderator.ModeratorDashboard(navController)
+        }
+        composable(Screen.ReviewPost.route) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")
+            com.turistgo.app.ui.moderator.ReviewPostScreen(navController, postId)
+        }
+        composable(Screen.UserManagement.route) {
+            com.turistgo.app.ui.moderator.UserManagementScreen(navController)
+        }
+        composable(Screen.ModeratorProfile.route) {
+            com.turistgo.app.ui.moderator.ModeratorProfileScreen(navController)
+        }
+        composable(Screen.EditPost.route) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getString("postId")
+            com.turistgo.app.ui.post.EditPostScreen(navController, postId)
+        }
         
         // Pantallas principales con Bottom Nav
         composable(Screen.Feed.route) {
@@ -50,6 +73,7 @@ fun NavGraph(navController: NavHostController) {
         }
         composable(Screen.Profile.route) {
             ProfileScreen(
+                navController = navController,
                 onNavigateToSettings = {
                     navController.navigate("settings")
                 },

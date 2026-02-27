@@ -23,3 +23,17 @@ sealed class BottomNavItem(
         val items = listOf(Home, Trips, Create, Notifications, Profile)
     }
 }
+
+sealed class ModeratorBottomNavItem(
+    val title: String,
+    val route: String,
+    val icon: ImageVector
+) {
+    object Dashboard : ModeratorBottomNavItem("Dashboard", Screen.ModeratorDashboard.route, Icons.Default.Home)
+    object Users : ModeratorBottomNavItem("Usuarios", Screen.UserManagement.route, Icons.Default.Person)
+    object Profile : ModeratorBottomNavItem("Perfil", Screen.ModeratorProfile.route, Icons.Default.Person)
+
+    companion object {
+        val items = listOf(Dashboard, Users, Profile)
+    }
+}

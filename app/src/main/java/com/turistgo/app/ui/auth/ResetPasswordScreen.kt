@@ -1,17 +1,20 @@
 package com.turistgo.app.ui.auth
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -19,16 +22,17 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(
+fun ResetPasswordScreen(
     navController: NavController,
-    viewModel: ForgotPasswordViewModel = viewModel()
+    viewModel: ResetPasswordViewModel = viewModel()
 ) {
-    val email by viewModel.email
+    val newPassword by viewModel.newPassword
+    val confirmPassword by viewModel.confirmPassword
     val isLoading by viewModel.isLoading
-    val message by viewModel.message
-    val isSuccess by viewModel.isSuccess
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
@@ -41,7 +45,7 @@ fun ForgotPasswordScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Recuperar Contraseña") },
+                title = { Text("Nueva Contraseña") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
@@ -58,44 +62,70 @@ fun ForgotPasswordScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "¡No te preocupes!",
+                text = "Restablecer Contraseña",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.",
+                text = "Ingresa tu nueva contraseña para acceder a tu cuenta.",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 16.dp),
-                textAlign = TextAlign.Center
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
 
             OutlinedTextField(
-                value = email,
-                onValueChange = { viewModel.onEmailChange(it) },
-                label = { Text("Correo electrónico") },
-                leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                value = newPassword,
+                onValueChange = { viewModel.onNewPasswordChange(it) },
+                label = { Text("Nueva Contraseña") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                    IconButton(onClick = { passwordVisible = !passwordVisible }, enabled = !isLoading) {
+                        Icon(imageVector = image, contentDescription = null)
+                    }
+                },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
-                enabled = !isLoading && !isSuccess
+                enabled = !isLoading
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { viewModel.onConfirmPasswordChange(it) },
+                label = { Text("Confirmar Contraseña") },
+                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                singleLine = true,
+                enabled = !isLoading
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = { viewModel.sendPasswordReset() },
+                onClick = {
+                    viewModel.resetPassword {
+                        navController.popBackStack()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = MaterialTheme.shapes.medium,
-                enabled = !isLoading && !isSuccess
+                enabled = !isLoading
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -104,24 +134,7 @@ fun ForgotPasswordScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Enviar enlace", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            AnimatedVisibility(visible = message != null) {
-                Text(
-                    text = message ?: "",
-                    color = if (isSuccess) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(top = 16.dp),
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            if (isSuccess) {
-                Spacer(modifier = Modifier.height(24.dp))
-                TextButton(onClick = { navController.popBackStack() }) {
-                    Text("Volver al inicio de sesión", fontWeight = FontWeight.Bold)
+                    Text("Actualizar Contraseña", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -4,17 +4,18 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
-    private val _email = mutableStateOf("")
-    val email: State<String> = _email
+class ResetPasswordViewModel : ViewModel() {
+    private val _newPassword = mutableStateOf("")
+    val newPassword: State<String> = _newPassword
 
-    private val _password = mutableStateOf("")
-    val password: State<String> = _password
+    private val _confirmPassword = mutableStateOf("")
+    val confirmPassword: State<String> = _confirmPassword
 
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
@@ -22,22 +23,26 @@ class LoginViewModel : ViewModel() {
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
-    fun onEmailChange(newValue: String) { _email.value = newValue }
-    fun onPasswordChange(newValue: String) { _password.value = newValue }
+    fun onNewPasswordChange(newValue: String) { _newPassword.value = newValue }
+    fun onConfirmPasswordChange(newValue: String) { _confirmPassword.value = newValue }
 
-    fun login(onSuccess: (Boolean) -> Unit) {
-        if (_email.value.isEmpty() || _password.value.isEmpty()) {
+    fun resetPassword(onSuccess: () -> Unit) {
+        if (_newPassword.value.isEmpty() || _confirmPassword.value.isEmpty()) {
             _snackbarMessage.value = "Por favor, completa todos los campos"
+            return
+        }
+
+        if (_newPassword.value != _confirmPassword.value) {
+            _snackbarMessage.value = "Las contraseñas no coinciden"
             return
         }
 
         viewModelScope.launch {
             _isLoading.value = true
-            // Simulación de delay de red
-            kotlinx.coroutines.delay(1000)
+            delay(2000)
             
-            val isAdmin = _email.value == "admin" && _password.value == "admin"
-            onSuccess(isAdmin)
+            _snackbarMessage.value = "Contraseña actualizada correctamente"
+            onSuccess()
             
             _isLoading.value = false
         }

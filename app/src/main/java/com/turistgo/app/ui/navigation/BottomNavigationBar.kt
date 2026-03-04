@@ -19,8 +19,9 @@ fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Solo mostramos la barra si no estamos en Login o Register o ForgotPassword o ReviewPost o EditPost
+    // Solo mostramos la barra si no estamos en Home, Login, Register, ForgotPassword, ReviewPost o EditPost
     val hideBars = listOf(
+        Screen.Home.route,
         Screen.Login.route, 
         Screen.Register.route, 
         Screen.ForgotPassword.route, 

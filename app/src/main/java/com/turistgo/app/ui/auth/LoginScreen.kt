@@ -1,6 +1,8 @@
 package com.turistgo.app.ui.auth
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -15,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -98,7 +101,7 @@ fun LoginScreen(
                         Surface(
                             modifier = Modifier.size(140.dp),
                             shape = CircleShape,
-                            color = Color.Transparent,
+                            color = MaterialTheme.colorScheme.background,
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             InPlaceVideoPlayer(
@@ -112,13 +115,19 @@ fun LoginScreen(
                         }
                     }
 
-                    // La imagen se mantiene encima hasta que el video esté listo para reproducirse
-                    if (!showVideoOverlay || !isVideoReady) {
+                    // La imagen se desvanece con fade cuando el video está listo
+                    val imageAlpha by animateFloatAsState(
+                        targetValue = if (!showVideoOverlay || !isVideoReady) 1f else 0f,
+                        animationSpec = tween(500),
+                        label = "imageAlpha"
+                    )
+                    if (imageAlpha > 0f) {
                         AsyncImage(
                             model = imageUrl,
                             contentDescription = "Logo de TuristGo",
                             modifier = Modifier
                                 .fillMaxSize()
+                                .alpha(imageAlpha)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null

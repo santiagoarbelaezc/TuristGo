@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import com.turistgo.app.ui.auth.LoginScreen
 import com.turistgo.app.ui.auth.RegisterScreen
 import com.turistgo.app.ui.feed.FeedScreen
+import com.turistgo.app.ui.home.HomeScreen
 import com.turistgo.app.ui.notifications.NotificationsScreen
 import com.turistgo.app.ui.post.CreatePostScreen
 import com.turistgo.app.ui.post.PostDetailScreen
@@ -24,8 +25,11 @@ import com.turistgo.app.ui.route.RouteListScreen
 fun NavGraph(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Login.route
+        startDestination = Screen.Home.route
     ) {
+        composable(Screen.Home.route) {
+            HomeScreen(navController)
+        }
         composable(Screen.Login.route) {
             LoginScreen(navController)
         }

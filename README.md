@@ -85,7 +85,11 @@ ui/
 
 ---
 
-## 👨‍💻 **Desarrollador**
+## 👨‍💻 **Desarrolladores**
+
+Eliana Hernandez 
+Juan David Gutierrez
+
 <div align="center">
 Santiago Arbelaez Contreras
 

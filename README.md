@@ -65,6 +65,7 @@ ui/
 ├── components/     # Composables reutilizables (Cards, Chips, etc.)
 ├── auth/           # Login, Registro, Recuperación de contraseña
 ├── feed/           # Feed principal (Lista/Mapa)
+├── home/           # Pantalla de inicio
 ├── post/           # Detalle, Creación y Edición de Posts
 ├── profile/        # Perfil, Estadísticas e Insignias
 ├── notifications/  # Centro de notificaciones
@@ -77,11 +78,10 @@ ui/
 
 ## 🛠️ **Configuración Local**
 
-1.  Clona el repositorio.
-2.  Añade tu `google-services.json` en la carpeta `app/`.
-3.  Configura tus claves de API (Mapbox, Gemini) en `secrets.properties`.
-4.  Sincroniza el proyecto con Gradle y ejecuta en un emulador o dispositivo Android.
-
+1. Clona el repositorio.
+2. Añade tu `google-services.json` en la carpeta `app/`.
+3. Configura tus claves de API (Mapbox, Gemini) en `secrets.properties`.
+4. Sincroniza el proyecto con Gradle y ejecuta en un emulador o dispositivo Android.
 
 ---
 

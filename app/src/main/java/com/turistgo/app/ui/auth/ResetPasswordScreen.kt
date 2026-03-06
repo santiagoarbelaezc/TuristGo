@@ -25,38 +25,72 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.turistgo.app.ui.navigation.Screen
 
+/**
+ * Pantalla para restablecer la contraseña mediante código de verificación.
+ * 
+ * Buenas prácticas implementadas:
+ * - Separación de responsabilidades (UI en Composable, lógica en ViewModel)
+ * - Manejo de estados de carga y errores
+ * - Feedback visual al usuario
+ * - Navegación limpia con popUpTo
+ * - Prevención de interacciones durante carga
+ * - Manejo de eventos con LaunchedEffect
+ * 
+ * @param navController Controlador de navegación para manejar la transición entre pantallas
+ * @param viewModel ViewModel que contiene la lógica de negocio para restablecer contraseña
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordScreen(
     navController: NavController,
     viewModel: ResetPasswordViewModel = viewModel()
 ) {
-    val code            by viewModel.code
-    val newPassword     by viewModel.newPassword
+    // ==================== ESTADO DEL VIEWMODEL ====================
+    // Delegación para observar cambios en tiempo real
+    val code by viewModel.code
+    val newPassword by viewModel.newPassword
     val confirmPassword by viewModel.confirmPassword
-    val isLoading       by viewModel.isLoading
-    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val isLoading by viewModel.isLoading
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState() // Flujo de mensajes UI
+    
+    // ==================== ESTADO LOCAL DE UI ====================
+    // Estados que solo afectan la UI, no la lógica de negocio
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
-
-    var passwordVisible        by remember { mutableStateOf(false) }
+    
+    // Estados para controlar visibilidad de contraseñas
+    var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    // ==================== EFECTOS SECUNDARIOS ====================
+    // LaunchedEffect para manejar eventos de Snackbar de manera reactiva
     LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearSnackbarMessage()
+        snackbarMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSnackbarMessage() // Limpiar mensaje después de mostrarlo
         }
     }
 
+    // ==================== ESTRUCTURA UI ====================
+    // Scaffold proporciona la estructura base con soporte para Snackbar y TopBar
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
+            // TopAppBar personalizado con navegación hacia atrás
             TopAppBar(
                 title = { Text("Nueva Contraseña") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                    IconButton(
+                        onClick = { 
+                            // Navegación segura hacia atrás
+                            navController.popBackStack() 
+                        },
+                        enabled = !isLoading // Deshabilitado durante carga
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Atrás"
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -65,25 +99,31 @@ fun ResetPasswordScreen(
                 )
             )
         }
-    ) { padding ->
+    ) { paddingValues ->
+        // Contenido principal con scroll y padding
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(paddingValues) // Padding del Scaffold
                 .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(scrollState)
-                .padding(24.dp),
+                .verticalScroll(scrollState) // Scroll para pantallas pequeñas
+                .padding(24.dp), // Padding interno
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // Espaciado superior
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ==================== ENCABEZADOS ====================
+            // Título principal con estilos de Material Design
             Text(
                 text = "Restablecer Contraseña",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+            
+            // Texto descriptivo para guiar al usuario
             Text(
                 text = "Ingresa el código que recibiste en tu correo y define tu nueva contraseña.",
                 fontSize = 14.sp,
@@ -92,7 +132,8 @@ fun ResetPasswordScreen(
                 textAlign = TextAlign.Center
             )
 
-            // Código de verificación
+            // ==================== CAMPO CÓDIGO ====================
+            // Campo para código de verificación con ícono
             OutlinedTextField(
                 value = code,
                 onValueChange = { viewModel.onCodeChange(it) },
@@ -102,24 +143,37 @@ fun ResetPasswordScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
-                enabled = !isLoading
+                enabled = !isLoading // Deshabilitado durante carga
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Nueva Contraseña
+            // ==================== CAMPO NUEVA CONTRASEÑA ====================
+            // Campo con toggle de visibilidad para mejor UX
             OutlinedTextField(
                 value = newPassword,
                 onValueChange = { viewModel.onNewPasswordChange(it) },
                 label = { Text("Nueva Contraseña") },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                 trailingIcon = {
-                    val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }, enabled = !isLoading) {
+                    // Toggle de visibilidad con estado local
+                    val image = if (passwordVisible) 
+                        Icons.Default.Visibility 
+                    else 
+                        Icons.Default.VisibilityOff
+                    
+                    IconButton(
+                        onClick = { passwordVisible = !passwordVisible },
+                        enabled = !isLoading
+                    ) {
                         Icon(imageVector = image, contentDescription = null)
                     }
                 },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                // Transformación visual según visibilidad
+                visualTransformation = if (passwordVisible) 
+                    VisualTransformation.None 
+                else 
+                    PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
@@ -128,19 +182,30 @@ fun ResetPasswordScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Confirmar Contraseña
+            // ==================== CAMPO CONFIRMAR CONTRASEÑA ====================
+            // Similar al anterior pero para confirmación
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { viewModel.onConfirmPasswordChange(it) },
                 label = { Text("Confirmar Contraseña") },
                 leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                 trailingIcon = {
-                    val image = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }, enabled = !isLoading) {
+                    val image = if (confirmPasswordVisible) 
+                        Icons.Default.Visibility 
+                    else 
+                        Icons.Default.VisibilityOff
+                    
+                    IconButton(
+                        onClick = { confirmPasswordVisible = !confirmPasswordVisible },
+                        enabled = !isLoading
+                    ) {
                         Icon(imageVector = image, contentDescription = null)
                     }
                 },
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (confirmPasswordVisible) 
+                    VisualTransformation.None 
+                else 
+                    PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 singleLine = true,
@@ -149,10 +214,13 @@ fun ResetPasswordScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón principal
+            // ==================== BOTÓN PRINCIPAL ====================
+            // Botón de acción principal con estado de carga
             Button(
                 onClick = {
+                    // Callback que maneja la navegación post-éxito
                     viewModel.resetPassword {
+                        // Navegación limpia: elimina ForgotPassword de la pila
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.ForgotPassword.route) { inclusive = true }
                         }
@@ -162,8 +230,9 @@ fun ResetPasswordScreen(
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = MaterialTheme.shapes.medium,
-                enabled = !isLoading
+                enabled = !isLoading // Deshabilitado durante carga
             ) {
+                // Mostrar indicador de carga o texto según estado
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
@@ -171,21 +240,34 @@ fun ResetPasswordScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Text("Actualizar Contraseña", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Actualizar Contraseña", 
+                        fontSize = 16.sp, 
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // ==================== ENLACE SECUNDARIO ====================
+            // Opción alternativa para volver al login
             TextButton(
-                onClick = { navController.navigate(Screen.Login.route) {
-                    popUpTo(Screen.ForgotPassword.route) { inclusive = true }
-                }},
+                onClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.ForgotPassword.route) { inclusive = true }
+                    }
+                },
                 enabled = !isLoading
             ) {
-                Text("Volver al inicio de sesión", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text(
+                    "Volver al inicio de sesión", 
+                    color = MaterialTheme.colorScheme.primary, 
+                    fontWeight = FontWeight.Bold
+                )
             }
 
+            // Espaciado inferior
             Spacer(modifier = Modifier.height(32.dp))
         }
     }

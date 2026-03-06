@@ -65,6 +65,7 @@ ui/
 ├── components/     # Composables reutilizables (Cards, Chips, etc.)
 ├── auth/           # Login, Registro, Recuperación de contraseña
 ├── feed/           # Feed principal (Lista/Mapa)
+├── home/           # Pantalla de inicio
 ├── post/           # Detalle, Creación y Edición de Posts
 ├── profile/        # Perfil, Estadísticas e Insignias
 ├── notifications/  # Centro de notificaciones
@@ -77,23 +78,34 @@ ui/
 
 ## 🛠️ **Configuración Local**
 
-1.  Clona el repositorio.
-2.  Añade tu `google-services.json` en la carpeta `app/`.
-3.  Configura tus claves de API (Mapbox, Gemini) en `secrets.properties`.
-4.  Sincroniza el proyecto con Gradle y ejecuta en un emulador o dispositivo Android.
-
+1. Clona el repositorio.
+2. Añade tu `google-services.json` en la carpeta `app/`.
+3. Configura tus claves de API (Mapbox, Gemini) en `secrets.properties`.
+4. Sincroniza el proyecto con Gradle y ejecuta en un emulador o dispositivo Android.
 
 ---
 
-## 👨‍💻 **Desarrollador**
-<div align="center">
-Santiago Arbelaez Contreras
+## 👨‍💻 **Desarrolladores**
 
+<div align="center">
+
+### Santiago Arbelaez Contreras
 Junior Full Stack Developer
 
 Estudiante de Ingeniería de Sistemas – Universidad del Quindío
 
-<br> <a href="https://github.com/santiagoarbelaezc"> <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" /> </a> <img width="10" /> <a href="https://www.linkedin.com/in/santiago-arbelaez-contreras-9830b5290/"> <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" /> </a> <img width="10" /> <a href="https://portfolio-santiagoa.web.app/portfolio"> <img src="https://img.shields.io/badge/Portfolio-6C63FF?style=for-the-badge&logo=sparkles&logoColor=white" /> </a>
+<a href="https://github.com/santiagoarbelaezc"> <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" /> </a> <img width="10" /> <a href="https://www.linkedin.com/in/santiago-arbelaez-contreras-9830b5290/"> <img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" /> </a> <img width="10" /> <a href="https://portfolio-santiagoa.web.app/portfolio"> <img src="https://img.shields.io/badge/Portfolio-6C63FF?style=for-the-badge&logo=sparkles&logoColor=white" /> </a>
+
+---
+
+### Eliana Hernandez
+Estudiante de Ingeniería de Sistemas – Universidad del Quindío
+
+---
+
+### Juan David Gutierrez
+Estudiante de Ingeniería de Sistemas – Universidad del Quindío
+
 </div>
 
 <div align="center">

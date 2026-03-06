@@ -9,9 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.turistgo.app.data.GeminiService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +40,10 @@ fun ReviewPostScreen(
     var showRejectDialog by remember { mutableStateOf(false) }
     var rejectionReason by remember { mutableStateOf("") }
 
+    // AI Summary State
+    var aiSummary by remember { mutableStateOf<String?>(null) }
+    var isLoadingAi by remember { mutableStateOf(false) }
+
     if (post == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Publicación no encontrada")
@@ -48,16 +51,32 @@ fun ReviewPostScreen(
         return
     }
 
+    // Trigger AI analysis on load
+    LaunchedEffect(post.id) {
+        isLoadingAi = true
+        aiSummary = GeminiService.generateModeratorSummary(
+            title = post.title,
+            description = "Publicación de tipo turístico sobre ${post.title} en Colombia",
+            category = "General",
+            author = post.author
+        )
+        isLoadingAi = false
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text("Revisar Publicación") },
+            CenterAlignedTopAppBar(
+                title = { Text("Revisar Publicación", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
@@ -66,7 +85,7 @@ fun ReviewPostScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
@@ -95,14 +114,66 @@ fun ReviewPostScreen(
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // AI Summary Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Análisis IA (Gemini)",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    if (isLoadingAi) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Analizando publicación con IA...",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = aiSummary ?: "No se pudo generar el análisis.",
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Acciones
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Botón Aprobar
                 Button(
                     onClick = {
                         viewModel.approvePost(post.id)
@@ -120,7 +191,6 @@ fun ReviewPostScreen(
                     Text("Aprobar")
                 }
 
-                // Botón Rechazar
                 Button(
                     onClick = { showRejectDialog = true },
                     modifier = Modifier.weight(1f),
@@ -135,7 +205,6 @@ fun ReviewPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botón Marcar como Resuelto
             OutlinedButton(
                 onClick = {
                     viewModel.resolvePost(post.id)

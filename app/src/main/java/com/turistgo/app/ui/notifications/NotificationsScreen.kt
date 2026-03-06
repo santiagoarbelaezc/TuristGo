@@ -1,6 +1,7 @@
 package com.turistgo.app.ui.notifications
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,13 +34,15 @@ enum class NotificationType {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen() {
-    val notifications = listOf(
+    val initialNotifications = listOf(
         Notification(1, "Nueva publicación en tu zona", "Se ha reportado una zona segura en el Valle del Cocora.", "Hace 5 min", NotificationType.NEW_POST, false),
         Notification(2, "Publicación Verificada", "¡Felicidades! Tu publicación en Cartagena ha sido verificada.", "Hace 1 hora", NotificationType.VERIFICATION, true),
         Notification(3, "Nuevo Logro Alcanzado", "Has ganado la insignia 'Primer Explorador'.", "Hace 3 horas", NotificationType.REPUTATION, false),
         Notification(4, "Recordatorio de Seguridad", "Revisa las nuevas pautas para el senderismo en época de lluvias.", "Hace 1 día", NotificationType.SYSTEM, true),
         Notification(5, "Alguien comentó tu post", "Santiago comentó: '¡Excelente información, gracias!'", "Hace 2 días", NotificationType.NEW_POST, true)
     )
+    
+    var notifications by remember { mutableStateOf(initialNotifications) }
 
     Column(
         modifier = Modifier
@@ -49,8 +52,12 @@ fun NotificationsScreen() {
         TopAppBar(
             title = { Text("Notificaciones", fontWeight = FontWeight.Bold) },
             actions = {
-                TextButton(onClick = { /* Mark all read */ }) {
-                    Text("Leer todo")
+                if (notifications.any { !it.isRead }) {
+                    TextButton(onClick = { 
+                        notifications = notifications.map { it.copy(isRead = true) }
+                    }) {
+                        Text("Leer todo")
+                    }
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
@@ -60,16 +67,24 @@ fun NotificationsScreen() {
         )
 
         if (notifications.isEmpty()) {
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
-                Text("No tienes notificaciones", color = MaterialTheme.colorScheme.secondary)
+            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.NotificationsNone, null, Modifier.size(64.dp), MaterialTheme.colorScheme.surfaceVariant)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("No tienes notificaciones", color = MaterialTheme.colorScheme.secondary)
+                }
             }
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(notifications) { notification ->
-                    NotificationItem(notification)
+                items(notifications, key = { notification -> notification.id }) { notification ->
+                    NotificationItem(notification) {
+                        notifications = notifications.map { n ->
+                            if (n.id == notification.id) n.copy(isRead = true) else n
+                        }
+                    }
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -81,7 +96,7 @@ fun NotificationsScreen() {
 }
 
 @Composable
-fun NotificationItem(notification: Notification) {
+fun NotificationItem(notification: Notification, onClick: () -> Unit) {
     val icon = when (notification.type) {
         NotificationType.NEW_POST -> Icons.Default.Map
         NotificationType.VERIFICATION -> Icons.Default.Verified
@@ -106,6 +121,7 @@ fun NotificationItem(notification: Notification) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .background(if (notification.isRead) Color.Transparent else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
             .padding(20.dp),
         verticalAlignment = Alignment.Top

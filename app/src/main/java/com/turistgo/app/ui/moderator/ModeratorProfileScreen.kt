@@ -32,35 +32,36 @@ fun ModeratorProfileScreen(navController: NavController) {
     val adminEmail = "admin@turistgo.com"
     val adminImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772044271/turistgo-logo_evi36h.png" // O una imagen de admin
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        CenterAlignedTopAppBar(
-            title = { Text("Perfil de Moderador", fontWeight = FontWeight.Bold) },
-            actions = {
-                IconButton(onClick = { 
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Perfil de Moderador", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = { 
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
                     }
-                }) {
-                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
-                }
-            },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        )
-
+        }
+    ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(MaterialTheme.colorScheme.background),
             horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 24.dp)
+            contentPadding = PaddingValues(bottom = 32.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(24.dp))
-                
+                Spacer(modifier = Modifier.height(32.dp))
                 // Foto de Perfil Admin
                 Box(contentAlignment = Alignment.BottomEnd) {
                     AsyncImage(
@@ -75,7 +76,8 @@ fun ModeratorProfileScreen(navController: NavController) {
                     Surface(
                         modifier = Modifier.size(32.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        shadowElevation = 4.dp
                     ) {
                         Icon(
                             imageVector = Icons.Default.Security,
@@ -86,7 +88,7 @@ fun ModeratorProfileScreen(navController: NavController) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = adminName,
@@ -99,7 +101,7 @@ fun ModeratorProfileScreen(navController: NavController) {
                     color = MaterialTheme.colorScheme.secondary
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // Estadísticas de Moderación
                 Row(
@@ -113,7 +115,7 @@ fun ModeratorProfileScreen(navController: NavController) {
                     ModeratorStat(label = "Reportes", value = "12")
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // Opciones de Administración
                 Column(

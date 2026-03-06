@@ -8,8 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -124,18 +123,7 @@ fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
             if (isSearchActive) {
                 SearchContent()
             } else if (isMapView) {
-                // Placeholder para Mapa
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Vista de Mapa seleccionada", fontWeight = FontWeight.SemiBold)
-                        Text("Aquí se mostrarían las publicaciones cercanas", color = MaterialTheme.colorScheme.secondary)
-                    }
-                }
+                MapPlaceholder(destinations)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -160,6 +148,104 @@ fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
                         Spacer(modifier = Modifier.height(20.dp))
                     }
                 }
+            }
+        }
+    }
+}
+@Composable
+fun MapPlaceholder(destinations: List<Destination>) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF5F5F5)),
+        contentAlignment = Alignment.Center
+    ) {
+        // Grid pattern
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            val step = 80.dp.toPx()
+            for (i in 0..size.width.toInt() step step.toInt()) {
+                drawLine(
+                    color = Color.LightGray.copy(alpha = 0.3f),
+                    start = androidx.compose.ui.geometry.Offset(i.toFloat(), 0f),
+                    end = androidx.compose.ui.geometry.Offset(i.toFloat(), size.height),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+            for (j in 0..size.height.toInt() step step.toInt()) {
+                drawLine(
+                    color = Color.LightGray.copy(alpha = 0.3f),
+                    start = androidx.compose.ui.geometry.Offset(0f, j.toFloat()),
+                    end = androidx.compose.ui.geometry.Offset(size.width, j.toFloat()),
+                    strokeWidth = 1.dp.toPx()
+                )
+            }
+        }
+
+        // Mock Markers covering some destinations
+        val markers = listOf(
+            Pair(0.2f, 0.3f) to destinations[0],
+            Pair(0.5f, 0.2f) to destinations[1],
+            Pair(0.3f, 0.6f) to destinations[2],
+            Pair(0.7f, 0.5f) to destinations[3]
+        )
+
+        markers.forEach { (pos, dest) ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = (pos.first * 300).dp, top = (pos.second * 500).dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.White,
+                        shadowElevation = 2.dp
+                    ) {
+                        Text(
+                            text = dest.name,
+                            fontSize = 9.sp,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+        }
+
+        // Overlay FABs
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FloatingActionButton(
+                onClick = { /* Recenter */ },
+                containerColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.size(20.dp))
+            }
+        }
+        
+        // Status Badge
+        Surface(
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+            shadowElevation = 2.dp
+        ) {
+            Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Memory, null, Modifier.size(14.dp), MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Cargando entorno interactivo...", fontSize = 10.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

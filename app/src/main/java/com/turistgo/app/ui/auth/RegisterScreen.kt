@@ -41,12 +41,18 @@ fun RegisterScreen(
     val age             by viewModel.age
     val country         by viewModel.country
     val city            by viewModel.city
+    val availableCities by viewModel.availableCities
+    val phoneExtension  by viewModel.phoneExtension
     val phone           by viewModel.phone
     val email           by viewModel.email
     val password        by viewModel.password
     val confirmPassword by viewModel.confirmPassword
     val isLoading       by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+
+    var countryExpanded by remember { mutableStateOf(false) }
+    var cityExpanded    by remember { mutableStateOf(false) }
+    var phoneExpanded   by remember { mutableStateOf(false) }
 
     var passwordVisible        by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
@@ -138,47 +144,133 @@ fun RegisterScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         enabled = !isLoading
                     )
-                    // País
-                    OutlinedTextField(
-                        value = country,
-                        onValueChange = { viewModel.onCountryChange(it) },
-                        label = { Text("País") },
-                        leadingIcon = { Icon(Icons.Default.Language, contentDescription = null) },
-                        modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
-                        singleLine = true,
-                        enabled = !isLoading
-                    )
+                    // País (Dropdown)
+                    ExposedDropdownMenuBox(
+                        expanded = countryExpanded,
+                        onExpandedChange = { if (!isLoading) countryExpanded = !countryExpanded },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = country,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("País") },
+                            leadingIcon = { Icon(Icons.Default.Language, contentDescription = null) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
+                            modifier = Modifier.menuAnchor(),
+                            shape = MaterialTheme.shapes.medium,
+                            enabled = !isLoading,
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = countryExpanded,
+                            onDismissRequest = { countryExpanded = false }
+                        ) {
+                            viewModel.countries.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        viewModel.onCountryChange(selectionOption)
+                                        countryExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Ciudad
-                OutlinedTextField(
-                    value = city,
-                    onValueChange = { viewModel.onCityChange(it) },
-                    label = { Text("Ciudad") },
-                    leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                    singleLine = true,
-                    enabled = !isLoading
-                )
+                // Ciudad (Dropdown)
+                ExposedDropdownMenuBox(
+                    expanded = cityExpanded,
+                    onExpandedChange = { if (!isLoading && country.isNotEmpty()) cityExpanded = !cityExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = city,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Ciudad") },
+                        leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                        modifier = Modifier.menuAnchor(),
+                        shape = MaterialTheme.shapes.medium,
+                        enabled = !isLoading && country.isNotEmpty(),
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        placeholder = { if (country.isEmpty()) Text("Selecciona primero un país") }
+                    )
+                    if (availableCities.isNotEmpty()) {
+                        ExposedDropdownMenu(
+                            expanded = cityExpanded,
+                            onDismissRequest = { cityExpanded = false }
+                        ) {
+                            availableCities.forEach { selectionOption ->
+                                DropdownMenuItem(
+                                    text = { Text(selectionOption) },
+                                    onClick = {
+                                        viewModel.onCityChange(selectionOption)
+                                        cityExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Teléfono
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { viewModel.onPhoneChange(it) },
-                    label = { Text("Teléfono") },
-                    leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                // Teléfono con Extensión
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    enabled = !isLoading
-                )
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Extensión
+                    ExposedDropdownMenuBox(
+                        expanded = phoneExpanded,
+                        onExpandedChange = { if (!isLoading) phoneExpanded = !phoneExpanded },
+                        modifier = Modifier.width(100.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = phoneExtension,
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier.menuAnchor(),
+                            shape = MaterialTheme.shapes.medium,
+                            enabled = !isLoading,
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                            singleLine = true
+                        )
+                        ExposedDropdownMenu(
+                            expanded = phoneExpanded,
+                            onDismissRequest = { phoneExpanded = false }
+                        ) {
+                            viewModel.phoneExtensions.forEach { ext ->
+                                DropdownMenuItem(
+                                    text = { Text(ext) },
+                                    onClick = {
+                                        viewModel.onPhoneExtensionChange(ext)
+                                        phoneExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+
+                    // Número
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { viewModel.onPhoneChange(it) },
+                        label = { Text("Teléfono") },
+                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+                        modifier = Modifier.weight(1f),
+                        shape = MaterialTheme.shapes.medium,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        enabled = !isLoading
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 

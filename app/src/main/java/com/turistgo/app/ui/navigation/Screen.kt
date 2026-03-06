@@ -20,4 +20,7 @@ sealed class Screen(val route: String) {
     object EditPost : Screen("edit_post/{postId}") {
         fun createRoute(postId: String) = "edit_post/$postId"
     }
+    object Stats : Screen("stats")
+    object Badges : Screen("badges")
+    object MapPicker : Screen("map_picker")
 }

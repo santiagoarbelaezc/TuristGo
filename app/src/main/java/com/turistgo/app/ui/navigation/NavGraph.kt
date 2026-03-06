@@ -17,8 +17,7 @@ import com.turistgo.app.ui.home.HomeScreen
 import com.turistgo.app.ui.notifications.NotificationsScreen
 import com.turistgo.app.ui.post.CreatePostScreen
 import com.turistgo.app.ui.post.PostDetailScreen
-import com.turistgo.app.ui.profile.ProfileScreen
-import com.turistgo.app.ui.profile.SettingsScreen
+import com.turistgo.app.ui.profile.*
 import com.turistgo.app.ui.route.RouteListScreen
 
 @Composable
@@ -70,7 +69,7 @@ fun NavGraph(navController: NavHostController) {
             RouteListScreen()
         }
         composable(Screen.Create.route) {
-            CreatePostScreen()
+            CreatePostScreen(navController = navController)
         }
         composable(Screen.Notifications.route) {
             NotificationsScreen()
@@ -103,6 +102,23 @@ fun NavGraph(navController: NavHostController) {
             PostDetailScreen(postId) {
                 navController.popBackStack()
             }
+        }
+        composable(Screen.Stats.route) {
+            StatsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.Badges.route) {
+            BadgesScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Screen.MapPicker.route) {
+            com.turistgo.app.ui.post.MapPickerScreen(
+                onLocationSelected = { lat, lng ->
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("selected_location", "$lat,$lng")
+                    navController.popBackStack()
+                },
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

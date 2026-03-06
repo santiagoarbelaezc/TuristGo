@@ -106,10 +106,10 @@ fun ProfileScreen(
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp).clickable { navController.navigate(Screen.Badges.route) }
                 ) {
                     Text(
-                        text = "Explorador Nivel 5",
+                        text = "Explorador Nivel 2",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -147,7 +147,7 @@ fun ProfileScreen(
                     )
                     
                     Surface(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().clickable { navController.navigate(Screen.Badges.route) },
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                     ) {
@@ -172,7 +172,7 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "Faltan 250 pts para Nivel 3: Guía",
+                                "Faltan 250 pts para Nivel 3: Aventurero",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -204,13 +204,21 @@ fun ProfileScreen(
 
             // Opciones del Menú
             item {
-                ProfileMenuItem(icon = Icons.Default.Person, title = "Editar Datos Personales")
-                ProfileMenuItem(icon = Icons.Default.Bookmark, title = "Favoritos")
-                ProfileMenuItem(icon = Icons.Default.BarChart, title = "Estadísticas Detalladas")
                 ProfileMenuItem(
-                    icon = Icons.Default.Security, 
-                    title = "Panel de Moderador",
-                    onClick = { navController.navigate(Screen.ModeratorDashboard.route) }
+                    icon = Icons.Default.Person, 
+                    title = "Editar Datos Personales",
+                    onClick = { navController.navigate("settings") } // Link to settings for now or edit profile
+                )
+                ProfileMenuItem(icon = Icons.Default.Bookmark, title = "Favoritos")
+                ProfileMenuItem(
+                    icon = Icons.Default.BarChart, 
+                    title = "Estadísticas Detalladas",
+                    onClick = { navController.navigate(Screen.Stats.route) }
+                )
+                ProfileMenuItem(
+                    icon = Icons.Default.MilitaryTech,
+                    title = "Mis Insignias",
+                    onClick = { navController.navigate(Screen.Badges.route) }
                 )
                 
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceVariant)
@@ -347,31 +355,25 @@ fun BadgeItem(label: String, icon: ImageVector) {
 
 @Composable
 fun ProfileMenuItem(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
-    Surface(
-        onClick = onClick,
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 4.dp),
-        color = Color.Transparent
+            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-        }
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
     }
 }

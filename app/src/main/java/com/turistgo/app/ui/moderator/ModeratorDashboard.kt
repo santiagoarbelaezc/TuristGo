@@ -11,9 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.HourglassEmpty
-import androidx.compose.material.icons.filled.PendingActions
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,9 +39,9 @@ fun ModeratorDashboard(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = { 
-                    Column {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Panel de Control", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                         Text("Moderador", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                     }
@@ -56,7 +54,11 @@ fun ModeratorDashboard(
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
+                windowInsets = WindowInsets(0, 0, 0, 0)
             )
         }
     ) { padding ->
@@ -65,10 +67,11 @@ fun ModeratorDashboard(
                 .fillMaxSize()
                 .padding(padding)
                 .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                Spacer(modifier = Modifier.height(32.dp))
                 ModeratorStats(pendingCount, verifiedCount)
             }
 
@@ -166,6 +169,22 @@ fun ModeratorPostCard(post: ModeratorPost, onClick: () -> Unit) {
                 Text(text = post.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
                 Text(text = "Por: ${post.author}", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
                 Text(text = post.date, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                
+                // AI Insight Badge
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, null, Modifier.size(12.dp), MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("AI: Categoría validada", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
             }
             Icon(
                 imageVector = Icons.Default.HourglassEmpty,

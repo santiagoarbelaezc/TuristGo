@@ -25,8 +25,27 @@ class RegisterViewModel : ViewModel() {
     private val _city = mutableStateOf("")
     val city: State<String> = _city
 
+    private val _phoneExtension = mutableStateOf("+57")
+    val phoneExtension: State<String> = _phoneExtension
+
     private val _phone = mutableStateOf("")
     val phone: State<String> = _phone
+
+    // Listas de datos
+    val countries = listOf("Colombia", "México", "Argentina", "España", "Chile")
+    
+    private val countryCities = mapOf(
+        "Colombia" to listOf("Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"),
+        "México" to listOf("CDMX", "Guadalajara", "Monterrey", "Puebla", "Cancún"),
+        "Argentina" to listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata"),
+        "España" to listOf("Madrid", "Barcelona", "Valencia", "Sevilla", "Zaragoza"),
+        "Chile" to listOf("Santiago", "Valparaíso", "Concepción", "La Serena", "Antofagasta")
+    )
+
+    private val _availableCities = mutableStateOf<List<String>>(emptyList())
+    val availableCities: State<List<String>> = _availableCities
+
+    val phoneExtensions = listOf("+57", "+52", "+54", "+34", "+56", "+1", "+33", "+49")
 
     private val _email = mutableStateOf("")
     val email: State<String> = _email
@@ -46,8 +65,15 @@ class RegisterViewModel : ViewModel() {
     fun onNameChange(v: String)            { _name.value = v }
     fun onLastNameChange(v: String)        { _lastName.value = v }
     fun onAgeChange(v: String)             { _age.value = v }
-    fun onCountryChange(v: String)         { _country.value = v }
+    
+    fun onCountryChange(v: String) { 
+        _country.value = v
+        _city.value = "" // Limpiar ciudad al cambiar país
+        _availableCities.value = countryCities[v] ?: emptyList()
+    }
+    
     fun onCityChange(v: String)            { _city.value = v }
+    fun onPhoneExtensionChange(v: String)  { _phoneExtension.value = v }
     fun onPhoneChange(v: String)           { _phone.value = v }
     fun onEmailChange(v: String)           { _email.value = v }
     fun onPasswordChange(v: String)        { _password.value = v }
@@ -66,6 +92,7 @@ class RegisterViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
+            // En una app real, aquí concatenaríamos: "${_phoneExtension.value} ${_phone.value}"
             kotlinx.coroutines.delay(1500)
 
             _snackbarMessage.value = "¡Bienvenido Explorador! Has ganado 10 puntos"

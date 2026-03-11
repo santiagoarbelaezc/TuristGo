@@ -85,6 +85,12 @@ ui/
 
 ---
 
+## ✨ **Funcionalidad para poder planificar tu viaje**
+
+1. IA Integrada de Minimax o Deeoseek, seccion de viajes
+
+---
+
 ## 👨‍💻 **Desarrolladores**
 
 <div align="center">

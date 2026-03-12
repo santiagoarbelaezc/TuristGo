@@ -1,8 +1,6 @@
 package com.turistgo.app.ui.auth
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -39,7 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.PlayerView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,19 +112,13 @@ fun LoginScreen(
                         }
                     }
 
-                    // La imagen se desvanece con fade cuando el video está listo
-                    val imageAlpha by animateFloatAsState(
-                        targetValue = if (!showVideoOverlay || !isVideoReady) 1f else 0f,
-                        animationSpec = tween(500),
-                        label = "imageAlpha"
-                    )
-                    if (imageAlpha > 0f) {
+                    // La imagen se oculta instantáneamente cuando el video está listo
+                    if (!showVideoOverlay || !isVideoReady) {
                         AsyncImage(
                             model = imageUrl,
                             contentDescription = "Logo de TuristGo",
                             modifier = Modifier
                                 .fillMaxSize()
-                                .alpha(imageAlpha)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null
@@ -340,7 +331,7 @@ fun InPlaceVideoPlayer(
             setMediaItem(MediaItem.fromUri(videoUrl))
             prepare()
             playWhenReady = true
-            
+
             addListener(object : androidx.media3.common.Player.Listener {
                 override fun onPlaybackStateChanged(state: Int) {
                     if (state == androidx.media3.common.Player.STATE_READY) {
@@ -360,15 +351,12 @@ fun InPlaceVideoPlayer(
         }
     }
 
+    // TextureView en lugar de PlayerView/SurfaceView: no tiene un canal de
+    // composición separado, por lo que no genera el flash negro al aparecer.
     AndroidView(
-        factory = { context ->
-            PlayerView(context).apply {
-                player = exoPlayer
-                useController = false
-                // Remove black shutter background for instant transition
-                setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
-                // Zoom mode to fill the circle container
-                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        factory = { ctx ->
+            android.view.TextureView(ctx).apply {
+                exoPlayer.setVideoTextureView(this)
             }
         },
         modifier = Modifier

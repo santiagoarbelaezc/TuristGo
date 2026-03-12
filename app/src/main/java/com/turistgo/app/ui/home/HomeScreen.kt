@@ -1,7 +1,5 @@
 package com.turistgo.app.ui.home
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -88,19 +86,13 @@ fun HomeScreen(navController: NavController) {
                         }
                     }
 
-                    // La imagen se desvanece con fade cuando el video está listo
-                    val imageAlpha by animateFloatAsState(
-                        targetValue = if (!showVideoOverlay || !isVideoReady) 1f else 0f,
-                        animationSpec = tween(500),
-                        label = "imageAlpha"
-                    )
-                    if (imageAlpha > 0f) {
+                    // La imagen se oculta instantáneamente cuando el video está listo
+                    if (!showVideoOverlay || !isVideoReady) {
                         AsyncImage(
                             model = imageUrl,
                             contentDescription = "Logo de TuristGo",
                             modifier = Modifier
                                 .fillMaxSize()
-                                .alpha(imageAlpha)
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = null

@@ -1,7 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
+
 
 android {
     namespace = "com.turistgo.app"
@@ -49,7 +51,9 @@ dependencies {
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.ui)
     implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

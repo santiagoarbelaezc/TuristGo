@@ -4,12 +4,22 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turistgo.app.domain.repository.AppDataRepository
+import com.turistgo.app.domain.model.User
+import com.turistgo.app.data.datastore.UserSessionManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
 
-class RegisterViewModel : ViewModel() {
+@HiltViewModel
+class RegisterViewModel @Inject constructor(
+    private val repository: AppDataRepository,
+    private val sessionManager: UserSessionManager
+) : ViewModel() {
     private val _name = mutableStateOf("")
     val name: State<String> = _name
 
@@ -68,7 +78,7 @@ class RegisterViewModel : ViewModel() {
     
     fun onCountryChange(v: String) { 
         _country.value = v
-        _city.value = "" // Limpiar ciudad al cambiar país
+        _city.value = "" 
         _availableCities.value = countryCities[v] ?: emptyList()
     }
     
@@ -79,7 +89,7 @@ class RegisterViewModel : ViewModel() {
     fun onPasswordChange(v: String)        { _password.value = v }
     fun onConfirmPasswordChange(v: String) { _confirmPassword.value = v }
 
-    fun register(onSuccess: () -> Unit) {
+    fun register(onSuccess: (String) -> Unit) {
         val fields = listOf(_name, _lastName, _age, _country, _city, _phone, _email, _password, _confirmPassword)
         if (fields.any { it.value.isEmpty() }) {
             _snackbarMessage.value = "Todos los campos son obligatorios"
@@ -92,11 +102,26 @@ class RegisterViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
-            // En una app real, aquí concatenaríamos: "${_phoneExtension.value} ${_phone.value}"
-            kotlinx.coroutines.delay(1500)
+            
+            val userId = UUID.randomUUID().toString()
+            val newUser = User(
+                id = userId,
+                name = _name.value,
+                lastName = _lastName.value,
+                age = _age.value,
+                country = _country.value,
+                city = _city.value,
+                phone = "${_phoneExtension.value} ${_phone.value}",
+                email = _email.value,
+                password = _password.value
+            )
+            
+            repository.saveUser(newUser)
+            sessionManager.saveSession(userId, newUser.name, newUser.email)
 
-            _snackbarMessage.value = "¡Bienvenido Explorador! Has ganado 10 puntos"
-            onSuccess()
+            kotlinx.coroutines.delay(3000)
+            _snackbarMessage.value = "¡Bienvenido ${_name.value}! Registro casi completo"
+            onSuccess(userId)
 
             _isLoading.value = false
         }
@@ -104,3 +129,4 @@ class RegisterViewModel : ViewModel() {
 
     fun clearSnackbarMessage() { _snackbarMessage.value = null }
 }
+

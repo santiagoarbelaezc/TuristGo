@@ -32,11 +32,15 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.turistgo.app.core.components.InPlaceVideoPlayer
 import com.turistgo.app.core.components.SocialLoginCard
 import coil.compose.AsyncImage
+import com.turistgo.app.core.components.LoadingOverlay
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,13 +49,15 @@ fun LoginScreen(
     onNavigateToDashboard: () -> Unit,
     onNavigateToRegister: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val email by viewModel.email
     val password by viewModel.password
     val isLoading by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
-    
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
+
     var passwordVisible by remember { mutableStateOf(false) }
     var showVideoOverlay by remember { mutableStateOf(false) }
     
@@ -142,7 +148,7 @@ fun LoginScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Descubre tu próxima aventura",
+                    text = s.discoverNextAdventure,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -152,7 +158,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { viewModel.onEmailChange(it) },
-                    label = { Text("Correo electrónico") },
+                    label = { Text(s.emailLabel) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
@@ -165,7 +171,7 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { viewModel.onPasswordChange(it) },
-                    label = { Text("Contraseña") },
+                    label = { Text(s.passwordLabel) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -184,13 +190,11 @@ fun LoginScreen(
 
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "¿Olvidaste la contraseña?",
+                        text = s.forgotPassword,
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.clickable { 
-                            if (!isLoading) onNavigateToForgotPassword()
-                        }
+                        modifier = Modifier.clickable { if (!isLoading) onNavigateToForgotPassword() }
                     )
                 }
 
@@ -212,15 +216,15 @@ fun LoginScreen(
                     shape = MaterialTheme.shapes.medium,
                     enabled = !isLoading
                 ) {
-                    Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(s.loginBtn, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("¿No tienes cuenta?", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+                    Text(s.noAccount, fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
                     TextButton(onClick = onNavigateToRegister, enabled = !isLoading) {
-                        Text("Regístrate", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text(s.registerAction, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -233,7 +237,7 @@ fun LoginScreen(
                 ) {
                     HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                     Text(
-                        text = "O continúa con",
+                        text = s.orContinueWith,
                         modifier = Modifier.padding(horizontal = 16.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
@@ -268,6 +272,8 @@ fun LoginScreen(
                 }
                 
             }
+            
+            LoadingOverlay(isLoading = isLoading, text = s.loginAction)
         }
     }
 }

@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -23,15 +22,28 @@ import coil.compose.AsyncImage
 import com.turistgo.app.core.components.Destination
 import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.FeedSearchBar
-
 import com.turistgo.app.features.feed.components.SearchContent
+import com.turistgo.app.data.datastore.UserSessionManager
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
+fun FeedScreen(
+    onNavigateToDetail: (String) -> Unit,
+    viewModel: FeedViewModel = hiltViewModel()
+) {
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
+
+    val userSession by viewModel.userSession.collectAsState(initial = null)
     var searchQuery by remember { mutableStateOf("") }
-    val categories = listOf("Todos", "Montaña", "Playa", "Gastronomía", "Cultura", "Aventura")
-    var selectedCategory by remember { mutableStateOf("Todos") }
+    val categories = listOf(
+        s.catAll, s.catMountain, s.catBeach,
+        s.catGastronomy, s.catCulture, s.catAdventure
+    )
+    var selectedCategory by remember(lang) { mutableStateOf(categories.first()) }
 
     val destinations = listOf(
         Destination("Santuario de Las Lajas", "Ipiales, Nariño", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg"),
@@ -44,78 +56,77 @@ fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
     )
 
     var isSearchActive by remember { mutableStateOf(false) }
-
     var isMapView by remember { mutableStateOf(false) }
 
+    // ── Same structure as ProfileScreen: no inner Scaffold, no statusBarsPadding ──
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // TopBar content
-        Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+        // Top Bar — same height and position as ProfileScreen's CenterAlignedTopAppBar
+        TopAppBar(
+            title = {
+                Column {
+                    Text(
+                        text = s.welcomeMessage(userSession?.name ?: s.defaultUser),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Text(
+                        text = s.exploreWorld,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            },
+            actions = {
+                Surface(
+                    onClick = { isMapView = !isMapView },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(40.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = "Hola, Santiago",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.secondary
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (isMapView) Icons.Default.List else Icons.Default.Map,
+                            contentDescription = s.changeView,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
                         )
-                        Text(
-                            text = "Explora el mundo",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                    
-                    // Toggle Lista/Mapa
-                    Surface(
-                        onClick = { isMapView = !isMapView },
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(45.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = if (isMapView) Icons.Default.List else Icons.Default.Map,
-                                contentDescription = "Cambiar vista",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
                     }
                 }
-                
-                // Barra de búsqueda
-                FeedSearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onFocusChange = { isSearchActive = it || searchQuery.isNotEmpty() }
-                )
+                Spacer(modifier = Modifier.width(16.dp))
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+            ),
+            windowInsets = WindowInsets(0, 0, 0, 0)
+        )
 
-                // Categorías
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(categories) { category ->
-                        FilterChip(
-                            selected = selectedCategory == category,
-                            onClick = { selectedCategory = category },
-                            label = { Text(category) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = Color.White
-                            )
-                        )
-                }
+        // Search bar
+        FeedSearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            onFocusChange = { isSearchActive = it || searchQuery.isNotEmpty() }
+        )
+
+        // Category chips
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(categories) { category ->
+                FilterChip(
+                    selected = selectedCategory == category,
+                    onClick = { selectedCategory = category },
+                    label = { Text(category) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                        selectedLabelColor = Color.White
+                    )
+                )
             }
         }
 
@@ -133,7 +144,7 @@ fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
                 ) {
                     item {
                         Text(
-                            text = "Destinos Populares",
+                            text = s.popularDestinations,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -141,18 +152,16 @@ fun FeedScreen(onNavigateToDetail: (String) -> Unit) {
                     }
                     items(destinations) { destination ->
                         DestinationCard(destination) {
-                            // En una app real usaríamos el ID real
                             onNavigateToDetail("post_${destination.name}")
                         }
                     }
-                    item {
-                        Spacer(modifier = Modifier.height(20.dp))
-                    }
+                    item { Spacer(modifier = Modifier.height(20.dp)) }
                 }
             }
         }
     }
 }
+
 @Composable
 fun MapPlaceholder(destinations: List<Destination>) {
     Box(
@@ -161,7 +170,6 @@ fun MapPlaceholder(destinations: List<Destination>) {
             .background(Color(0xFFF5F5F5)),
         contentAlignment = Alignment.Center
     ) {
-        // Grid pattern
         androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
             val step = 80.dp.toPx()
             for (i in 0..size.width.toInt() step step.toInt()) {
@@ -182,14 +190,12 @@ fun MapPlaceholder(destinations: List<Destination>) {
             }
         }
 
-        // Mock Markers covering some destinations
         val markers = listOf(
             Pair(0.2f, 0.3f) to destinations[0],
             Pair(0.5f, 0.2f) to destinations[1],
             Pair(0.3f, 0.6f) to destinations[2],
             Pair(0.7f, 0.5f) to destinations[3]
         )
-
         markers.forEach { (pos, dest) ->
             Box(
                 modifier = Modifier
@@ -219,7 +225,6 @@ fun MapPlaceholder(destinations: List<Destination>) {
             }
         }
 
-        // Overlay FABs
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -227,7 +232,7 @@ fun MapPlaceholder(destinations: List<Destination>) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             FloatingActionButton(
-                onClick = { /* Recenter */ },
+                onClick = {},
                 containerColor = Color.White,
                 contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(40.dp)
@@ -235,15 +240,17 @@ fun MapPlaceholder(destinations: List<Destination>) {
                 Icon(Icons.Default.MyLocation, contentDescription = null, modifier = Modifier.size(20.dp))
             }
         }
-        
-        // Status Badge
+
         Surface(
             modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
             shadowElevation = 2.dp
         ) {
-            Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(Icons.Default.Memory, null, Modifier.size(14.dp), MaterialTheme.colorScheme.primary)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("Cargando entorno interactivo...", fontSize = 10.sp, fontWeight = FontWeight.Bold)

@@ -4,12 +4,20 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turistgo.app.data.datastore.UserSessionManager
+import com.turistgo.app.domain.repository.AppDataRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repository: AppDataRepository,
+    private val sessionManager: UserSessionManager
+) : ViewModel() {
     private val _email = mutableStateOf("")
     val email: State<String> = _email
 
@@ -33,11 +41,16 @@ class LoginViewModel : ViewModel() {
 
         viewModelScope.launch {
             _isLoading.value = true
-            // Simulación de delay de red
-            kotlinx.coroutines.delay(1000)
             
-            val isAdmin = _email.value == "admin" && _password.value == "admin"
-            onSuccess(isAdmin)
+            val user = repository.getUserByEmail(_email.value)
+            if (user != null && user.password == _password.value) {
+                sessionManager.saveSession(user.id, user.name, user.email)
+                onSuccess(false) // No admin
+            } else if (_email.value == "admin" && _password.value == "admin") {
+                onSuccess(true) // Admin
+            } else {
+                _snackbarMessage.value = "Correo o contraseña incorrectos"
+            }
             
             _isLoading.value = false
         }

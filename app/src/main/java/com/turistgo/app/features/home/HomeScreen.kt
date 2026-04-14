@@ -28,6 +28,9 @@ import androidx.media3.ui.PlayerView
 import com.turistgo.app.core.components.InPlaceVideoPlayer
 import com.turistgo.app.core.navigation.MainRoutes
 import coil.compose.AsyncImage
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.core.locale.AppLanguage
 
 @Composable
 fun HomeScreen(
@@ -35,6 +38,8 @@ fun HomeScreen(
     onNavigateToRegister: () -> Unit
 ) {
 
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
     val scrollState = rememberScrollState()
 
     // Mismas URLs que LoginScreen
@@ -42,23 +47,34 @@ fun HomeScreen(
 
     var showVideoOverlay by remember { mutableStateOf(false) }
 
-    Scaffold { padding ->
-        Box(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Spacer(modifier = Modifier.height(48.dp))
-
+                // Language Toggle at the top right
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = {
+                        LanguageState.current.value = if (lang == AppLanguage.SPANISH) AppLanguage.ENGLISH else AppLanguage.SPANISH
+                    }) {
+                        Text(
+                            text = if (lang == AppLanguage.SPANISH) "EN" else "ES", 
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
                 // Logo — mismo comportamiento que LoginScreen (clic activa video)
                 Box(
                     modifier = Modifier.size(140.dp),
@@ -116,7 +132,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Descubre tu próxima aventura",
+                    text = s.discoverNextAdventure,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -134,8 +150,7 @@ fun HomeScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Text(
-                        text = "Explora, planea y comparte rutas turísticas con una comunidad apasionada por viajar. " +
-                               "Descubre destinos increíbles, crea itinerarios personalizados y conecta con viajeros de todo el mundo.",
+                        text = s.appDescription,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -154,12 +169,11 @@ fun HomeScreen(
                         .height(48.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(s.loginBtn, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Botón Registrarse — mismo estilo que el link de RegisterScreen
                 OutlinedButton(
                     onClick = onNavigateToRegister,
                     modifier = Modifier
@@ -168,7 +182,7 @@ fun HomeScreen(
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
-                        "Crear Cuenta",
+                        s.registerBtn,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
@@ -186,7 +200,6 @@ fun HomeScreen(
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
-            }
-        }
-    }
-}
+        }   // end Column
+    }   // end Box
+}   // end HomeScreen

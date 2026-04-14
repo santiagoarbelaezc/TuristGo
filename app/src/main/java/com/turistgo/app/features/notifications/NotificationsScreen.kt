@@ -17,46 +17,60 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
 
 data class Notification(
     val id: Int,
-    val title: String,
-    val message: String,
-    val time: String,
+    val titleKey: String,   // key into strings
+    val messageKey: String,
+    val timeKey: String,
     val type: NotificationType,
     val isRead: Boolean
 )
 
-enum class NotificationType {
-    NEW_POST, VERIFICATION, REPUTATION, SYSTEM
-}
+enum class NotificationType { NEW_POST, VERIFICATION, REPUTATION, SYSTEM }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen() {
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
+
     val initialNotifications = listOf(
-        Notification(1, "Nueva publicación en tu zona", "Se ha reportado una zona segura en el Valle del Cocora.", "Hace 5 min", NotificationType.NEW_POST, false),
-        Notification(2, "Publicación Verificada", "¡Felicidades! Tu publicación en Cartagena ha sido verificada.", "Hace 1 hora", NotificationType.VERIFICATION, true),
-        Notification(3, "Nuevo Logro Alcanzado", "Has ganado la insignia 'Primer Explorador'.", "Hace 3 horas", NotificationType.REPUTATION, false),
-        Notification(4, "Recordatorio de Seguridad", "Revisa las nuevas pautas para el senderismo en época de lluvias.", "Hace 1 día", NotificationType.SYSTEM, true),
-        Notification(5, "Alguien comentó tu post", "Santiago comentó: '¡Excelente información, gracias!'", "Hace 2 días", NotificationType.NEW_POST, true)
+        Notification(1, s.notifNewPost,  s.notifNewPostMsg,  s.timeAgo5m, NotificationType.NEW_POST,     false),
+        Notification(2, s.notifVerified, s.notifVerifiedMsg, s.timeAgo1h, NotificationType.VERIFICATION, true),
+        Notification(3, s.notifBadge,    s.notifBadgeMsg,    s.timeAgo3h, NotificationType.REPUTATION,   false),
+        Notification(4, s.notifSecurity, s.notifSecurityMsg, s.timeAgo1d, NotificationType.SYSTEM,       true),
     )
-    
-    var notifications by remember { mutableStateOf(initialNotifications) }
+
+    var notifications by remember(lang) { mutableStateOf(initialNotifications) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        // Top Bar — same pattern as ProfileScreen for consistent alignment
         TopAppBar(
-            title = { Text("Notificaciones", fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    text = s.notificationsTitle,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
             actions = {
                 if (notifications.any { !it.isRead }) {
-                    TextButton(onClick = { 
-                        notifications = notifications.map { it.copy(isRead = true) }
-                    }) {
-                        Text("Leer todo")
+                    TextButton(
+                        onClick = { notifications = notifications.map { it.copy(isRead = true) } }
+                    ) {
+                        Text(
+                            text = s.readAll,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             },
@@ -67,11 +81,19 @@ fun NotificationsScreen() {
         )
 
         if (notifications.isEmpty()) {
-            Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.NotificationsNone, null, Modifier.size(64.dp), MaterialTheme.colorScheme.surfaceVariant)
+                    Icon(
+                        Icons.Default.NotificationsNone,
+                        null,
+                        Modifier.size(64.dp),
+                        MaterialTheme.colorScheme.outline
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("No tienes notificaciones", color = MaterialTheme.colorScheme.secondary)
+                    Text(s.noNotifications, color = MaterialTheme.colorScheme.secondary)
                 }
             }
         } else {
@@ -79,16 +101,22 @@ fun NotificationsScreen() {
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(notifications, key = { notification -> notification.id }) { notification ->
-                    NotificationItem(notification) {
-                        notifications = notifications.map { n ->
-                            if (n.id == notification.id) n.copy(isRead = true) else n
+                items(notifications, key = { it.id }) { notification ->
+                    NotificationItem(
+                        notification = notification,
+                        onClick = {
+                            notifications = notifications.map { n ->
+                                if (n.id == notification.id) n.copy(isRead = true) else n
+                            }
                         }
-                    }
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
+                    // Separator line between items (only between, not after last)
+                    if (notification.id != notifications.last().id) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
                 }
             }
         }
@@ -96,46 +124,38 @@ fun NotificationsScreen() {
 }
 
 @Composable
-fun NotificationItem(notification: Notification, onClick: () -> Unit) {
-    val icon = when (notification.type) {
-        NotificationType.NEW_POST -> Icons.Default.Map
-        NotificationType.VERIFICATION -> Icons.Default.Verified
-        NotificationType.REPUTATION -> Icons.Default.EmojiEvents
-        NotificationType.SYSTEM -> Icons.Default.Info
-    }
-
-    val iconContainerColor = when (notification.type) {
-        NotificationType.NEW_POST -> MaterialTheme.colorScheme.primaryContainer
-        NotificationType.VERIFICATION -> Color(0xFFE8F5E9) // Green light
-        NotificationType.REPUTATION -> Color(0xFFFFF3E0) // Orange light
-        NotificationType.SYSTEM -> MaterialTheme.colorScheme.secondaryContainer
-    }
-
-    val iconTint = when (notification.type) {
-        NotificationType.NEW_POST -> MaterialTheme.colorScheme.primary
-        NotificationType.VERIFICATION -> Color(0xFF2E7D32) // Green
-        NotificationType.REPUTATION -> Color(0xFFEF6C00) // Orange
-        NotificationType.SYSTEM -> MaterialTheme.colorScheme.secondary
+fun NotificationItem(
+    notification: Notification,
+    onClick: () -> Unit
+) {
+    val (iconVec, iconBg, iconTint) = when (notification.type) {
+        NotificationType.NEW_POST     -> Triple(Icons.Default.Map,         Color(0xFFE8D5F5), Color(0xFF7B1FA2))
+        NotificationType.VERIFICATION -> Triple(Icons.Default.Verified,    Color(0xFFE8F5E9), Color(0xFF2E7D32))
+        NotificationType.REPUTATION   -> Triple(Icons.Default.EmojiEvents, Color(0xFFFFF3E0), Color(0xFFEF6C00))
+        NotificationType.SYSTEM       -> Triple(Icons.Default.Info,        Color(0xFFE3F2FD), Color(0xFF1565C0))
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .background(if (notification.isRead) Color.Transparent else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-            .padding(20.dp),
+            .background(
+                if (notification.isRead) Color.Transparent
+                else MaterialTheme.colorScheme.primary.copy(alpha = 0.04f)
+            )
+            .padding(horizontal = 20.dp, vertical = 18.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Icono
+        // Icon circle
         Box(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(iconContainerColor),
+                .background(iconBg),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                imageVector = icon,
+                imageVector = iconVec,
                 contentDescription = null,
                 tint = iconTint,
                 modifier = Modifier.size(24.dp)
@@ -144,7 +164,6 @@ fun NotificationItem(notification: Notification, onClick: () -> Unit) {
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Contenido
         Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -152,15 +171,17 @@ fun NotificationItem(notification: Notification, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = notification.title,
+                    text = notification.titleKey,
                     fontWeight = if (notification.isRead) FontWeight.SemiBold else FontWeight.Bold,
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
                 if (!notification.isRead) {
+                    Spacer(modifier = Modifier.width(8.dp))
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(9.dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
                     )
@@ -168,14 +189,14 @@ fun NotificationItem(notification: Notification, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = notification.message,
+                text = notification.messageKey,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = notification.time,
+                text = notification.timeKey,
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )

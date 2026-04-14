@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class ModeratorUser(
     val id: String,
@@ -15,7 +17,8 @@ data class ModeratorUser(
     val isVerified: Boolean = false
 )
 
-class UserManagementViewModel : ViewModel() {
+@HiltViewModel
+class UserManagementViewModel @Inject constructor() : ViewModel() {
     private val _users = mutableStateListOf(
         ModeratorUser("1", "Santiago Arbelaez", "santiago@example.com", isVerified = true),
         ModeratorUser("2", "Maria Lopez", "maria@example.com"),

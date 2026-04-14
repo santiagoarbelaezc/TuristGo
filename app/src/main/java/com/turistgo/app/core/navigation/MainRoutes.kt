@@ -6,6 +6,7 @@ sealed class MainRoutes {
     @Serializable data object Home
     @Serializable data object Login
     @Serializable data object Register
+    @Serializable data class CompleteProfile(val userId: String)
     @Serializable data object Feed
     @Serializable data object Trips
     @Serializable data object Create
@@ -23,4 +24,5 @@ sealed class MainRoutes {
     @Serializable data object Badges
     @Serializable data object MapPicker
     @Serializable data object Settings
+    @Serializable data object EditProfile
 }

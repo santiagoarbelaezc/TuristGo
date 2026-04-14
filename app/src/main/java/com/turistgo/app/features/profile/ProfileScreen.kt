@@ -26,17 +26,33 @@ import coil.compose.AsyncImage
 // NavController import omitted
 import com.turistgo.app.core.navigation.MainRoutes
 
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.data.datastore.UserSessionManager
+import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import androidx.compose.runtime.*
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    onNavigateToSettings: () -> Unit, 
+    onNavigateToSettings: () -> Unit,
+    onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToBadges: () -> Unit,
     onNavigateToStats: () -> Unit,
-    onNavigateToEditPost: (String) -> Unit
+    onNavigateToEditPost: (String) -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    // (Already imported or handled by NavGraph)
-    val profileImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
+    val userSession by viewModel.userSession.collectAsState(initial = null)
+    val userProfile by viewModel.userProfile.collectAsState(initial = null)
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
+
+    // Using real user photo or generic placeholder
+    val profileImageUrl = userProfile?.profilePhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
     Column(
         modifier = Modifier
@@ -45,10 +61,10 @@ fun ProfileScreen(
     ) {
         // Custom TopBar Area
         CenterAlignedTopAppBar(
-                title = { Text("Mi Perfil", fontWeight = FontWeight.Bold) },
+                title = { Text(s.myProfile, fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Configuración")
+                        Icon(Icons.Default.Settings, contentDescription = s.settings)
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -99,11 +115,19 @@ fun ProfileScreen(
 
                 // Nombre y Nivel
                 Text(
-                    text = "Santiago Arbelaez",
+                    text = userProfile?.name ?: userSession?.name ?: "Usuario",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                
+                if (userProfile?.username?.isNotEmpty() == true) {
+                    Text(
+                        text = "@${userProfile?.username}",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -127,9 +151,9 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = "Activas", value = "5")
-                    StatItem(label = "Resueltas", value = "8")
-                    StatItem(label = "Pendientes", value = "2")
+                    StatItem(label = s.active,   value = "5")
+                    StatItem(label = s.resolved, value = "8")
+                    StatItem(label = s.pending,  value = "2")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -141,7 +165,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp)
                 ) {
                     Text(
-                        text = "Mi Reputación",
+                        text = s.reputation,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -158,7 +182,7 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Nivel 2: Explorador", fontWeight = FontWeight.SemiBold)
+                                Text(s.level, fontWeight = FontWeight.SemiBold)
                                 Text("1,250 pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -173,7 +197,7 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "Faltan 250 pts para Nivel 3: Aventurero",
+                                s.pointsToNext,
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -183,7 +207,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Text(
-                        text = "Mis Insignias",
+                        text = s.myBadges,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -207,18 +231,18 @@ fun ProfileScreen(
             item {
                 ProfileMenuItem(
                     icon = Icons.Default.Person, 
-                    title = "Editar Datos Personales",
-                    onClick = onNavigateToSettings
+                    title = s.editProfile,
+                    onClick = onNavigateToEditProfile
                 )
-                ProfileMenuItem(icon = Icons.Default.Bookmark, title = "Favoritos")
+                ProfileMenuItem(icon = Icons.Default.Bookmark, title = s.favorites)
                 ProfileMenuItem(
                     icon = Icons.Default.BarChart, 
-                    title = "Estadísticas Detalladas",
+                    title = s.detailedStats,
                     onClick = onNavigateToStats
                 )
                 ProfileMenuItem(
                     icon = Icons.Default.MilitaryTech,
-                    title = "Mis Insignias",
+                    title = s.myBadges,
                     onClick = onNavigateToBadges
                 )
                 
@@ -235,7 +259,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp, vertical = 8.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text("Cerrar Sesión", fontWeight = FontWeight.Bold)
+                    Text(s.logout, fontWeight = FontWeight.Bold)
                 }
 
                 // Eliminamos el botón de aquí ya que se movió a ajustes
@@ -248,7 +272,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp)
                 ) {
                     Text(
-                        text = "Mis publicaciones",
+                        text = s.myPosts,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)

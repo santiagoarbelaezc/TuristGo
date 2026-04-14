@@ -25,17 +25,26 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import com.turistgo.app.core.navigation.MainRoutes
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.R
 import coil.compose.AsyncImage
+import com.turistgo.app.core.locale.AppStrings
+import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.core.components.LoadingOverlay
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.ui.draw.scale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    onNavigateToFeed: () -> Unit,
+    onNavigateToCompleteProfile: (String) -> Unit,
     onBack: () -> Unit,
-    viewModel: RegisterViewModel = viewModel()
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val name            by viewModel.name
     val lastName        by viewModel.lastName
@@ -50,6 +59,8 @@ fun RegisterScreen(
     val confirmPassword by viewModel.confirmPassword
     val isLoading       by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val lang by LanguageState.current
+    val s = AppStrings.get(lang)
 
     var countryExpanded by remember { mutableStateOf(false) }
     var cityExpanded    by remember { mutableStateOf(false) }
@@ -88,13 +99,13 @@ fun RegisterScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Crear Cuenta",
+                    text = s.createAccount,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = "Únete a la comunidad TuristGo",
+                    text = s.joinCommunity,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -104,10 +115,10 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { viewModel.onNameChange(it) },
-                    label = { Text("Nombre") },
+                    placeholder = { Text(s.nameLabel) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     enabled = !isLoading
                 )
@@ -118,10 +129,10 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = lastName,
                     onValueChange = { viewModel.onLastNameChange(it) },
-                    label = { Text("Apellidos") },
+                    placeholder = { Text(s.lastnameLabel) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     enabled = !isLoading
                 )
@@ -137,10 +148,10 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = age,
                         onValueChange = { viewModel.onAgeChange(it) },
-                        label = { Text("Edad") },
+                        placeholder = { Text(s.ageLabel) },
                         leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                         modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
+                        shape = RoundedCornerShape(16.dp),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         enabled = !isLoading
@@ -155,11 +166,11 @@ fun RegisterScreen(
                             value = country,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("País") },
+                            placeholder = { Text(s.countryLabel) },
                             leadingIcon = { Icon(Icons.Default.Language, contentDescription = null) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
                             modifier = Modifier.menuAnchor(),
-                            shape = MaterialTheme.shapes.medium,
+                            shape = RoundedCornerShape(16.dp),
                             enabled = !isLoading,
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                         )
@@ -192,14 +203,13 @@ fun RegisterScreen(
                         value = city,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Ciudad") },
                         leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
                         modifier = Modifier.menuAnchor(),
-                        shape = MaterialTheme.shapes.medium,
+                        shape = RoundedCornerShape(16.dp),
                         enabled = !isLoading && country.isNotEmpty(),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                        placeholder = { if (country.isEmpty()) Text("Selecciona primero un país") }
+                        placeholder = { if (country.isEmpty()) Text("Selecciona primero un país") else Text(s.cityLabel) }
                     )
                     if (availableCities.isNotEmpty()) {
                         ExposedDropdownMenu(
@@ -238,7 +248,7 @@ fun RegisterScreen(
                             onValueChange = {},
                             readOnly = true,
                             modifier = Modifier.menuAnchor(),
-                            shape = MaterialTheme.shapes.medium,
+                            shape = RoundedCornerShape(16.dp),
                             enabled = !isLoading,
                             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
                             singleLine = true
@@ -263,10 +273,10 @@ fun RegisterScreen(
                     OutlinedTextField(
                         value = phone,
                         onValueChange = { viewModel.onPhoneChange(it) },
-                        label = { Text("Teléfono") },
+                        placeholder = { Text(s.phoneLabel) },
                         leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
                         modifier = Modifier.weight(1f),
-                        shape = MaterialTheme.shapes.medium,
+                        shape = RoundedCornerShape(16.dp),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         enabled = !isLoading
@@ -279,10 +289,10 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { viewModel.onEmailChange(it) },
-                    label = { Text("Correo electrónico") },
+                    placeholder = { Text(s.emailLabel) },
                     leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     enabled = !isLoading
@@ -294,7 +304,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { viewModel.onPasswordChange(it) },
-                    label = { Text("Contraseña") },
+                    placeholder = { Text(s.passwordLabel) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     trailingIcon = {
                         val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -304,7 +314,7 @@ fun RegisterScreen(
                     },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     enabled = !isLoading
                 )
@@ -315,7 +325,7 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { viewModel.onConfirmPasswordChange(it) },
-                    label = { Text("Confirmar contraseña") },
+                    placeholder = { Text(s.confirmPasswordLabel) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     trailingIcon = {
                         val image = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -325,7 +335,7 @@ fun RegisterScreen(
                     },
                     visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     enabled = !isLoading
                 )
@@ -335,17 +345,17 @@ fun RegisterScreen(
                 // Botón Registro
                 Button(
                     onClick = {
-                        viewModel.register {
-                            onNavigateToFeed()
+                        viewModel.register { userId ->
+                            onNavigateToCompleteProfile(userId)
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = MaterialTheme.shapes.medium,
+                    shape = RoundedCornerShape(16.dp),
                     enabled = !isLoading
                 ) {
-                    Text("Empezar ahora", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    Text(s.startNow, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -355,61 +365,14 @@ fun RegisterScreen(
                     modifier = Modifier.padding(bottom = 32.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("¿Ya tienes cuenta?", color = MaterialTheme.colorScheme.secondary)
+                    Text(s.alreadyHaveAccount, color = MaterialTheme.colorScheme.secondary)
                     TextButton(onClick = onBack, enabled = !isLoading) {
-                        Text("Inicia sesión", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        Text(s.loginAction, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
 
-            // Overlay de Carga
-            AnimatedVisibility(
-                visible = isLoading,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.7f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Card(
-                        modifier = Modifier.padding(32.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            AsyncImage(
-                                model = logoUrl,
-                                contentDescription = "Cargando",
-                                modifier = Modifier
-                                    .size(100.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = "Creando cuenta...",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            LinearProgressIndicator(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(CircleShape),
-                                color = MaterialTheme.colorScheme.primary,
-                                trackColor = MaterialTheme.colorScheme.primaryContainer
-                            )
-                        }
-                    }
-                }
-            }
+            LoadingOverlay(isLoading = isLoading, text = s.creatingAccount)
         }
     }
 }

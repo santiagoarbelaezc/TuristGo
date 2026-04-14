@@ -1,3 +1,39 @@
 <resources>
     <string name="app_name">TuristGo</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_trips">Viajes</string>
+    <string name="nav_create">Crear</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_profile">Perfil</string>
+    
+    <!-- Feed Screen -->
+    <string name="welcome_message">Hola, %1$s</string>
+    <string name="explore_world">Explora el mundo</string>
+    <string name="search_placeholder">¿A dónde quieres ir?</string>
+    <string name="popular_destinations">Destinos Populares</string>
+    <string name="change_view">Cambiar vista</string>
+    
+    <!-- Auth Screens -->
+    <string name="create_account">Crear Cuenta</string>
+    <string name="join_community">Únete a la comunidad TuristGo</string>
+    <string name="name_label">Nombre</string>
+    <string name="lastname_label">Apellidos</string>
+    <string name="age_label">Edad</string>
+    <string name="country_label">País</string>
+    <string name="city_label">Ciudad</string>
+    <string name="phone_label">Teléfono</string>
+    <string name="email_label">Correo electrónico</string>
+    <string name="password_label">Contraseña</string>
+    <string name="confirm_password_label">Confirmar contraseña</string>
+    <string name="start_now">Empezar ahora</string>
+    <string name="already_have_account">¿Ya tienes cuenta?</string>
+    <string name="login_action">Inicia sesión</string>
+    <string name="creating_account">Creando cuenta...</string>
+    
+    <!-- Profile Screen -->
+    <string name="edit_profile">Editar Perfil</string>
+    <string name="save_changes">Guardar Cambios</string>
+    <string name="logout">Cerrar Sesión</string>
 </resources>

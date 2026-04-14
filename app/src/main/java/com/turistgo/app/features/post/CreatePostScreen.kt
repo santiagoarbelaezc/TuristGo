@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.data.GeminiService
 import com.turistgo.app.core.navigation.MainRoutes
 import kotlinx.coroutines.launch
@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
-    viewModel: CreatePostViewModel = viewModel(),
+    viewModel: CreatePostViewModel = hiltViewModel(),
     mapResult: String? = null,
     onConsumeMapResult: () -> Unit = {},
     onNavigateToMapPicker: () -> Unit = {},
@@ -43,6 +43,7 @@ fun CreatePostScreen(
     val selectedCategory by viewModel.selectedCategory
     val suggestedCategory by viewModel.suggestedCategory
     val isAnalyzing      by viewModel.isAnalyzing
+    val RedAccent        = MaterialTheme.colorScheme.primary  // alias → BrandRed via theme
 
     var openStartPicker by remember { mutableStateOf(false) }
     var openEndPicker   by remember { mutableStateOf(false) }
@@ -135,14 +136,22 @@ fun CreatePostScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        CenterAlignedTopAppBar(
-            title = { Text("Crear", fontWeight = FontWeight.Bold) },
+        // Top Bar — same pattern as ProfileScreen for consistent alignment
+        TopAppBar(
+            title = {
+                Text(
+                    text = "Nueva Publicación",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onBackground)
                 }
             },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
             ),
             windowInsets = WindowInsets(0, 0, 0, 0)
@@ -151,29 +160,37 @@ fun CreatePostScreen(
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(24.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "Comparte un lugar especial con la comunidad",
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(bottom = 24.dp)
+                text = "Comparte algo con la comunidad",
+                fontSize = 14.sp,
+                color = Color(0xFF888888),
+                modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Título
+            // --- Título ---
             OutlinedTextField(
                 value = title,
                 onValueChange = { viewModel.onTitleChange(it) },
-                label = { Text("Nombre del lugar") },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                placeholder = { Text("Ej: Restaurante El Mirador") }
+                shape = RoundedCornerShape(16.dp),
+                placeholder = { Text("Título de la publicación", color = Color(0xFF999999)) },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                    focusedIndicatorColor = RedAccent
+                ),
+                singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Sugerencia de categoría IA
+            // --- Sugerencia IA ---
             AnimatedVisibility(
                 visible = suggestedCategory != null,
                 enter = expandVertically() + fadeIn(),
@@ -182,66 +199,78 @@ fun CreatePostScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 16.dp),
+                        .padding(bottom = 12.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                    color = Color(0xFFFFE0E0)
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = RedAccent)
+                        Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Sugerencia de IA", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Text("¿Es este un lugar de ${suggestedCategory}?", fontSize = 14.sp)
+                            Text("Sugerencia de IA", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = RedAccent)
+                            Text("¿Es un lugar de ${suggestedCategory}?", fontSize = 13.sp)
                         }
                         TextButton(onClick = { viewModel.acceptAiSuggestion() }) {
-                            Text("Aceptar")
+                            Text("Aceptar", color = RedAccent)
                         }
                     }
                 }
             }
 
-            // Categorías
+            // --- Categorías ---
             Text(
-                text = "Categoría",
+                text = "Selecciona una categoría",
                 fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontSize = 14.sp,
+                color = Color(0xFF1A1A1A),
+                modifier = Modifier.padding(bottom = 10.dp)
             )
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 20.dp)
             ) {
                 items(viewModel.categories) { category ->
-                    FilterChip(
-                        selected = selectedCategory == category,
+                    val isSelected = selectedCategory == category
+                    Surface(
                         onClick = { viewModel.onCategoryChange(category) },
-                        label = { Text(category) },
-                        shape = RoundedCornerShape(20.dp),
-                        leadingIcon = if (selectedCategory == category) {
-                            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                        } else null
-                    )
+                        shape = RoundedCornerShape(24.dp),
+                        color = if (isSelected) Color(0xFFE8D5F5) else Color.White,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (isSelected) Color(0xFF9C27B0) else Color(0xFFDDDDDD)
+                        )
+                    ) {
+                        Text(
+                            text = category,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                            color = if (isSelected) Color(0xFF7B1FA2) else Color(0xFF555555)
+                        )
+                    }
                 }
             }
 
-            // Descripción + Botón generar con IA
+            // --- Descripción ---
             Row(
-                modifier = Modifier.padding(bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 Text(
                     text = "Descripción",
                     fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = Color(0xFF1A1A1A),
                     modifier = Modifier.weight(1f)
                 )
                 if (isGeneratingDesc) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = RedAccent)
                         Spacer(Modifier.width(6.dp))
-                        Text("Generando...", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                        Text("Generando...", fontSize = 12.sp, color = RedAccent)
                     }
                 } else {
                     Surface(
@@ -256,20 +285,15 @@ fun CreatePostScreen(
                             }
                         },
                         shape = RoundedCornerShape(20.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                        color = Color(0xFFFFE0E0)
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                Icons.Default.AutoAwesome,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(13.dp), tint = RedAccent)
                             Spacer(Modifier.width(4.dp))
-                            Text("Generar con IA", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                            Text("IA", fontSize = 11.sp, color = RedAccent, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -278,128 +302,57 @@ fun CreatePostScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { viewModel.onDescriptionChange(it) },
-                label = { Text("Descripción") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
-                shape = RoundedCornerShape(12.dp),
-                maxLines = 5
+                    .height(140.dp),
+                shape = RoundedCornerShape(16.dp),
+                placeholder = { Text("Descripción", color = Color(0xFF999999)) },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                    focusedIndicatorColor = RedAccent
+                ),
+                maxLines = 6
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Fecha (Calendar)
-            Text(
-                text = "Fecha del Evento / Visita",
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            OutlinedTextField(
-                value = selectedDateText,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Fecha (DD/MM/YY)") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDatePicker = true },
-                leadingIcon = { Icon(Icons.Default.CalendarToday, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { showDatePicker = true }) {
-                        Icon(Icons.Default.DateRange, contentDescription = "Abrir calendario")
-                    }
-                },
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Horario — dos campos lado a lado (hora inicio y fin)
-            Text(
-                text = "Horario de Atención",
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Hora Apertura
-                OutlinedTextField(
-                    value = "%02d:%02d".format(startHour, startMinute),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Apertura") },
-                    leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = { openStartPicker = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar", modifier = Modifier.size(18.dp))
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { openStartPicker = true },
-                    shape = RoundedCornerShape(12.dp)
-                )
-                // Hora Cierre
-                OutlinedTextField(
-                    value = "%02d:%02d".format(endHour, endMinute),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Cierre") },
-                    leadingIcon = { Icon(Icons.Default.Schedule, contentDescription = null) },
-                    trailingIcon = {
-                        IconButton(onClick = { openEndPicker = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Editar", modifier = Modifier.size(18.dp))
-                        }
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { openEndPicker = true },
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Precio — campo propio en su fila
-            OutlinedTextField(
-                value = priceRange,
-                onValueChange = { viewModel.onPriceRangeChange(it) },
-                label = { Text("Precio estimado") },
-                modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
-                shape = RoundedCornerShape(12.dp),
-                placeholder = { Text("Ej: \$30.000 COP") },
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Ubicación
+            // --- Ubicación ---
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.onLocationChange(it) },
-                label = { Text("Ubicación (Mapa)") },
                 modifier = Modifier.fillMaxWidth(),
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(16.dp),
+                placeholder = { Text("Ubicación exacta o zona", color = Color(0xFF999999)) },
+                leadingIcon = {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF555555))
+                },
                 trailingIcon = {
                     IconButton(onClick = onNavigateToMapPicker) {
-                        Icon(Icons.Default.Map, contentDescription = "Seleccionar en mapa")
+                        Icon(Icons.Default.Map, contentDescription = "Mapa", tint = RedAccent)
                     }
-                }
+                },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                    focusedIndicatorColor = RedAccent
+                ),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Subir Fotos
-            Surface(
+            // --- Agregar foto ---
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .height(90.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
                     .clickable { /* Upload photo */ },
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -408,32 +361,35 @@ fun CreatePostScreen(
                     Icon(
                         Icons.Default.AddAPhoto,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = RedAccent,
+                        modifier = Modifier.size(32.dp)
                     )
-                    Text("Agregar fotos reales", color = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.height(6.dp))
+                    Text("Agregar fotos", color = RedAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
-            // Botón de Publicar
+            // --- Botón Publicar ---
             Button(
-                onClick = { /* Publish logic */ },
+                onClick = { viewModel.savePost { onBack() } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = RedAccent)
             ) {
-                Text("Publicar Punto de Interés", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text("Publicar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
 
             Text(
-                text = "Como Explorador, tu publicación será enviada a moderación para ser verificada.",
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 12.dp),
+                text = "Tu publicación será enviada a moderación antes de ser visible.",
+                fontSize = 11.sp,
+                color = Color(0xFF999999),
+                modifier = Modifier.padding(top = 10.dp, bottom = 24.dp),
                 textAlign = TextAlign.Center,
-                lineHeight = 16.sp
+                lineHeight = 15.sp
             )
         }
     }

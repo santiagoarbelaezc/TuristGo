@@ -4,10 +4,18 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turistgo.app.domain.model.Post
+import com.turistgo.app.domain.repository.AppDataRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
 
-class CreatePostViewModel : ViewModel() {
+@HiltViewModel
+class CreatePostViewModel @Inject constructor(
+    private val repository: AppDataRepository
+) : ViewModel() {
     private val _title = mutableStateOf("")
     val title: State<String> = _title
 
@@ -73,6 +81,21 @@ class CreatePostViewModel : ViewModel() {
                 }
                 _isAnalyzing.value = false
             }
+        }
+    }
+
+    fun savePost(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val newPost = Post(
+                id = UUID.randomUUID().toString(),
+                name = _title.value,
+                location = _location.value,
+                rating = "0.0",
+                imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg",
+                description = _description.value
+            )
+            repository.savePost(newPost)
+            onSuccess()
         }
     }
 }

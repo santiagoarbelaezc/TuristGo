@@ -2,17 +2,30 @@ package com.turistgo.app.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta personalizada - TuristGo
-val VibrantRed = Color(0xFFE53935) // Rojo más vivo y energético
-val Charcoal = Color(0xFF2D2D2D)
-val Smoke = Color(0xFF8A8A8A)
-val Mist = Color(0xFFF0F0F0)
-val OffWhite = Color(0xFFFAF7F2)
+// ── TuristGo · Paleta unificada ────────────────────────────────────────────
 
-// Mantenemos los nombres estándar para compatibilidad
-val Primary = VibrantRed
-val OnPrimary = Color.White
-val Background = OffWhite
-val OnBackground = Charcoal
-val Surface = Mist
-val OnSurface = Charcoal
+// Rojo principal (acento de marca)
+val BrandRed      = Color(0xFFD32F2F)   // usado en botones, ícons, selección
+val BrandRedLight = Color(0xFFFFEBEB)   // fondo rosado suave (bottom bar, chips)
+
+// Fondos
+val AppBackground = Color(0xFFF5F0EB)   // beige cálido — pantalla principal para TODAS las pantallas autenticadas
+val CardBackground = Color(0xFFEFEAE4)  // beige ligeramente más oscuro para cards / secciones
+
+// Tipografía
+val TextPrimary   = Color(0xFF1A1A1A)   // negro suave para títulos / cuerpo
+val TextSecondary = Color(0xFF888888)   // gris medio para secundarios / timestamps
+
+// Mantenemos compatibilidad con el ColorScheme de Material3
+val VibrantRed  = BrandRed
+val Charcoal    = TextPrimary
+val Smoke       = TextSecondary
+val Mist        = Color(0xFFE8E3DD)      // borde / divisor
+val OffWhite    = AppBackground
+
+val Primary      = BrandRed
+val OnPrimary    = Color.White
+val Background   = AppBackground
+val OnBackground = TextPrimary
+val Surface      = Color.White
+val OnSurface    = TextPrimary

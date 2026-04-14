@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 enum class PostStatus {
     PENDING, VERIFIED, REJECTED, RESOLVED
@@ -21,7 +23,8 @@ data class ModeratorPost(
     val rejectionReason: String? = null
 )
 
-class ModeratorViewModel : ViewModel() {
+@HiltViewModel
+class ModeratorViewModel @Inject constructor() : ViewModel() {
     private val _posts = mutableStateListOf(
         ModeratorPost("1", "Aventura en el Cañón del Chicamocha", "Santiago Arbelaez", "26/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg"),
         ModeratorPost("2", "Cascada Escondida", "Maria Lopez", "25/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"),

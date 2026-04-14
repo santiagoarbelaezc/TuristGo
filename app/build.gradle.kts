@@ -63,8 +63,9 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // DataStore
+    // DataStore & Cloudinary
     implementation(libs.data.store)
+    implementation(libs.cloudinary.android)
 
     testImplementation(libs.junit)
 

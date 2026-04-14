@@ -20,9 +20,9 @@ class EditPostViewModel : ViewModel() {
         // Simulación de carga de datos basada en el ID
         // En una app real esto vendría de un repositorio/API
         val simulatedPosts = mapOf(
-            "0" to PostEditState("Avistamiento de aves", "Increíble experiencia viendo aves rapaces.", "Manizales, Caldas", "Turismo", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg"),
-            "1" to PostEditState("Camping en el Ruiz", "Frío pero vale la pena la vista.", "Nevado del Ruiz", "Aventura", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036016/Nevado_del_Ruiz_by_Edgar_mi099q.png"),
-            "2" to PostEditState("Café en Salento", "El mejor café de la región.", "Salento, Quindío", "Gastronomía", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg")
+            "0" to PostEditState("Avistamiento de aves", "Increíble experiencia viendo aves rapaces.", "Manizales, Caldas", "Turismo", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
+            "1" to PostEditState("Camping en el Ruiz", "Frío pero vale la pena la vista.", "Nevado del Ruiz", "Aventura", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
+            "2" to PostEditState("Café en Salento", "El mejor café de la región.", "Salento, Quindío", "Gastronomía", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/salento_i4sh8q.jpg")
         )
 
         simulatedPosts[postId]?.let {

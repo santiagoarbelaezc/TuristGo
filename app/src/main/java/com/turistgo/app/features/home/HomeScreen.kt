@@ -56,7 +56,7 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 24.dp),  // Removido padding vertical
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -77,7 +77,7 @@ fun HomeScreen(
                 }
                 // Logo — mismo comportamiento que LoginScreen (clic activa video)
                 Box(
-                    modifier = Modifier.size(140.dp),
+                    modifier = Modifier.size(120.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     var isVideoReady by remember { mutableStateOf(false) }
@@ -85,7 +85,7 @@ fun HomeScreen(
                     if (showVideoOverlay) {
                         val videoUri = "android.resource://${LocalContext.current.packageName}/${com.turistgo.app.R.raw.video_login}"
                         Surface(
-                            modifier = Modifier.size(140.dp),
+                            modifier = Modifier.size(120.dp),
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.background,
                             border = androidx.compose.foundation.BorderStroke(

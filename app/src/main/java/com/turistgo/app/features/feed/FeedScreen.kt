@@ -46,13 +46,13 @@ fun FeedScreen(
     var selectedCategory by remember(lang) { mutableStateOf(categories.first()) }
 
     val destinations = listOf(
-        Destination("Santuario de Las Lajas", "Ipiales, Nariño", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg"),
-        Destination("San Andrés Islas", "San Andrés, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"),
-        Destination("Piedra del Peñol", "Guatapé, Antioquia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg"),
-        Destination("Nevado del Ruiz", "Manizales, Caldas", "4.6", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036016/Nevado_del_Ruiz_by_Edgar_mi099q.png"),
-        Destination("Parque Tayrona", "Magdalena, Colombia", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996096/visitar-parque-tayrona-13_bwybj6.webp"),
-        Destination("Cartagena de Indias", "Bolívar, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996090/iStock-1165965255_copia_tvooih.jpg"),
-        Destination("Valle del Cocora", "Quindío, Colombia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996090/2022110906163046516_pgqroh.webp")
+        Destination("Santuario de Las Lajas", "Ipiales, Nariño", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg"),
+        Destination("San Andrés Islas", "San Andrés, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
+        Destination("Piedra del Peñol", "Guatapé, Antioquia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg"),
+        Destination("Nevado del Ruiz", "Manizales, Caldas", "4.6", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
+        Destination("Parque Tayrona", "Magdalena, Colombia", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"),
+        Destination("Cartagena de Indias", "Bolívar, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg"),
+        Destination("Salento", "Quindío, Colombia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/salento_i4sh8q.jpg")
     )
 
     var isSearchActive by remember { mutableStateOf(false) }

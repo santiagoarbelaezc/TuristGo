@@ -299,9 +299,9 @@ fun ProfileScreen(
 fun MyPostItem(index: Int, onClick: () -> Unit = {}) {
     val labels = listOf("Avistamiento de aves", "Camping en el Ruiz", "Café en Salento")
     val images = listOf(
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg",
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036016/Nevado_del_Ruiz_by_Edgar_mi099q.png",
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg"
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg",
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg",
+        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"
     )
 
     Card(

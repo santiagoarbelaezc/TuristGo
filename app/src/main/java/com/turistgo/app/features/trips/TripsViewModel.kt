@@ -70,7 +70,7 @@ class TripsViewModel @Inject constructor() : ViewModel() {
                         name = "Piedra del Peñol",
                         location = "Guatapé, Antioquia",
                         rating = "4.8",
-                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg",
+                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg",
                         description = "Un lugar icónico con vista panorámica."
                     ),
                     Post(
@@ -78,7 +78,7 @@ class TripsViewModel @Inject constructor() : ViewModel() {
                         name = "Parque Tayrona",
                         location = "Santa Marta, Colombia",
                         rating = "4.9",
-                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996096/visitar-parque-tayrona-13_bwybj6.webp",
+                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg",
                         description = "Playas de cristal y selva virgen."
                     )
                 )

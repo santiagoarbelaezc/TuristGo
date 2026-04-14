@@ -170,7 +170,7 @@ fun AppNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = if (authState is AuthState.Authenticated) MainRoutes.Feed else MainRoutes.Home,
+            startDestination = MainRoutes.Home,
             modifier = Modifier.padding(innerPadding)
         ) {
             // Unauthenticated Graph

@@ -126,17 +126,15 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()  // Ocupa todo el espacio
                     .verticalScroll(scrollState)  // Permite scroll vertical
-                    .padding(24.dp),  // Padding interno de 24dp
+                    .padding(horizontal = 24.dp),  // Removido padding vertical
                 horizontalAlignment = Alignment.CenterHorizontally,  // Centra horizontalmente
-                verticalArrangement = Arrangement.Center  // Distribuye verticalmente centrado
+                verticalArrangement = Arrangement.Top  // Cambiado de Center a Top para quitar margenes
             ) {
-                // Espaciador vertical de 32dp
-                Spacer(modifier = Modifier.height(32.dp))
 
                 // --- SECCIÓN DEL LOGO / VIDEO ---
-                // Box contenedor del logo (tamaño fijo 140dp)
+                // Box contenedor del logo (tamaño ajustado a 120dp)
                 Box(
-                    modifier = Modifier.size(140.dp),
+                    modifier = Modifier.size(120.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     // Estado local para saber si el video ya está listo para reproducirse
@@ -148,7 +146,7 @@ fun LoginScreen(
                         val videoUri = "android.resource://${LocalContext.current.packageName}/${com.turistgo.app.R.raw.video_login}"
                         // Surface: contenedor con forma circular y borde
                         Surface(
-                            modifier = Modifier.size(140.dp),
+                            modifier = Modifier.size(120.dp),
                             shape = CircleShape,  // Forma circular
                             color = MaterialTheme.colorScheme.background,  // Color de fondo
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))  // Borde semitransparente
@@ -184,8 +182,8 @@ fun LoginScreen(
                     }
                 }
 
-                // Espaciador vertical de 24dp
-                Spacer(modifier = Modifier.height(24.dp))
+                // Espaciador vertical reducido
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // --- TEXTO DEL TÍTULO PRINCIPAL ---
                 Text(
@@ -199,7 +197,7 @@ fun LoginScreen(
                     text = "Descubre tu próxima aventura",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.secondary,  // Color secundario del tema
-                    modifier = Modifier.padding(bottom = 16.dp)  // Padding inferior
+                    modifier = Modifier.padding(bottom = 8.dp)  // Padding inferior reducido
                 )
 
                 // --- CAMPO DE TEXTO: EMAIL ---
@@ -214,7 +212,7 @@ fun LoginScreen(
                     enabled = !isLoading  // Deshabilitado si está cargando
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // --- CAMPO DE TEXTO: CONTRASEÑA ---
                 OutlinedTextField(
@@ -254,7 +252,7 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // --- BOTÓN DE INICIO DE SESIÓN ---
                 Button(
@@ -277,7 +275,7 @@ fun LoginScreen(
                     Text("Iniciar Sesión", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // --- ENLACE PARA REGISTRARSE ---
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -290,7 +288,7 @@ fun LoginScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // --- DIVISOR CON TEXTO "O continúa con" ---
                 Row(
@@ -310,11 +308,11 @@ fun LoginScreen(
                     HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // --- BOTONES DE REDES SOCIALES ---
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.Center  // Centra los botones
                 ) {
                     // Botón de Google
@@ -340,8 +338,7 @@ fun LoginScreen(
                         enabled = !isLoading
                     )
                 }
-                
-            } // Fin del Column
-        } // Fin del Box
-    } // Fin del Scaffold
-} 
+            }
+        }
+    }
+}

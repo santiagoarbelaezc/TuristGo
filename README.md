@@ -18,6 +18,9 @@
 **TuristGo** es una aplicación móvil moderna orientada al turismo inteligente. La plataforma permite a los usuarios descubrir lugares, crear rutas turísticas, recibir sugerencias mediante IA y gamificar su experiencia de viaje a través de un sistema de puntos e insignias.
 
 > ⚠️ **Estado del Proyecto:** En desarrollo activo
+>
+> ⚠️ **Estado del Proyecto:** Falta implementar funcionalidades
+
 
 ---
 

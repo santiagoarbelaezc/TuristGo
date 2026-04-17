@@ -26,10 +26,10 @@ data class ModeratorPost(
 @HiltViewModel
 class ModeratorViewModel @Inject constructor() : ViewModel() {
     private val _posts = mutableStateListOf(
-        ModeratorPost("1", "Aventura en el Cañón del Chicamocha", "Santiago Arbelaez", "26/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg"),
-        ModeratorPost("2", "Cascada Escondida", "Maria Lopez", "25/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"),
-        ModeratorPost("3", "Restaurante Típico", "Carlos Ruiz", "24/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg"),
-        ModeratorPost("4", "Aventura en el Nevado", "Ana Gomez", "23/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036016/Nevado_del_Ruiz_by_Edgar_mi099q.png")
+        ModeratorPost("1", "Santuario de Las Lajas", "Santiago Arbelaez", "26/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg"),
+        ModeratorPost("2", "Parque Tayrona", "Maria Lopez", "25/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"),
+        ModeratorPost("3", "Piedra del Peñol", "Carlos Ruiz", "24/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg"),
+        ModeratorPost("4", "Nevado del Ruiz", "Ana Gomez", "23/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg")
     )
     val posts: List<ModeratorPost> = _posts
 

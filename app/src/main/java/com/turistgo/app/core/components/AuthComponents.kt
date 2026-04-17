@@ -67,11 +67,16 @@ fun InPlaceVideoPlayer(
 }
 
 @Composable
-fun SocialLoginCard(iconUrl: String, contentDescription: String, enabled: Boolean = true) {
+fun SocialLoginCard(
+    iconUrl: String, 
+    contentDescription: String, 
+    enabled: Boolean = true,
+    onClick: () -> Unit = {}
+) {
     Surface(
         modifier = Modifier
             .size(56.dp)
-            .clickable(enabled = enabled) { /* Social Login */ },
+            .clickable(enabled = enabled) { onClick() },
         shape = CircleShape,
         color = Color.White,
         shadowElevation = 2.dp,

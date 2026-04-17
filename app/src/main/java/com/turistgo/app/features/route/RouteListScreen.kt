@@ -101,21 +101,21 @@ private val mockPlan = AiTravelPlan(
             name = "Piedra del Peñol",
             type = "Atractivo Natural",
             rating = 4.9f,
-            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/SL3RJGIFWRCQDGAMA2XYX4QYRQ_dtneeb.jpg",
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg",
             description = "Monolito de 200 m de altura con vistas épicas del embalse."
         ),
         RecommendedPlace(
-            name = "Jardín, Antioquia",
+            name = "Salento, Quindío",
             type = "Pueblo Patrimonio",
             rating = 4.8f,
-            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg",
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/salento_i4sh8q.jpg",
             description = "Pueblo cafetero de colores y naturaleza exuberante."
         ),
         RecommendedPlace(
-            name = "Santa Fe de Antioquia",
+            name = "Cartagena de Indias",
             type = "Ciudad Colonial",
             rating = 4.7f,
-            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/celebre-la-semana-santa-en-estos-cuatro-lugares-turisticos-de-colombia-1229852_ckbgrw.jpg",
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg",
             description = "La antigua capital colonial llena de historia y cultura."
         )
     )

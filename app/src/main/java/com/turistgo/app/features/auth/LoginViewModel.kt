@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.StateFlow         // Flow de solo lectura para es
 import kotlinx.coroutines.flow.asStateFlow       // Convierte MutableStateFlow a StateFlow (solo lectura)
 import kotlinx.coroutines.launch                // Lanza una coroutine en un scope específico
 
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import com.turistgo.app.data.datastore.UserSessionManager
+
 /**
  * LoginViewModel - Maneja la lógica de negocio y el estado de la pantalla de inicio de sesión
  * 
@@ -30,7 +34,10 @@ import kotlinx.coroutines.launch                // Lanza una coroutine en un sco
  * - Observable State: El UI observa los estados del ViewModel
  * - StateFlow y State: Para estados reactivos
  */
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val sessionManager: UserSessionManager
+) : ViewModel() {
     
     // ==================== ESTADOS PRIVADOS MUTABLES ====================
     
@@ -117,67 +124,58 @@ class LoginViewModel : ViewModel() {
      * Método principal de autenticación - Valida credenciales y realiza login
      * 
      * @param onSuccess Callback que devuelve true si es administrador, false si es usuario normal
-     * 
-     * Flujo de ejecución:
-     * 1. Validación de campos vacíos
-     * 2. Inicio de estado de carga
-     * 3. Simulación de llamada a API (delay 1 segundo)
-     * 4. Validación de credenciales (hardcodeado para demo)
-     * 5. Ejecución del callback con el resultado
-     * 6. Finalización del estado de carga
-     * 
-     * NOTA: En producción, aquí se llamaría a un repositorio/API real
      */
     fun login(onSuccess: (Boolean) -> Unit) {
-        // --- VALIDACIÓN DE CAMPOS ---
-        // Verifica si email o contraseña están vacíos
         if (_email.value.isEmpty() || _password.value.isEmpty()) {
-            // Si hay campos vacíos, envía mensaje de error al Snackbar
             _snackbarMessage.value = "Por favor, completa todos los campos"
-            return  // Sale del método sin continuar con el login
+            return
         }
         
-        // --- PROCESO DE AUTENTICACIÓN ASÍNCRONA ---
-        // viewModelScope: CoroutineScope que se cancela automáticamente cuando el ViewModel se destruye
-        // launch: Inicia una nueva coroutine para operaciones asíncronas
         viewModelScope.launch {
-            // 1. Activar estado de carga (UI muestra loading y deshabilita botones)
             _isLoading.value = true
+            kotlinx.coroutines.delay(1000)
             
-            // 2. Simular llamada de red/latencia
-            // En producción: llamada a API real, verificación con backend
-            // delay(): Suspende la coroutine sin bloquear el hilo principal
-            kotlinx.coroutines.delay(1000)  // 1 segundo de delay simulado
-            
-            // 3. LÓGICA DE AUTENTICACIÓN (DEMO)
-            // Verifica si las credenciales corresponden a un administrador
-            // CREDENCIALES HARCODEADAS SOLO PARA DEMOSTRACIÓN:
-            // - Admin: email="admin", password="admin"
-            // - Usuario normal: cualquier otro email/contraseña
             val isAdmin = _email.value == "admin" && _password.value == "admin"
             
-            // 4. Ejecutar callback con el resultado (rol del usuario)
-            // El UI recibirá este callback y navegará a la pantalla correspondiente
+            // Si es un login normal exitoso, guardamos una sesión ficticia
+            sessionManager.saveSession(
+                userId = if (isAdmin) "admin_001" else "user_001",
+                name = if (isAdmin) "Administrador" else "Usuario Demo",
+                email = _email.value
+            )
+
             onSuccess(isAdmin)
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Realiza login con proveedor social (Google, Facebook, LinkedIn)
+     * 
+     * @param provider El nombre del proveedor
+     * @param onSuccess Callback de éxito
+     */
+    fun loginWithSocial(provider: String, onSuccess: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _snackbarMessage.value = "Conectando con $provider..."
             
-            // 5. Desactivar estado de carga
-            // El UI vuelve a su estado normal (botones habilitados)
+            // Simular latencia de autenticación externa
+            kotlinx.coroutines.delay(2000)
+            
+            // Guardar sesión ficticia del proveedor social
+            sessionManager.saveSession(
+                userId = "social_${System.currentTimeMillis()}",
+                name = "$provider User",
+                email = "${provider.lowercase()}@example.com"
+            )
+
+            _snackbarMessage.value = "¡Bienvenido vía $provider!"
+            onSuccess(false) // Los logins sociales usualmente no son admin por defecto en esta demo
             _isLoading.value = false
         }
     }
     
-    /**
-     * Limpia el mensaje del Snackbar después de que ha sido mostrado
-     * Previene que el mismo mensaje aparezca múltiples veces
-     * 
-     * Este método es llamado desde el UI después de que el Snackbar se muestra
-     * 
-     * Flujo:
-     * 1. UI muestra Snackbar con el mensaje actual
-     * 2. UI llama a clearSnackbarMessage()
-     * 3. El mensaje se limpia (vuelve a null)
-     * 4. El UI deja de observar el mensaje antiguo
-     */
     fun clearSnackbarMessage() { 
         _snackbarMessage.value = null 
     }

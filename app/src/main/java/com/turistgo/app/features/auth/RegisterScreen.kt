@@ -113,7 +113,12 @@ fun RegisterScreen(
                             onNavigateToCompleteProfile(userId)
                         }
                     },
-                    onBackClick = onBack
+                    onBackClick = onBack,
+                    onSocialClick = { provider ->
+                        viewModel.registerWithSocial(provider) { userId ->
+                            onNavigateToCompleteProfile(userId)
+                        }
+                    }
                 )
             }
 
@@ -185,10 +190,14 @@ private fun PersonalDataSection(viewModel: RegisterViewModel, isLoading: Boolean
 private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     val age by viewModel.age
     val country by viewModel.country
+    val department by viewModel.department
     val city by viewModel.city
+    val address by viewModel.address
+    val availableDepartments by viewModel.availableDepartments
     val availableCities by viewModel.availableCities
     
     var countryExpanded by remember { mutableStateOf(false) }
+    var departmentExpanded by remember { mutableStateOf(false) }
     var cityExpanded by remember { mutableStateOf(false) }
 
     Row(
@@ -218,7 +227,7 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("País") },
-                leadingIcon = { Icon(Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                leadingIcon = { Icon(Icons.Default.Public, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
@@ -242,12 +251,52 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         }
     }
 
+    // Campo de DEPARTAMENTO (Solo si es Colombia)
+    if (country == "Colombia") {
+        Spacer(modifier = Modifier.height(16.dp))
+        ExposedDropdownMenuBox(
+            expanded = departmentExpanded,
+            onExpandedChange = { if (!isLoading) departmentExpanded = !departmentExpanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = department,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Departamento") },
+                leadingIcon = { Icon(Icons.Default.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                enabled = !isLoading,
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                placeholder = { Text("Selecciona un departamento") }
+            )
+            ExposedDropdownMenu(
+                expanded = departmentExpanded,
+                onDismissRequest = { departmentExpanded = false }
+            ) {
+                availableDepartments.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption) },
+                        onClick = {
+                            viewModel.onDepartmentChange(selectionOption)
+                            departmentExpanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+
     Spacer(modifier = Modifier.height(16.dp))
 
+    // Campo de CIUDAD
     ExposedDropdownMenuBox(
         expanded = cityExpanded,
         onExpandedChange = { 
-            if (!isLoading && country.isNotEmpty()) cityExpanded = !cityExpanded 
+            val canExpand = if (country == "Colombia") department.isNotEmpty() else country.isNotEmpty()
+            if (!isLoading && canExpand) cityExpanded = !cityExpanded 
         },
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -260,10 +309,14 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
-            enabled = !isLoading && country.isNotEmpty(),
+            enabled = !isLoading && (if (country == "Colombia") department.isNotEmpty() else country.isNotEmpty()),
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             placeholder = { 
-                if (country.isEmpty()) Text("Selecciona primero un país")
+                when {
+                    country.isEmpty() -> Text("Selecciona primero un país")
+                    country == "Colombia" && department.isEmpty() -> Text("Selecciona un departamento")
+                    else -> Text("Selecciona una ciudad")
+                }
             }
         )
         if (availableCities.isNotEmpty()) {
@@ -283,6 +336,21 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
             }
         }
     }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // CAMPO DE DIRECCIÓN
+    OutlinedTextField(
+        value = address,
+        onValueChange = { viewModel.onAddressChange(it) },
+        label = { Text("Dirección") },
+        leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        singleLine = true,
+        placeholder = { Text("Ej: Calle 123 #45-67") },
+        enabled = !isLoading
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -409,7 +477,8 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
 private fun RegisterActions(
     isLoading: Boolean,
     onRegisterClick: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onSocialClick: (String) -> Unit
 ) {
     Button(
         onClick = onRegisterClick,
@@ -459,21 +528,24 @@ private fun RegisterActions(
         SocialLoginCard(
             iconUrl = "https://cdn-icons-png.flaticon.com/512/300/300221.png",
             contentDescription = "Google",
-            enabled = !isLoading
+            enabled = !isLoading,
+            onClick = { onSocialClick("Google") }
         )
         Spacer(modifier = Modifier.width(20.dp))
         
         SocialLoginCard(
             iconUrl = "https://cdn-icons-png.flaticon.com/512/5968/5968764.png",
             contentDescription = "Facebook",
-            enabled = !isLoading
+            enabled = !isLoading,
+            onClick = { onSocialClick("Facebook") }
         )
         Spacer(modifier = Modifier.width(20.dp))
         
         SocialLoginCard(
             iconUrl = "https://cdn-icons-png.flaticon.com/512/3536/3536505.png",
             contentDescription = "LinkedIn",
-            enabled = !isLoading
+            enabled = !isLoading,
+            onClick = { onSocialClick("LinkedIn") }
         )
     }
 }

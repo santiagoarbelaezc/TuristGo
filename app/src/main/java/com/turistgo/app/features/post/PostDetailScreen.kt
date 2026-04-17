@@ -33,7 +33,7 @@ fun PostDetailScreen(destinationId: String?, onBack: () -> Unit) {
     val title = "Parque Tayrona"
     val location = "Santa Marta, Magdalena"
     val description = "El Parque Nacional Natural Tayrona es uno de los parques naturales más importantes de Colombia. Es hábitat de una gran cantidad de especies que se distribuyen en regiones con diferentes pisos térmicos."
-    val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996096/visitar-parque-tayrona-13_bwybj6.webp"
+    val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"
     val schedule = "Todos los días: 8:00 AM - 5:00 PM"
     val priceRange = "Moderado ($30.000 - $60.000 COP)"
 
@@ -212,8 +212,8 @@ fun PostDetailScreen(destinationId: String?, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         val related = listOf(
-                            Destination("San Andrés", "Isla", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"),
-                            Destination("Cartagena", "Bolívar", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771996090/iStock-1165965255_copia_tvooih.jpg")
+                            Destination("San Andrés", "Isla", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
+                            Destination("Cartagena", "Bolívar", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg")
                         )
                         items(related) { dest ->
                             RelatedPostCard(dest)

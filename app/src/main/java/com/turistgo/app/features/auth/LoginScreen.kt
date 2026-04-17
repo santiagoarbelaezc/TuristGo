@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp                    // Unidades de densidad in
 import androidx.compose.ui.unit.sp                    // Unidades escalables para texto (sp)
 
 // Importaciones de ViewModel y contexto
-import androidx.lifecycle.viewmodel.compose.viewModel  // Para obtener ViewModel en Compose
+import androidx.hilt.navigation.compose.hiltViewModel  // Para obtener ViewModel de Hilt en Compose
 import androidx.compose.ui.platform.LocalContext       // Obtiene el contexto actual
 
 // Importaciones para video
@@ -72,7 +72,7 @@ fun LoginScreen(
     // Callback que se ejecuta al navegar a la pantalla de recuperación de contraseña
     onNavigateToForgotPassword: () -> Unit,
     // ViewModel que maneja la lógica de negocio (inyectado automáticamente)
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     // --- OBSERVACIÓN DE ESTADOS DEL VIEWMODEL ---
     // Estado del campo email (observable)
@@ -319,7 +319,10 @@ fun LoginScreen(
                     SocialLoginCard(
                         iconUrl = "https://cdn-icons-png.flaticon.com/512/300/300221.png",
                         contentDescription = "Google",
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        onClick = { 
+                            viewModel.loginWithSocial("Google") { onNavigateToFeed() }
+                        }
                     )
                     Spacer(modifier = Modifier.width(20.dp))  // Espacio entre botones
                     
@@ -327,7 +330,10 @@ fun LoginScreen(
                     SocialLoginCard(
                         iconUrl = "https://cdn-icons-png.flaticon.com/512/5968/5968764.png",
                         contentDescription = "Facebook",
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        onClick = { 
+                            viewModel.loginWithSocial("Facebook") { onNavigateToFeed() }
+                        }
                     )
                     Spacer(modifier = Modifier.width(20.dp))
                     
@@ -335,7 +341,10 @@ fun LoginScreen(
                     SocialLoginCard(
                         iconUrl = "https://cdn-icons-png.flaticon.com/512/3536/3536505.png",
                         contentDescription = "LinkedIn",
-                        enabled = !isLoading
+                        enabled = !isLoading,
+                        onClick = { 
+                            viewModel.loginWithSocial("LinkedIn") { onNavigateToFeed() }
+                        }
                     )
                 }
             }

@@ -76,19 +76,24 @@ class TripsViewModel @Inject constructor(
                 }
                 
                 val systemPrompt = """
-                    Eres un asistente de viajes experto para la app TuristGo. 
-                    Tu objetivo es analizar los lugares disponibles y armar un plan de viaje personalizado.
+                    Eres un asistente de viajes experto y apasionado para la app TuristGo. 
+                    Tu objetivo es analizar los lugares disponibles y generar un itinerario detallado, natural y emocionante.
                     
-                    LUGARES DISPONIBLES EN LA APP:
+                    ESTILO DE RESPUESTA:
+                    - Usa muchos emojis relevantes para que la respuesta sea visual y divertida.
+                    - Estructura la respuesta con un título como "🗓️ Itinerario sugerido día a día".
+                    - Separa por días usando etiquetas claras como "Día 1", "Día 2", etc.
+                    - Incluye horarios sugeridos para las actividades (ej: 08:00, 10:00, 14:00, 19:00).
+                    - Sé muy amable, entusiasta y usa un tono de experto local.
+                    
+                    LUGARES DISPONIBLES EN LA APP (Usa estos nombres y datos):
                     ${if (availablePosts.isEmpty()) "No hay lugares registrados aún." else placesContext}
                     
-                    INSTRUCCIONES:
-                    1. Analiza los lugares y elige los más adecuados según la solicitud del usuario.
-                    2. Responde de forma amable y entusiasta.
-                    3. Al final de tu respuesta, debes incluir una sección exacta con el formato: 
+                    INSTRUCCIONES CRÍTICAS:
+                    1. Al FINAL de tu respuesta, después del itinerario, debes incluir OBLIGATORIAMENTE la sección: 
                        SUGGESTED_IDS: [id1, id2, ...] 
-                       donde los IDs correspondan a los lugares que recomendaste. Usa los IDs numéricos provistos.
-                    4. Si el usuario pide algo que no está en los lugares disponibles, menciona que esos son los lugares recomendados actualmente en TuristGo.
+                       donde los IDs correspondan a los lugares de la lista anterior que mencionaste en el itinerario. 
+                    2. Si el usuario pide algo que no está disponible, sugiérele los lugares de la lista como la mejor opción actual en TuristGo.
                 """.trimIndent()
 
                 // 3. Llamar a Groq API
@@ -99,8 +104,8 @@ class TripsViewModel @Inject constructor(
                     )
                 )
                 
-                // API Key from .env (via BuildConfig)
-                val apiKey = com.turistgo.app.BuildConfig.GROQ_API_KEY
+                // API Key from .env (via BuildConfig) - Se agrega el prefijo Bearer programáticamente
+                val apiKey = "Bearer ${com.turistgo.app.BuildConfig.GROQ_API_KEY}"
                 
                 val response = groqService.getChatCompletion(
                     apiKey = apiKey,
@@ -130,7 +135,7 @@ class TripsViewModel @Inject constructor(
                 _messages.add(
                     ChatMessage(
                         id = UUID.randomUUID().toString(),
-                        content = "Error al conectar con la IA de Groq. Por favor verifica tu conexión y API Key.",
+                        content = "Lo siento, tuve un problema al conectar con mi cerebro viajero. Por favor, verifica tu conexión e inténtalo de nuevo.",
                         isFromUser = false
                     )
                 )

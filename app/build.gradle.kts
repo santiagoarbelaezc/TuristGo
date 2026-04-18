@@ -7,9 +7,18 @@ plugins {
     alias(libs.plugins.devtools.ksp)
 }
 
+import java.util.Properties
+
 android {
     namespace = "com.turistgo.app"
     compileSdk = 35
+
+    val env = Properties().apply {
+        val envFile = rootProject.file(".env")
+        if (envFile.exists()) {
+            envFile.inputStream().use { load(it) }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.turistgo.app"
@@ -19,6 +28,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        buildConfigField("String", "GROQ_API_KEY", "\"${env.getProperty("GROQ_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -39,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -66,6 +78,16 @@ dependencies {
     // DataStore & Cloudinary
     implementation(libs.data.store)
     implementation(libs.cloudinary.android)
+
+    // Google Sign-In & Credential Manager
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
+    // Networking & Groq AI
+    implementation(libs.retrofit)
+    implementation(libs.okhttp)
+    implementation(libs.retrofit.serialization.converter)
 
     testImplementation(libs.junit)
 

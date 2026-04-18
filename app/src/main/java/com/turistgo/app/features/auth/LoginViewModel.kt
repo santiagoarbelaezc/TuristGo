@@ -2,7 +2,9 @@
 package com.turistgo.app.features.auth
 
 // Importaciones de estados de Compose
-import androidx.compose.runtime.State          // Interfaz de solo lectura para estados observables
+import android.content.Context
+import androidx.compose.runtime.State
+          // Interfaz de solo lectura para estados observables
 import androidx.compose.runtime.mutableStateOf // Crea un estado mutable que puede ser observado
 
 // Importaciones de Android Architecture Components
@@ -14,10 +16,11 @@ import kotlinx.coroutines.flow.MutableStateFlow   // Flow mutable para emitir va
 import kotlinx.coroutines.flow.StateFlow         // Flow de solo lectura para estados
 import kotlinx.coroutines.flow.asStateFlow       // Convierte MutableStateFlow a StateFlow (solo lectura)
 import kotlinx.coroutines.launch                // Lanza una coroutine en un scope específico
-
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+
 import com.turistgo.app.data.datastore.UserSessionManager
+import com.turistgo.app.core.auth.GoogleAuthHelper
 
 /**
  * LoginViewModel - Maneja la lógica de negocio y el estado de la pantalla de inicio de sesión
@@ -36,7 +39,8 @@ import com.turistgo.app.data.datastore.UserSessionManager
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val sessionManager: UserSessionManager
+    private val sessionManager: UserSessionManager,
+    private val googleAuthHelper: GoogleAuthHelper
 ) : ViewModel() {
     
     // ==================== ESTADOS PRIVADOS MUTABLES ====================
@@ -155,23 +159,39 @@ class LoginViewModel @Inject constructor(
      * @param provider El nombre del proveedor
      * @param onSuccess Callback de éxito
      */
-    fun loginWithSocial(provider: String, onSuccess: (Boolean) -> Unit) {
+    fun loginWithSocial(context: Context, provider: String, onSuccess: (Boolean) -> Unit) {
         viewModelScope.launch {
             _isLoading.value = true
-            _snackbarMessage.value = "Conectando con $provider..."
             
-            // Simular latencia de autenticación externa
-            kotlinx.coroutines.delay(2000)
+            if (provider == "Google") {
+                _snackbarMessage.value = "Conectando con Google..."
+                val googleUser = googleAuthHelper.getGoogleCredential(context)
+                
+                if (googleUser != null) {
+                    sessionManager.saveSession(
+                        userId = googleUser.id,
+                        name = googleUser.name,
+                        email = googleUser.email
+                    )
+                    _snackbarMessage.value = "¡Bienvenido, ${googleUser.name}!"
+                    onSuccess(false)
+                } else {
+                    _snackbarMessage.value = "Error al iniciar sesión con Google"
+                }
+            } else {
+                _snackbarMessage.value = "Conectando con $provider..."
+                // Simular latencia para otros proveedores (Facebook, LinkedIn)
+                kotlinx.coroutines.delay(2000)
+                
+                sessionManager.saveSession(
+                    userId = "social_${System.currentTimeMillis()}",
+                    name = "$provider User",
+                    email = "${provider.lowercase()}@example.com"
+                )
+                _snackbarMessage.value = "¡Bienvenido vía $provider!"
+                onSuccess(false)
+            }
             
-            // Guardar sesión ficticia del proveedor social
-            sessionManager.saveSession(
-                userId = "social_${System.currentTimeMillis()}",
-                name = "$provider User",
-                email = "${provider.lowercase()}@example.com"
-            )
-
-            _snackbarMessage.value = "¡Bienvenido vía $provider!"
-            onSuccess(false) // Los logins sociales usualmente no son admin por defecto en esta demo
             _isLoading.value = false
         }
     }

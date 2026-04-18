@@ -36,4 +36,7 @@
     <string name="edit_profile">Editar Perfil</string>
     <string name="save_changes">Guardar Cambios</string>
     <string name="logout">Cerrar Sesión</string>
+
+    <!-- API Keys configuration -->
+    <string name="google_web_client_id">YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com</string>
 </resources>

@@ -177,7 +177,12 @@ fun AppNavigation(
             composable<MainRoutes.Home> {
                 HomeScreen(
                     onNavigateToLogin = { navController.navigate(MainRoutes.Login) },
-                    onNavigateToRegister = { navController.navigate(MainRoutes.Register) }
+                    onNavigateToRegister = { navController.navigate(MainRoutes.Register) },
+                    onNavigateToFeed = {
+                        navController.navigate(MainRoutes.Feed) {
+                            popUpTo(MainRoutes.Home) { inclusive = true }
+                        }
+                    }
                 )
             }
 

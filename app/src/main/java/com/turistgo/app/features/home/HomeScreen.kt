@@ -31,11 +31,16 @@ import coil.compose.AsyncImage
 import com.turistgo.app.core.locale.AppStrings
 import com.turistgo.app.core.locale.LanguageState
 import com.turistgo.app.core.locale.AppLanguage
+import com.turistgo.app.features.auth.LoginViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.core.components.SocialLoginCard
 
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToFeed: () -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
 
     val lang by LanguageState.current
@@ -186,6 +191,58 @@ fun HomeScreen(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // --- DIVISOR CON TEXTO "O continúa con" ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(
+                        text = "O continúa con",
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- BOTONES DE REDES SOCIALES ---
+                val context = LocalContext.current
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    SocialLoginCard(
+                        iconUrl = "https://cdn-icons-png.flaticon.com/512/300/300221.png",
+                        contentDescription = "Google",
+                        onClick = { 
+                            viewModel.loginWithSocial(context, "Google") { onNavigateToFeed() }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(20.dp))
+                    
+                    SocialLoginCard(
+                        iconUrl = "https://cdn-icons-png.flaticon.com/512/5968/5968764.png",
+                        contentDescription = "Facebook",
+                        onClick = { 
+                            viewModel.loginWithSocial(context, "Facebook") { onNavigateToFeed() }
+                        }
+                    )
+                    Spacer(modifier = Modifier.width(20.dp))
+                    
+                    SocialLoginCard(
+                        iconUrl = "https://cdn-icons-png.flaticon.com/512/3536/3536505.png",
+                        contentDescription = "LinkedIn",
+                        onClick = { 
+                            viewModel.loginWithSocial(context, "LinkedIn") { onNavigateToFeed() }
+                        }
                     )
                 }
 

@@ -45,3 +45,4 @@ google-services.json
 
 # Mapbox / Secrets
 secrets.xml
+.env

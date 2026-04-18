@@ -311,6 +311,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // --- BOTONES DE REDES SOCIALES ---
+                val context = LocalContext.current
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                     horizontalArrangement = Arrangement.Center  // Centra los botones
@@ -321,7 +322,7 @@ fun LoginScreen(
                         contentDescription = "Google",
                         enabled = !isLoading,
                         onClick = { 
-                            viewModel.loginWithSocial("Google") { onNavigateToFeed() }
+                            viewModel.loginWithSocial(context, "Google") { onNavigateToFeed() }
                         }
                     )
                     Spacer(modifier = Modifier.width(20.dp))  // Espacio entre botones
@@ -332,7 +333,7 @@ fun LoginScreen(
                         contentDescription = "Facebook",
                         enabled = !isLoading,
                         onClick = { 
-                            viewModel.loginWithSocial("Facebook") { onNavigateToFeed() }
+                            viewModel.loginWithSocial(context, "Facebook") { onNavigateToFeed() }
                         }
                     )
                     Spacer(modifier = Modifier.width(20.dp))
@@ -343,7 +344,7 @@ fun LoginScreen(
                         contentDescription = "LinkedIn",
                         enabled = !isLoading,
                         onClick = { 
-                            viewModel.loginWithSocial("LinkedIn") { onNavigateToFeed() }
+                            viewModel.loginWithSocial(context, "LinkedIn") { onNavigateToFeed() }
                         }
                     )
                 }

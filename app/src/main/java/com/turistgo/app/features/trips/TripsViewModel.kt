@@ -12,9 +12,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import com.turistgo.app.domain.repository.AppDataRepository
+import com.turistgo.app.data.remote.GroqService
+import com.turistgo.app.data.remote.model.GroqMessage
+import com.turistgo.app.data.remote.model.GroqRequest
+import kotlinx.coroutines.flow.first
 
 @HiltViewModel
-class TripsViewModel @Inject constructor() : ViewModel() {
+class TripsViewModel @Inject constructor(
+    private val repository: AppDataRepository,
+    private val groqService: GroqService
+) : ViewModel() {
 
     private val _messages = mutableStateListOf<ChatMessage>()
     val messages: List<ChatMessage> = _messages
@@ -45,47 +53,103 @@ class TripsViewModel @Inject constructor() : ViewModel() {
             )
         )
 
-        // Simular respuesta de IA
-        generateAiResponse()
+        // Llamar a Groq API con el mensaje del usuario
+        generateAiResponse(content)
     }
 
     fun onQuickPlanSelected(planType: String) {
         sendMessage(planType)
     }
 
-    private fun generateAiResponse() {
+    private fun generateAiResponse(userMessage: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            delay(2000) // Simular pensamiento de la IA
+            
+            try {
+                // 1. Obtener los lugares disponibles (posts)
+                val availablePosts = repository.getPosts().first()
+                
+                // 2. Construir el prompt del sistema
+                val placesContext = availablePosts.joinToString("\n") { 
+                    "- ID: ${it.id}, Nombre: ${it.name}, Ubicación: ${it.location}, Descripción: ${it.description}"
+                }
+                
+                val systemPrompt = """
+                    Eres un asistente de viajes experto para la app TuristGo. 
+                    Tu objetivo es analizar los lugares disponibles y armar un plan de viaje personalizado.
+                    
+                    LUGARES DISPONIBLES EN LA APP:
+                    ${if (availablePosts.isEmpty()) "No hay lugares registrados aún." else placesContext}
+                    
+                    INSTRUCCIONES:
+                    1. Analiza los lugares y elige los más adecuados según la solicitud del usuario.
+                    2. Responde de forma amable y entusiasta.
+                    3. Al final de tu respuesta, debes incluir una sección exacta con el formato: 
+                       SUGGESTED_IDS: [id1, id2, ...] 
+                       donde los IDs correspondan a los lugares que recomendaste. Usa los IDs numéricos provistos.
+                    4. Si el usuario pide algo que no está en los lugares disponibles, menciona que esos son los lugares recomendados actualmente en TuristGo.
+                """.trimIndent()
 
-            // Por ahora, siempre devolvemos el plan romántico como solicitó el usuario
-            val romanticPlan = ChatMessage(
-                id = UUID.randomUUID().toString(),
-                content = "¡He preparado un viaje perfecto para ti y tu novia! Combiné naturaleza, gastronomía y cultura en una ruta de 3 días por los destinos más hermosos de Colombia.",
-                isFromUser = false,
-                isPlanResponse = true,
-                suggestedDestinations = listOf(
-                    Post(
-                        id = "1",
-                        name = "Piedra del Peñol",
-                        location = "Guatapé, Antioquia",
-                        rating = "4.8",
-                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg",
-                        description = "Un lugar icónico con vista panorámica."
-                    ),
-                    Post(
-                        id = "2",
-                        name = "Parque Tayrona",
-                        location = "Santa Marta, Colombia",
-                        rating = "4.9",
-                        imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg",
-                        description = "Playas de cristal y selva virgen."
+                // 3. Llamar a Groq API
+                val request = GroqRequest(
+                    messages = listOf(
+                        GroqMessage(role = "system", content = systemPrompt),
+                        GroqMessage(role = "user", content = userMessage)
                     )
                 )
-            )
+                
+                // API Key from .env (via BuildConfig)
+                val apiKey = BuildConfig.GROQ_API_KEY
+                
+                val response = groqService.getChatCompletion(
+                    apiKey = apiKey,
+                    request = request
+                )
+                
+                val aiContent = response.choices.firstOrNull()?.message?.content ?: "Lo siento, no pude generar una respuesta."
+                
+                // 4. Procesar IDs sugeridos
+                val suggestedIds = extractIds(aiContent)
+                val cleanContent = aiContent.replace(Regex("SUGGESTED_IDS: \\[.*?\\]"), "").trim()
+                
+                val suggestedPosts = availablePosts.filter { it.id in suggestedIds }
+                
+                // 5. Agregar mensaje a la lista
+                _messages.add(
+                    ChatMessage(
+                        id = UUID.randomUUID().toString(),
+                        content = cleanContent,
+                        isFromUser = false,
+                        isPlanResponse = suggestedPosts.isNotEmpty(),
+                        suggestedDestinations = suggestedPosts
+                    )
+                )
+                
+            } catch (e: Exception) {
+                _messages.add(
+                    ChatMessage(
+                        id = UUID.randomUUID().toString(),
+                        content = "Error al conectar con la IA de Groq. Por favor verifica tu conexión y API Key.",
+                        isFromUser = false
+                    )
+                )
+                e.printStackTrace()
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
-            _messages.add(romanticPlan)
-            _isLoading.value = false
+    private fun extractIds(content: String): List<String> {
+        val regex = Regex("SUGGESTED_IDS: \\[(.*?)\\]")
+        val match = regex.find(content)
+        return if (match != null) {
+            match.groupValues[1]
+                .split(",")
+                .map { it.trim().removeSurrounding("\"").removeSurrounding("'") }
+                .filter { it.isNotEmpty() }
+        } else {
+            emptyList()
         }
     }
 }

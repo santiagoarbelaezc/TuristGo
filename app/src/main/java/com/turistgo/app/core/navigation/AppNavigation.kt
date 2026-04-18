@@ -71,6 +71,16 @@ fun AppNavigation(
         return
     }
 
+    // Redirección automática al Feed si ya hay una sesión activa y estamos en la pantalla inicial
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated && 
+            (currentDestination?.hasRoute(MainRoutes.Home::class) == true || currentDestination == null)) {
+            navController.navigate(MainRoutes.Feed) {
+                popUpTo(MainRoutes.Home) { inclusive = true }
+            }
+        }
+    }
+
     val lang by LanguageState.current
     val s = AppStrings.get(lang)
 

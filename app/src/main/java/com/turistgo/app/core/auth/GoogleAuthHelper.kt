@@ -17,11 +17,16 @@ import android.util.Log
 @Singleton
 class GoogleAuthHelper @Inject constructor() {
 
-    suspend fun getGoogleCredential(context: Context): GoogleUserData? {
+    suspend fun getGoogleCredential(context: Context): Result<GoogleUserData?> {
         val credentialManager = CredentialManager.create(context)
         try {
             val googleClientId = context.getString(R.string.google_web_client_id)
             
+            // Check if it's still a placeholder
+            if (googleClientId.contains("YOUR_GOOGLE_CLIENT_ID")) {
+                return Result.failure(Exception("Error de configuración: Debes configurar un Web Client ID válido en strings.xml"))
+            }
+
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(googleClientId)
@@ -39,18 +44,22 @@ class GoogleAuthHelper @Inject constructor() {
 
             val credential = result.credential
             
-            if (credential is GoogleIdTokenCredential) {
-                return GoogleUserData(
-                    id = credential.id,
-                    email = credential.id, // Usually the id is the email in GoogleIdTokenCredential if requested
-                    name = credential.displayName ?: "Google User",
-                    photoUrl = credential.profilePictureUri?.toString()
+            return if (credential is GoogleIdTokenCredential) {
+                Result.success(
+                    GoogleUserData(
+                        id = credential.id,
+                        email = credential.id,
+                        name = credential.displayName ?: "Google User",
+                        photoUrl = credential.profilePictureUri?.toString()
+                    )
                 )
+            } else {
+                Result.failure(Exception("Tipo de credencial no soportado"))
             }
         } catch (e: Exception) {
             Log.e("GoogleAuthHelper", "Error getting Google credential", e)
+            return Result.failure(e)
         }
-        return null
     }
 }
 

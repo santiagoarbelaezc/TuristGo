@@ -165,19 +165,26 @@ class LoginViewModel @Inject constructor(
             
             if (provider == "Google") {
                 _snackbarMessage.value = "Conectando con Google..."
-                val googleUser = googleAuthHelper.getGoogleCredential(context)
+                val result = googleAuthHelper.getGoogleCredential(context)
                 
-                if (googleUser != null) {
-                    sessionManager.saveSession(
-                        userId = googleUser.id,
-                        name = googleUser.name,
-                        email = googleUser.email
-                    )
-                    _snackbarMessage.value = "¡Bienvenido, ${googleUser.name}!"
-                    onSuccess(false)
-                } else {
-                    _snackbarMessage.value = "Error al iniciar sesión con Google"
-                }
+                result.fold(
+                    onSuccess = { googleUser ->
+                        if (googleUser != null) {
+                            sessionManager.saveSession(
+                                userId = googleUser.id,
+                                name = googleUser.name,
+                                email = googleUser.email
+                            )
+                            _snackbarMessage.value = "¡Bienvenido, ${googleUser.name}!"
+                            onSuccess(false)
+                        } else {
+                            _snackbarMessage.value = "Error al iniciar sesión con Google: No se recibieron datos"
+                        }
+                    },
+                    onFailure = { error ->
+                        _snackbarMessage.value = "Error: ${error.localizedMessage ?: "Fallo al conectar con Google"}"
+                    }
+                )
             } else {
                 _snackbarMessage.value = "Conectando con $provider..."
                 // Simular latencia para otros proveedores (Facebook, LinkedIn)

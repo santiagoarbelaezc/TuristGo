@@ -17,6 +17,7 @@ import com.turistgo.app.data.remote.GroqService
 import com.turistgo.app.data.remote.model.GroqMessage
 import com.turistgo.app.data.remote.model.GroqRequest
 import kotlinx.coroutines.flow.first
+import com.turistgo.app.BuildConfig
 
 @HiltViewModel
 class TripsViewModel @Inject constructor(
@@ -99,7 +100,7 @@ class TripsViewModel @Inject constructor(
                 )
                 
                 // API Key from .env (via BuildConfig)
-                val apiKey = BuildConfig.GROQ_API_KEY
+                val apiKey = com.turistgo.app.BuildConfig.GROQ_API_KEY
                 
                 val response = groqService.getChatCompletion(
                     apiKey = apiKey,

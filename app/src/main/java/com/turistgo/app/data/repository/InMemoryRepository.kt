@@ -13,29 +13,53 @@ import javax.inject.Singleton
 class InMemoryRepository @Inject constructor() : AppDataRepository {
     private val users = MutableStateFlow<List<User>>(emptyList())
     private val posts = MutableStateFlow<List<Post>>(listOf(
-        Post("1", "Santuario de Las Lajas", "Ipiales, Nariño", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg", 
-            "Un santuario impresionante construido en el cañón del río Guáitara. Es una joya de la arquitectura gótica.", 
-            "6:00 AM - 9:00 PM", 
-            "Entrada libre",
-            com.turistgo.app.domain.model.PostStatus.APPROVED
+        Post(
+            id = "1", 
+            name = "Santuario de Las Lajas", 
+            location = "Ipiales, Nariño", 
+            rating = "4.9", 
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg", 
+            description = "Un santuario impresionante construido en el cañón del río Guáitara. Es una joya de la arquitectura gótica.", 
+            schedule = "6:00 AM - 9:00 PM", 
+            priceRange = "Entrada libre",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
+            categories = listOf("Turismo", "Cultura")
         ),
-        Post("2", "San Andrés Islas", "San Andrés, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg", 
-            "Playa, brisa y mar en el mar de los siete colores. Perfecto para buceo y relajación.", 
-            "Siempre abierto", 
-            "Variable (Vuelos + Hospedaje)",
-            com.turistgo.app.domain.model.PostStatus.APPROVED
+        Post(
+            id = "2", 
+            name = "San Andrés Islas", 
+            location = "San Andrés, Colombia", 
+            rating = "4.8", 
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg", 
+            description = "Playa, brisa y mar en el mar de los siete colores. Perfecto para buceo y relajación.", 
+            schedule = "Siempre abierto", 
+            priceRange = "Variable (Vuelos + Hospedaje)",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
+            categories = listOf("Turismo", "Naturaleza")
         ),
-        Post("3", "Piedra del Peñol", "Guatapé, Antioquia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg", 
-            "Un monolito de 220 metros de altura con una de las mejores vistas del mundo desde su cima.", 
-            "8:00 AM - 6:00 PM", 
-            "$25.000 COP (Subida)",
-            com.turistgo.app.domain.model.PostStatus.APPROVED
+        Post(
+            id = "3", 
+            name = "Piedra del Peñol", 
+            location = "Guatapé, Antioquia", 
+            rating = "4.7", 
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg", 
+            description = "Un monolito de 220 metros de altura con una de las mejores vistas del mundo desde su cima.", 
+            schedule = "8:00 AM - 6:00 PM", 
+            priceRange = "$25.000 COP (Subida)",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
+            categories = listOf("Turismo", "Naturaleza")
         ),
-        Post("4", "Nevado del Ruiz", "Manizales, Caldas", "4.6", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg", 
-            "Un volcán cubierto por glaciares. Ofrece paisajes únicos de páramo y nieve.", 
-            "7:00 AM - 2:00 PM", 
-            "Moderado ($50.000+ COP)",
-            com.turistgo.app.domain.model.PostStatus.APPROVED
+        Post(
+            id = "4", 
+            name = "Nevado del Ruiz", 
+            location = "Manizales, Caldas", 
+            rating = "4.6", 
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg", 
+            description = "Un volcán cubierto por glaciares. Ofrece paisajes únicos de páramo y nieve.", 
+            schedule = "7:00 AM - 2:00 PM", 
+            priceRange = "Moderado ($50.000+ COP)",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
+            categories = listOf("Turismo", "Naturaleza")
         )
     ))
 

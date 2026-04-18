@@ -31,9 +31,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import coil.compose.AsyncImage
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.ui.layout.ContentScale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreatePostScreen(
     viewModel: CreatePostViewModel = hiltViewModel(),
@@ -42,17 +43,21 @@ fun CreatePostScreen(
     onNavigateToMapPicker: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-    val title             by viewModel.title
-    val description       by viewModel.description
-    val location          by viewModel.location
-    val priceRange        by viewModel.priceRange
-    val selectedCategory  by viewModel.selectedCategory
-    val suggestedCategory by viewModel.suggestedCategory
-    val isAnalyzing       by viewModel.isAnalyzing
-    val selectedImageUri  by viewModel.selectedImageUri
-    val isUploading       by viewModel.isUploading
+    val title              by viewModel.title
+    val description        by viewModel.description
+    val location           by viewModel.location
+    val priceRange         by viewModel.priceRange
+    val selectedCategories by viewModel.selectedCategories
+    val suggestedCategory  by viewModel.suggestedCategory
+    val isAnalyzing        by viewModel.isAnalyzing
+    val selectedImageUri   by viewModel.selectedImageUri
+    val isUploading        by viewModel.isUploading
+    val startTime          by viewModel.startTime
+    val endTime            by viewModel.endTime
+    val latitude           by viewModel.latitude
+    val longitude          by viewModel.longitude
     
-    val RedAccent         = MaterialTheme.colorScheme.primary 
+    val RedAccent          = MaterialTheme.colorScheme.primary 
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -61,19 +66,6 @@ fun CreatePostScreen(
 
     var openStartPicker by remember { mutableStateOf(false) }
     var openEndPicker   by remember { mutableStateOf(false) }
-    var startHour   by remember { mutableIntStateOf(8) }
-    var startMinute by remember { mutableIntStateOf(0) }
-    var endHour     by remember { mutableIntStateOf(18) }
-    var endMinute   by remember { mutableIntStateOf(0) }
-
-    // Date Picker State
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState()
-    val selectedDateText = datePickerState.selectedDateMillis?.let {
-        val date = java.util.Date(it)
-        val format = java.text.SimpleDateFormat("dd/MM/yy", java.util.Locale.getDefault())
-        format.format(date)
-    } ?: "Seleccionar fecha"
 
     // AI description generation
     val scope = rememberCoroutineScope()
@@ -81,25 +73,28 @@ fun CreatePostScreen(
 
     // Listen for map picker result
     LaunchedEffect(mapResult) {
-        mapResult?.let {
-            viewModel.onLocationChange(it)
+        mapResult?.let { result ->
+            val coords = result.split(",")
+            if (coords.size == 2) {
+                val lat = coords[0].toDoubleOrNull()
+                val lng = coords[1].toDoubleOrNull()
+                if (lat != null && lng != null) {
+                    viewModel.onCoordinatesSelected(lat, lng)
+                }
+            }
             onConsumeMapResult()
         }
     }
 
     // Time Picker Dialogs
     if (openStartPicker) {
-        val timePickerState = rememberTimePickerState(
-            initialHour = startHour,
-            initialMinute = startMinute,
-            is24Hour = true
-        )
+        val timePickerState = rememberTimePickerState(is24Hour = true)
         TimePickerDialog(
             title = "Hora de Apertura",
             onDismiss = { openStartPicker = false },
             onConfirm = {
-                startHour = timePickerState.hour
-                startMinute = timePickerState.minute
+                val time = String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                viewModel.onStartTimeChange(time)
                 openStartPicker = false
             }
         ) {
@@ -108,40 +103,17 @@ fun CreatePostScreen(
     }
 
     if (openEndPicker) {
-        val timePickerState = rememberTimePickerState(
-            initialHour = endHour,
-            initialMinute = endMinute,
-            is24Hour = true
-        )
+        val timePickerState = rememberTimePickerState(is24Hour = true)
         TimePickerDialog(
             title = "Hora de Cierre",
             onDismiss = { openEndPicker = false },
             onConfirm = {
-                endHour = timePickerState.hour
-                endMinute = timePickerState.minute
+                val time = String.format("%02d:%02d", timePickerState.hour, timePickerState.minute)
+                viewModel.onEndTimeChange(time)
                 openEndPicker = false
             }
         ) {
             TimePicker(state = timePickerState)
-        }
-    }
-
-    // Date Picker Dialog
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Confirmar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text("Cancelar")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
         }
     }
 
@@ -150,7 +122,6 @@ fun CreatePostScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Top Bar — same pattern as ProfileScreen for consistent alignment
         TopAppBar(
             title = {
                 Text(
@@ -202,7 +173,7 @@ fun CreatePostScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // --- Sugerencia IA ---
             AnimatedVisibility(
@@ -225,7 +196,7 @@ fun CreatePostScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Sugerencia de IA", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = RedAccent)
-                            Text("¿Es un lugar de ${suggestedCategory}?", fontSize = 13.sp)
+                            Text("¿Encaja en la categoría ${suggestedCategory}?", fontSize = 13.sp)
                         }
                         TextButton(onClick = { viewModel.acceptAiSuggestion() }) {
                             Text("Aceptar", color = RedAccent)
@@ -234,37 +205,40 @@ fun CreatePostScreen(
                 }
             }
 
-            // --- Categorías ---
+            // --- Categorías (Selección Múltiple) ---
             Text(
-                text = "Selecciona una categoría",
+                text = "Categorías (puedes elegir varias)",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 color = Color(0xFF1A1A1A),
                 modifier = Modifier.padding(bottom = 10.dp)
             )
-            LazyRow(
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.padding(bottom = 20.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(viewModel.categories) { category ->
-                    val isSelected = selectedCategory == category
-                    Surface(
-                        onClick = { viewModel.onCategoryChange(category) },
-                        shape = RoundedCornerShape(24.dp),
-                        color = if (isSelected) Color(0xFFE8D5F5) else Color.White,
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp,
-                            if (isSelected) Color(0xFF9C27B0) else Color(0xFFDDDDDD)
-                        )
-                    ) {
-                        Text(
-                            text = category,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            fontSize = 13.sp,
-                            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                            color = if (isSelected) Color(0xFF7B1FA2) else Color(0xFF555555)
-                        )
-                    }
+                viewModel.categories.forEach { category ->
+                    val isSelected = selectedCategories.contains(category)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { viewModel.onCategoryToggle(category) },
+                        label = { Text(category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = RedAccent.copy(alpha = 0.1f),
+                            selectedLabelColor = RedAccent,
+                            selectedLeadingIconColor = RedAccent
+                        ),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            selectedBorderColor = RedAccent,
+                            borderColor = Color(0xFFDDDDDD)
+                        ),
+                        leadingIcon = if (isSelected) {
+                            { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        } else null
+                    )
                 }
             }
 
@@ -292,7 +266,8 @@ fun CreatePostScreen(
                             if (title.length > 3) {
                                 scope.launch {
                                     isGeneratingDesc = true
-                                    val generated = com.turistgo.app.data.GeminiService.generatePostDescription(title, selectedCategory)
+                                    val cat = if (selectedCategories.isNotEmpty()) selectedCategories.first() else "Otros"
+                                    val generated = com.turistgo.app.data.GeminiService.generatePostDescription(title, cat)
                                     viewModel.onDescriptionChange(generated)
                                     isGeneratingDesc = false
                                 }
@@ -318,9 +293,9 @@ fun CreatePostScreen(
                 onValueChange = { viewModel.onDescriptionChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp),
+                    .height(120.dp),
                 shape = RoundedCornerShape(16.dp),
-                placeholder = { Text("Descripción", color = Color(0xFF999999)) },
+                placeholder = { Text("Escribe una descripción atractiva...", color = Color(0xFF999999)) },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
                     focusedContainerColor = Color.White,
@@ -332,20 +307,100 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Ubicación ---
+            // --- Ubicación & Mapa ---
+            Text(
+                text = "Ubicación",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.onLocationChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                placeholder = { Text("Ubicación exacta o zona", color = Color(0xFF999999)) },
+                placeholder = { Text("Nombre del lugar o dirección", color = Color(0xFF999999)) },
                 leadingIcon = {
                     Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF555555))
                 },
                 trailingIcon = {
                     IconButton(onClick = onNavigateToMapPicker) {
-                        Icon(Icons.Default.Map, contentDescription = "Mapa", tint = RedAccent)
+                        Icon(
+                            Icons.Default.Map, 
+                            contentDescription = "Mapa", 
+                            tint = if (latitude != null) Color(0xFF4CAF50) else RedAccent
+                        )
                     }
+                },
+                colors = TextFieldDefaults.colors(
+                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = Color.White,
+                    unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                    focusedIndicatorColor = RedAccent
+                ),
+                singleLine = true
+            )
+            
+            if (latitude != null && longitude != null) {
+                Text(
+                    text = "Coordenadas fijadas: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}",
+                    fontSize = 11.sp,
+                    color = Color(0xFF4CAF50),
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- Horarios ---
+            Text(
+                text = "¿Tiene horario específico?",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                OutlinedCard(
+                    onClick = { openStartPicker = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Box(modifier = Modifier.padding(12.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (startTime.isEmpty()) "Apertura" else startTime,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (startTime.isEmpty()) Color.Gray else Color.Black
+                        )
+                    }
+                }
+                Spacer(Modifier.width(12.dp))
+                OutlinedCard(
+                    onClick = { openEndPicker = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Box(modifier = Modifier.padding(12.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (endTime.isEmpty()) "Cierre" else endTime,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (endTime.isEmpty()) Color.Gray else Color.Black
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- Precio ---
+            OutlinedTextField(
+                value = priceRange,
+                onValueChange = { viewModel.onPriceRangeChange(it) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                placeholder = { Text("Rango de precios (ej: $10k - $50k)", color = Color(0xFF999999)) },
+                leadingIcon = {
+                    Icon(Icons.Default.Payments, contentDescription = null, tint = Color(0xFF555555))
                 },
                 colors = TextFieldDefaults.colors(
                     unfocusedContainerColor = Color.White,
@@ -359,6 +414,12 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- Agregar foto ---
+            Text(
+                text = "Imagen del lugar",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -379,7 +440,6 @@ fun CreatePostScreen(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    // Overlay icon to change
                     Surface(
                         modifier = Modifier.padding(8.dp).align(Alignment.TopEnd),
                         shape = CircleShape,
@@ -404,7 +464,7 @@ fun CreatePostScreen(
                             modifier = Modifier.size(40.dp)
                         )
                         Spacer(Modifier.height(8.dp))
-                        Text("Agregar fotos", color = RedAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        Text("Subir foto", color = RedAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -424,12 +484,12 @@ fun CreatePostScreen(
                 if (isUploading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
                 } else {
-                    Text("Publicar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Enviar a Moderación", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
             }
 
             Text(
-                text = "Tu publicación será enviada a moderación antes de ser visible.",
+                text = "Tu publicación será revisada para asegurar la calidad de la comunidad.",
                 fontSize = 11.sp,
                 color = Color(0xFF999999),
                 modifier = Modifier.padding(top = 10.dp, bottom = 24.dp),

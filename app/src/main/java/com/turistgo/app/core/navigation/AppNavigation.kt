@@ -46,6 +46,7 @@ import com.turistgo.app.features.feed.FeedScreen
 import com.turistgo.app.features.moderator.ModeratorDashboard
 import com.turistgo.app.features.moderator.ModeratorProfileScreen
 import com.turistgo.app.features.post.CreatePostScreen
+import com.turistgo.app.features.post.MapPickerScreen
 import com.turistgo.app.features.post.PostDetailScreen
 import com.turistgo.app.features.profile.ProfileScreen
 import com.turistgo.app.features.profile.EditProfileScreen
@@ -123,7 +124,7 @@ fun AppNavigation(
                                 Box(
                                     modifier = Modifier
                                         .size(56.dp)
-                                        .offset(y = (-12).dp)
+                                        .offset(y = (-10).dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .clickable {
@@ -337,7 +338,15 @@ fun AppNavigation(
             composable<MainRoutes.ReviewPost> { /* Placeholder */ }
             composable<MainRoutes.Stats> { /* Placeholder */ }
             composable<MainRoutes.Badges> { /* Placeholder */ }
-            composable<MainRoutes.MapPicker> { /* Placeholder */ }
+            composable<MainRoutes.MapPicker> {
+                MapPickerScreen(
+                    onLocationSelected = { lat, lng ->
+                        navController.previousBackStackEntry?.savedStateHandle?.set("selected_location", "$lat,$lng")
+                        navController.popBackStack()
+                    },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable<MainRoutes.Settings> {
                 SettingsScreen(
                     onBack = { navController.popBackStack() },

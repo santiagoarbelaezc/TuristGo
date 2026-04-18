@@ -1,170 +1,99 @@
 package com.turistgo.app.features.post
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import kotlin.math.roundToInt
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapPickerScreen(
-    onLocationSelected: (lat: Double, lng: Double) -> Unit,
-    onBack: () -> Unit
+    initialLat: Double? = null,
+    initialLng: Double? = null,
+    onLocationSelected: (Double, Double) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
-    // Simulated center coordinates (Colombia - Bogotá area)
-    val baseLat = 4.7110
-    val baseLng = -74.0721
+    // Default to Bogotá, Colombia if no initial location
+    val defaultLocation = LatLng(4.6097, -74.0817)
+    val initialLocation = if (initialLat != null && initialLng != null) {
+        LatLng(initialLat, initialLng)
+    } else {
+        defaultLocation
+    }
 
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var offsetY by remember { mutableFloatStateOf(0f) }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(initialLocation, 15f)
+    }
 
-    // Calculate lat/lng from offset
-    val currentLat = baseLat - (offsetY / 10000.0)
-    val currentLng = baseLng + (offsetX / 10000.0)
+    var markerPosition by remember { mutableStateOf(initialLocation) }
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        TopAppBar(
-            title = { Text("Seleccionar Ubicación", fontWeight = FontWeight.Bold) },
-            navigationIcon = {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                }
-            },
-            windowInsets = WindowInsets(0, 0, 0, 0)
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            // Simulated Map Background
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFECE6D9))
-                    .pointerInput(Unit) {
-                        detectDragGestures { change, dragAmount ->
-                            change.consume()
-                            offsetX += dragAmount.x
-                            offsetY += dragAmount.y
-                        }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Seleccionar Ubicación") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
                     }
+                },
+                actions = {
+                    TextButton(onClick = { 
+                        onLocationSelected(markerPosition.latitude, markerPosition.longitude)
+                    }) {
+                        Text("Confirmar", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { 
+                    onLocationSelected(markerPosition.latitude, markerPosition.longitude)
+                },
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                // Grid
-                androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                    val step = 60.dp.toPx()
-                    for (i in 0..size.width.toInt() step step.toInt()) {
-                        drawLine(
-                            Color(0xFFD4CFC5),
-                            Offset(i.toFloat(), 0f),
-                            Offset(i.toFloat(), size.height),
-                            strokeWidth = 0.5.dp.toPx()
-                        )
-                    }
-                    for (j in 0..size.height.toInt() step step.toInt()) {
-                        drawLine(
-                            Color(0xFFD4CFC5),
-                            Offset(0f, j.toFloat()),
-                            Offset(size.width, j.toFloat()),
-                            strokeWidth = 0.5.dp.toPx()
-                        )
-                    }
-                    // Some "roads"
-                    drawLine(Color(0xFFC8C0B0), Offset(0f, size.height * 0.4f), Offset(size.width, size.height * 0.4f), 6.dp.toPx())
-                    drawLine(Color(0xFFC8C0B0), Offset(size.width * 0.3f, 0f), Offset(size.width * 0.3f, size.height), 6.dp.toPx())
-                    drawLine(Color(0xFFC8C0B0), Offset(size.width * 0.65f, 0f), Offset(size.width * 0.65f, size.height), 4.dp.toPx())
-                    // "Park" area
-                    drawCircle(Color(0xFFA8D5A2).copy(alpha = 0.3f), radius = 80.dp.toPx(), center = Offset(size.width * 0.5f, size.height * 0.6f))
-                }
+                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = Color.White)
             }
-
-            // Center Pin (fixed)
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally
+        }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                onMapClick = { latLng ->
+                    markerPosition = latLng
+                }
             ) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
-                // Shadow dot
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                Marker(
+                    state = MarkerState(position = markerPosition),
+                    title = "Ubicación seleccionada",
+                    draggable = true
                 )
             }
 
-            // Coordinates Display
+            // Overlay hint
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 4.dp
+                    .padding(16.dp),
+                color = Color.Black.copy(alpha = 0.6f),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.GpsFixed, null, Modifier.size(16.dp), MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Lat: ${"%.4f".format(currentLat)}  Lng: ${"%.4f".format(currentLng)}",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-
-            // Recenter button
-            FloatingActionButton(
-                onClick = { offsetX = 0f; offsetY = 0f },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 80.dp),
-                containerColor = Color.White,
-                contentColor = MaterialTheme.colorScheme.primary
-            ) {
-                Icon(Icons.Default.MyLocation, contentDescription = "Recentrar")
-            }
-        }
-
-        // Confirm button
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 8.dp
-        ) {
-            Button(
-                onClick = { onLocationSelected(currentLat, currentLng) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(52.dp),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Icon(Icons.Default.Check, null, Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Confirmar Ubicación", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(
+                    text = "Toca el mapa para mover el marcador",
+                    color = Color.White,
+                    modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }

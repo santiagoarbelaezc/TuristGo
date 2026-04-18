@@ -44,10 +44,22 @@ class CreatePostViewModel @Inject constructor(
     private val _isUploading = mutableStateOf(false)
     val isUploading: State<Boolean> = _isUploading
 
-    val categories = listOf("Gastronomía", "Cultura", "Naturaleza", "Entretenimiento", "Historia")
+    val categories = listOf("Turismo", "Evento", "Concierto", "Gastronomía", "Cultura", "Naturaleza", "Historia", "Otros")
 
-    private val _selectedCategory = mutableStateOf("Naturaleza")
-    val selectedCategory: State<String> = _selectedCategory
+    private val _selectedCategories = mutableStateOf<Set<String>>(emptySet())
+    val selectedCategories: State<Set<String>> = _selectedCategories
+
+    private val _latitude = mutableStateOf<Double?>(null)
+    val latitude: State<Double?> = _latitude
+
+    private val _longitude = mutableStateOf<Double?>(null)
+    val longitude: State<Double?> = _longitude
+
+    private val _startTime = mutableStateOf("")
+    val startTime: State<String> = _startTime
+
+    private val _endTime = mutableStateOf("")
+    val endTime: State<String> = _endTime
 
     private val _suggestedCategory = mutableStateOf<String?>(null)
     val suggestedCategory: State<String?> = _suggestedCategory
@@ -66,14 +78,28 @@ class CreatePostViewModel @Inject constructor(
     }
     
     fun onLocationChange(v: String) { _location.value = v }
-    fun onScheduleChange(v: String) { _schedule.value = v }
+    fun onStartTimeChange(v: String) { _startTime.value = v }
+    fun onEndTimeChange(v: String) { _endTime.value = v }
     fun onPriceRangeChange(v: String) { _priceRange.value = v }
-    fun onCategoryChange(v: String) { _selectedCategory.value = v }
+    fun onCategoryToggle(category: String) {
+        val current = _selectedCategories.value
+        _selectedCategories.value = if (current.contains(category)) {
+            current - category
+        } else {
+            current + category
+        }
+    }
     fun onImageSelected(uri: Uri?) { _selectedImageUri.value = uri }
+    fun onCoordinatesSelected(lat: Double, lng: Double) {
+        _latitude.value = lat
+        _longitude.value = lng
+    }
 
     fun acceptAiSuggestion() {
         _suggestedCategory.value?.let {
-            _selectedCategory.value = it
+            if (!_selectedCategories.value.contains(it)) {
+                _selectedCategories.value = _selectedCategories.value + it
+            }
             _suggestedCategory.value = null
         }
     }
@@ -110,14 +136,25 @@ class CreatePostViewModel @Inject constructor(
                     finalImageUrl = mediaRepository.uploadImage(uri)
                 }
 
+                val finalSchedule = if (_startTime.value.isNotEmpty() && _endTime.value.isNotEmpty()) {
+                    "${_startTime.value} - ${_endTime.value}"
+                } else if (_startTime.value.isNotEmpty()) {
+                    _startTime.value
+                } else {
+                    "No disponible"
+                }
+
                 val newPost = Post(
                     id = UUID.randomUUID().toString(),
                     name = _title.value,
+                    categories = _selectedCategories.value.toList(),
                     location = _location.value,
+                    latitude = _latitude.value,
+                    longitude = _longitude.value,
                     rating = "0.0",
                     imageUrl = finalImageUrl,
                     description = _description.value,
-                    schedule = _schedule.value.ifEmpty { "No disponible" },
+                    schedule = finalSchedule,
                     priceRange = _priceRange.value.ifEmpty { "No disponible" },
                     status = PostStatus.PENDING,
                     authorId = session?.userId ?: "unknown",

@@ -34,6 +34,9 @@ android {
         buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${env.getProperty("CLOUDINARY_CLOUD_NAME") ?: "TuristGo"}\"")
         buildConfigField("String", "CLOUDINARY_API_KEY", "\"${env.getProperty("CLOUDINARY_API_KEY") ?: ""}\"")
         buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${env.getProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""}\"")
+        
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
@@ -82,6 +85,8 @@ dependencies {
     // DataStore & Cloudinary
     implementation(libs.data.store)
     implementation(libs.cloudinary.android)
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
 
     // Google Sign-In & Credential Manager
     implementation(libs.androidx.credentials)

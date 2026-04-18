@@ -51,8 +51,10 @@ fun ProfileScreen(
     val lang by LanguageState.current
     val s = AppStrings.get(lang)
 
-    // Using real user photo or generic placeholder
-    val profileImageUrl = userProfile?.profilePhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
+    // Prioritize user profile photo, then session photo, then default placeholder
+    val profileImageUrl = userProfile?.profilePhotoUrl 
+        ?: userSession?.photoUrl 
+        ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
     Column(
         modifier = Modifier
@@ -116,9 +118,11 @@ fun ProfileScreen(
                 // Nombre y Nivel
                 Text(
                     text = userProfile?.name ?: userSession?.name ?: "Usuario",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth()
                 )
                 
                 if (userProfile?.username?.isNotEmpty() == true) {

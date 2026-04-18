@@ -173,7 +173,8 @@ class LoginViewModel @Inject constructor(
                             sessionManager.saveSession(
                                 userId = googleUser.id,
                                 name = googleUser.name,
-                                email = googleUser.email
+                                email = googleUser.email,
+                                photoUrl = googleUser.photoUrl
                             )
                             _snackbarMessage.value = "¡Bienvenido, ${googleUser.name}!"
                             onSuccess(false)

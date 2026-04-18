@@ -21,6 +21,7 @@ class UserSessionManager @Inject constructor(
         private val USER_ID = stringPreferencesKey("user_id")
         private val USER_NAME = stringPreferencesKey("user_name")
         private val USER_EMAIL = stringPreferencesKey("user_email")
+        private val USER_PHOTO = stringPreferencesKey("user_photo")
         private val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
     }
 
@@ -29,15 +30,17 @@ class UserSessionManager @Inject constructor(
             userId = preferences[USER_ID],
             name = preferences[USER_NAME],
             email = preferences[USER_EMAIL],
+            photoUrl = preferences[USER_PHOTO]?.takeIf { it.isNotEmpty() },
             isLoggedIn = preferences[IS_LOGGED_IN] ?: false
         )
     }
 
-    suspend fun saveSession(userId: String, name: String, email: String) {
+    suspend fun saveSession(userId: String, name: String, email: String, photoUrl: String? = null) {
         context.dataStore.edit { preferences ->
             preferences[USER_ID] = userId
             preferences[USER_NAME] = name
             preferences[USER_EMAIL] = email
+            preferences[USER_PHOTO] = photoUrl ?: ""
             preferences[IS_LOGGED_IN] = true
         }
     }

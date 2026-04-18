@@ -122,6 +122,7 @@ fun AppNavigation(
                                 Box(
                                     modifier = Modifier
                                         .size(56.dp)
+                                        .offset(y = (-12).dp)
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .clickable {

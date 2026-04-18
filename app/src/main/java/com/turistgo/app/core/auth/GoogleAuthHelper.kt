@@ -20,7 +20,7 @@ class GoogleAuthHelper @Inject constructor() {
     suspend fun getGoogleCredential(context: Context): Result<GoogleUserData?> {
         val credentialManager = CredentialManager.create(context)
         try {
-            val googleClientId = context.getString(R.string.google_web_client_id)
+            val googleClientId = com.turistgo.app.BuildConfig.GOOGLE_WEB_CLIENT_ID
             
             // Check if it's still a placeholder
             if (googleClientId.contains("YOUR_GOOGLE_CLIENT_ID")) {

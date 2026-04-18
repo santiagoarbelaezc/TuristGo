@@ -1,63 +1,55 @@
 package com.turistgo.app.features.moderator
 
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.turistgo.app.domain.model.Post
+import com.turistgo.app.domain.model.PostStatus
+import com.turistgo.app.domain.repository.AppDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-enum class PostStatus {
-    PENDING, VERIFIED, REJECTED, RESOLVED
-}
-
-data class ModeratorPost(
-    val id: String,
-    val title: String,
-    val author: String,
-    val date: String,
-    val imageUrl: String,
-    val status: PostStatus = PostStatus.PENDING,
-    val rejectionReason: String? = null
-)
-
 @HiltViewModel
-class ModeratorViewModel @Inject constructor() : ViewModel() {
-    private val _posts = mutableStateListOf(
-        ModeratorPost("1", "Santuario de Las Lajas", "Santiago Arbelaez", "26/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg"),
-        ModeratorPost("2", "Parque Tayrona", "Maria Lopez", "25/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"),
-        ModeratorPost("3", "Piedra del Peñol", "Carlos Ruiz", "24/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg"),
-        ModeratorPost("4", "Nevado del Ruiz", "Ana Gomez", "23/02/2026", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg")
-    )
-    val posts: List<ModeratorPost> = _posts
+class ModeratorViewModel @Inject constructor(
+    private val repository: AppDataRepository
+) : ViewModel() {
+
+    val posts: StateFlow<List<Post>> = repository.getPosts(PostStatus.PENDING)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
     fun approvePost(postId: String) {
-        val index = _posts.indexOfFirst { it.id == postId }
-        if (index != -1) {
-            _posts[index] = _posts[index].copy(status = PostStatus.VERIFIED)
+        viewModelScope.launch {
+            repository.updatePostStatus(postId, PostStatus.APPROVED)
         }
     }
 
     fun rejectPost(postId: String, reason: String) {
-        val index = _posts.indexOfFirst { it.id == postId }
-        if (index != -1) {
-            _posts[index] = _posts[index].copy(status = PostStatus.REJECTED, rejectionReason = reason)
+        viewModelScope.launch {
+            // Actualmente el modelo Post no guarda la razón, pero el repositorio lo actualiza a REJECTED
+            repository.updatePostStatus(postId, PostStatus.REJECTED)
         }
     }
 
     fun resolvePost(postId: String) {
-        val index = _posts.indexOfFirst { it.id == postId }
-        if (index != -1) {
-            _posts[index] = _posts[index].copy(status = PostStatus.RESOLVED)
+        viewModelScope.launch {
+            // Asumimos 'RESOLVED' es similar a APPROVED o una fase final de verificado
+            repository.updatePostStatus(postId, PostStatus.APPROVED)
         }
     }
 
-    fun getPostById(postId: String): ModeratorPost? {
-        return _posts.find { it.id == postId }
+    suspend fun getPostById(postId: String): Post? {
+        return repository.getPostById(postId)
     }
 }

@@ -27,6 +27,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.turistgo.app.core.navigation.MainRoutes
 
+import androidx.compose.runtime.collectAsState
+import com.turistgo.app.domain.model.Post
+import com.turistgo.app.domain.model.PostStatus
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorDashboard(
@@ -34,9 +41,10 @@ fun ModeratorDashboard(
     onReviewPost: (String) -> Unit,
     viewModel: ModeratorViewModel = viewModel()
 ) {
-    val posts = viewModel.posts
+    val posts by viewModel.posts.collectAsState()
     val pendingCount = posts.count { it.status == PostStatus.PENDING }
-    val verifiedCount = posts.count { it.status == PostStatus.VERIFIED }
+    // En el modelo Post, 'APPROVED' reemplaza a 'VERIFIED'
+    val verifiedCount = posts.count { it.status == PostStatus.APPROVED }
 
     Scaffold(
         topBar = {
@@ -138,7 +146,10 @@ fun StatCard(label: String, count: String, color: Color, icon: androidx.compose.
 }
 
 @Composable
-fun ModeratorPostCard(post: ModeratorPost, onClick: () -> Unit) {
+fun ModeratorPostCard(post: Post, onClick: () -> Unit) {
+    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val dateString = sdf.format(Date(post.createdAt))
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -163,9 +174,9 @@ fun ModeratorPostCard(post: ModeratorPost, onClick: () -> Unit) {
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = post.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
-                Text(text = "Por: ${post.author}", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
-                Text(text = post.date, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                Text(text = post.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
+                Text(text = "Por: ${post.authorName}", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+                Text(text = dateString, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
                 
                 // AI Insight Badge
                 Surface(

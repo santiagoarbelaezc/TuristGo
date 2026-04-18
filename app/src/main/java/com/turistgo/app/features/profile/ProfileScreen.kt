@@ -282,16 +282,25 @@ fun ProfileScreen(
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                     
-                    val myPosts = listOf(0, 1, 2)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
-                    ) {
-                        items(myPosts) { index ->
-                            MyPostItem(index) {
-                                onNavigateToEditPost(index.toString())
+                    val myPosts by viewModel.myPosts.collectAsState(initial = emptyList())
+                    if (myPosts.isNotEmpty()) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
+                        ) {
+                            items(myPosts) { post ->
+                                MyPostItem(post) {
+                                    onNavigateToEditPost(post.id)
+                                }
                             }
                         }
+                    } else {
+                        Text(
+                            text = "Aún no tienes publicaciones.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
                     }
                 }
             }
@@ -300,14 +309,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun MyPostItem(index: Int, onClick: () -> Unit = {}) {
-    val labels = listOf("Avistamiento de aves", "Camping en el Ruiz", "Café en Salento")
-    val images = listOf(
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg",
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg",
-        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"
-    )
-
+fun MyPostItem(post: com.turistgo.app.domain.model.Post, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .size(140.dp, 180.dp)
@@ -317,7 +319,7 @@ fun MyPostItem(index: Int, onClick: () -> Unit = {}) {
     ) {
         Column {
             AsyncImage(
-                model = images[index % images.size],
+                model = post.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -326,15 +328,20 @@ fun MyPostItem(index: Int, onClick: () -> Unit = {}) {
             )
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
-                    text = labels[index % labels.size],
+                    text = post.name,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
+                val (statusText, statusColor) = when(post.status) {
+                    com.turistgo.app.domain.model.PostStatus.APPROVED -> "Verificado" to Color(0xFF2E7D32)
+                    com.turistgo.app.domain.model.PostStatus.PENDING -> "Pendiente" to Color(0xFFED6C02)
+                    com.turistgo.app.domain.model.PostStatus.REJECTED -> "Rechazado" to Color(0xFFD32F2F)
+                }
                 Text(
-                    text = "Verificado",
+                    text = statusText,
                     fontSize = 10.sp,
-                    color = Color(0xFF2E7D32)
+                    color = statusColor
                 )
             }
         }

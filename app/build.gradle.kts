@@ -31,6 +31,9 @@ android {
         
         buildConfigField("String", "GROQ_API_KEY", "\"${env.getProperty("GROQ_API_KEY") ?: ""}\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${env.getProperty("GOOGLE_WEB_CLIENT_ID") ?: ""}\"")
+        buildConfigField("String", "CLOUDINARY_CLOUD_NAME", "\"${env.getProperty("CLOUDINARY_CLOUD_NAME") ?: "TuristGo"}\"")
+        buildConfigField("String", "CLOUDINARY_API_KEY", "\"${env.getProperty("CLOUDINARY_API_KEY") ?: ""}\"")
+        buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${env.getProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
     }
 
     buildTypes {

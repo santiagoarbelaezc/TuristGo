@@ -30,4 +30,14 @@ class ProfileViewModel @Inject constructor(
             flowOf(null)
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val myPosts = userSession.flatMapLatest { session ->
+        val userId = session.userId
+        if (userId != null) {
+            repository.getPostsByAuthor(userId)
+        } else {
+            flowOf(emptyList())
+        }
+    }
 }

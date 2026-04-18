@@ -28,14 +28,24 @@ import com.turistgo.app.features.feed.components.PersonItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostDetailScreen(destinationId: String?, onBack: () -> Unit) {
-    // Mock data
-    val title = "Parque Tayrona"
-    val location = "Santa Marta, Magdalena"
-    val description = "El Parque Nacional Natural Tayrona es uno de los parques naturales más importantes de Colombia. Es hábitat de una gran cantidad de especies que se distribuyen en regiones con diferentes pisos térmicos."
-    val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"
-    val schedule = "Todos los días: 8:00 AM - 5:00 PM"
-    val priceRange = "Moderado ($30.000 - $60.000 COP)"
+fun PostDetailScreen(
+    destinationId: String?, 
+    onBack: () -> Unit,
+    viewModel: PostDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+) {
+    val post by viewModel.post.collectAsState()
+
+    LaunchedEffect(destinationId) {
+        destinationId?.let { viewModel.loadPost(it) }
+    }
+
+    // Data from the fetched post or defaults
+    val title = post?.name ?: "Cargando..."
+    val location = post?.location ?: "Ubicación..."
+    val description = post?.description ?: "Cargando descripción..."
+    val imageUrl = post?.imageUrl ?: ""
+    val schedule = post?.schedule ?: "Horario no disponible"
+    val priceRange = post?.priceRange ?: "Precio no disponible"
 
     var isVisited by remember { mutableStateOf(false) }
     var isImportant by remember { mutableStateOf(false) }
@@ -212,8 +222,8 @@ fun PostDetailScreen(destinationId: String?, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         val related = listOf(
-                            Destination("San Andrés", "Isla", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
-                            Destination("Cartagena", "Bolívar", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg")
+                            Destination("2", "San Andrés", "Isla", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
+                            Destination("6", "Cartagena", "Bolívar", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg")
                         )
                         items(related) { dest ->
                             RelatedPostCard(dest)

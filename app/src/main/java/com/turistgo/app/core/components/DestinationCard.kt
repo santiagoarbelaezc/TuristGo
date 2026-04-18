@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
 data class Destination(
+    val id: String,
     val name: String,
     val location: String,
     val rating: String,

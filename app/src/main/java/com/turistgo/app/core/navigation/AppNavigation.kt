@@ -95,7 +95,7 @@ fun AppNavigation(
 
     val showBottomBar = bottomBarDestinations.any { item ->
         currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true
-    }
+    } || currentDestination?.hasRoute(MainRoutes.PostDetail::class) == true
 
     Scaffold(
         bottomBar = {

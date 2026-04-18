@@ -6,5 +6,11 @@ data class Post(
     val location: String,
     val rating: String,
     val imageUrl: String,
-    val description: String = ""
+    val description: String = "",
+    val schedule: String = "No disponible",
+    val priceRange: String = "No disponible",
+    val status: PostStatus = PostStatus.APPROVED,
+    val authorId: String = "admin",
+    val authorName: String = "TuristGo",
+    val createdAt: Long = System.currentTimeMillis()
 )

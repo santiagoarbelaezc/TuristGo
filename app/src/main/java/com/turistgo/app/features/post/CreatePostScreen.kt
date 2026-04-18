@@ -27,6 +27,12 @@ import com.turistgo.app.data.GeminiService
 import com.turistgo.app.core.navigation.MainRoutes
 import kotlinx.coroutines.launch
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePostScreen(
@@ -36,14 +42,22 @@ fun CreatePostScreen(
     onNavigateToMapPicker: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
-    val title            by viewModel.title
-    val description      by viewModel.description
-    val location         by viewModel.location
-    val priceRange       by viewModel.priceRange
-    val selectedCategory by viewModel.selectedCategory
+    val title             by viewModel.title
+    val description       by viewModel.description
+    val location          by viewModel.location
+    val priceRange        by viewModel.priceRange
+    val selectedCategory  by viewModel.selectedCategory
     val suggestedCategory by viewModel.suggestedCategory
-    val isAnalyzing      by viewModel.isAnalyzing
-    val RedAccent        = MaterialTheme.colorScheme.primary  // alias → BrandRed via theme
+    val isAnalyzing       by viewModel.isAnalyzing
+    val selectedImageUri  by viewModel.selectedImageUri
+    val isUploading       by viewModel.isUploading
+    
+    val RedAccent         = MaterialTheme.colorScheme.primary 
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri -> viewModel.onImageSelected(uri) }
+    )
 
     var openStartPicker by remember { mutableStateOf(false) }
     var openEndPicker   by remember { mutableStateOf(false) }
@@ -278,7 +292,7 @@ fun CreatePostScreen(
                             if (title.length > 3) {
                                 scope.launch {
                                     isGeneratingDesc = true
-                                    val generated = GeminiService.generatePostDescription(title, selectedCategory)
+                                    val generated = com.turistgo.app.data.GeminiService.generatePostDescription(title, selectedCategory)
                                     viewModel.onDescriptionChange(generated)
                                     isGeneratingDesc = false
                                 }
@@ -348,24 +362,50 @@ fun CreatePostScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(90.dp)
+                    .height(200.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.White)
-                    .clickable { /* Upload photo */ },
+                    .clickable { 
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        Icons.Default.AddAPhoto,
+                if (selectedImageUri != null) {
+                    AsyncImage(
+                        model = selectedImageUri,
                         contentDescription = null,
-                        tint = RedAccent,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
-                    Spacer(Modifier.height(6.dp))
-                    Text("Agregar fotos", color = RedAccent, fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    // Overlay icon to change
+                    Surface(
+                        modifier = Modifier.padding(8.dp).align(Alignment.TopEnd),
+                        shape = CircleShape,
+                        color = Color.Black.copy(alpha = 0.5f)
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.padding(8.dp).size(20.dp)
+                        )
+                    }
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.AddAPhoto,
+                            contentDescription = null,
+                            tint = RedAccent,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text("Agregar fotos", color = RedAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    }
                 }
             }
 
@@ -378,9 +418,14 @@ fun CreatePostScreen(
                     .fillMaxWidth()
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = RedAccent)
+                colors = ButtonDefaults.buttonColors(containerColor = RedAccent),
+                enabled = !isUploading && title.isNotEmpty()
             ) {
-                Text("Publicar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                if (isUploading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text("Publicar", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                }
             }
 
             Text(

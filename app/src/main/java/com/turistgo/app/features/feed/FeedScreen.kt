@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,15 +46,11 @@ fun FeedScreen(
     )
     var selectedCategory by remember(lang) { mutableStateOf(categories.first()) }
 
-    val destinations = listOf(
-        Destination("Santuario de Las Lajas", "Ipiales, Nariño", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/iglesia_s29dbh.jpg"),
-        Destination("San Andrés Islas", "San Andrés, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
-        Destination("Piedra del Peñol", "Guatapé, Antioquia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/pe%C3%B1ol_jlujxo.jpg"),
-        Destination("Nevado del Ruiz", "Manizales, Caldas", "4.6", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
-        Destination("Parque Tayrona", "Magdalena, Colombia", "4.9", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/tayrona_oim4nu.jpg"),
-        Destination("Cartagena de Indias", "Bolívar, Colombia", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg"),
-        Destination("Salento", "Quindío, Colombia", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/salento_i4sh8q.jpg")
-    )
+    val destinationsFromRepo by viewModel.destinations.collectAsState(initial = emptyList())
+    
+    val destinations = destinationsFromRepo.map { 
+        Destination(it.id, it.name, it.location, it.rating, it.imageUrl)
+    }
 
     var isSearchActive by remember { mutableStateOf(false) }
     var isMapView by remember { mutableStateOf(false) }
@@ -90,7 +87,7 @@ fun FeedScreen(
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = if (isMapView) Icons.Default.List else Icons.Default.Map,
+                            imageVector = if (isMapView) Icons.AutoMirrored.Filled.List else Icons.Default.Map,
                             contentDescription = s.changeView,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp)
@@ -152,7 +149,7 @@ fun FeedScreen(
                     }
                     items(destinations) { destination ->
                         DestinationCard(destination) {
-                            onNavigateToDetail("post_${destination.name}")
+                            onNavigateToDetail(destination.id)
                         }
                     }
                     item { Spacer(modifier = Modifier.height(20.dp)) }

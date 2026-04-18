@@ -11,10 +11,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+import android.net.Uri
+import com.turistgo.app.data.datastore.UserSessionManager
+import com.turistgo.app.data.remote.MediaRepository
+import com.turistgo.app.domain.model.PostStatus
+import kotlinx.coroutines.flow.firstOrNull
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
-    private val repository: AppDataRepository
+    private val repository: AppDataRepository,
+    private val mediaRepository: MediaRepository,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
     private val _title = mutableStateOf("")
     val title: State<String> = _title
@@ -30,6 +37,12 @@ class CreatePostViewModel @Inject constructor(
 
     private val _priceRange = mutableStateOf("")
     val priceRange: State<String> = _priceRange
+
+    private val _selectedImageUri = mutableStateOf<Uri?>(null)
+    val selectedImageUri: State<Uri?> = _selectedImageUri
+
+    private val _isUploading = mutableStateOf(false)
+    val isUploading: State<Boolean> = _isUploading
 
     val categories = listOf("Gastronomía", "Cultura", "Naturaleza", "Entretenimiento", "Historia")
 
@@ -56,6 +69,7 @@ class CreatePostViewModel @Inject constructor(
     fun onScheduleChange(v: String) { _schedule.value = v }
     fun onPriceRangeChange(v: String) { _priceRange.value = v }
     fun onCategoryChange(v: String) { _selectedCategory.value = v }
+    fun onImageSelected(uri: Uri?) { _selectedImageUri.value = uri }
 
     fun acceptAiSuggestion() {
         _suggestedCategory.value?.let {
@@ -86,16 +100,36 @@ class CreatePostViewModel @Inject constructor(
 
     fun savePost(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val newPost = Post(
-                id = UUID.randomUUID().toString(),
-                name = _title.value,
-                location = _location.value,
-                rating = "0.0",
-                imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg",
-                description = _description.value
-            )
-            repository.savePost(newPost)
-            onSuccess()
+            _isUploading.value = true
+            try {
+                val session = sessionManager.userSession.firstOrNull()
+                
+                var finalImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"
+                
+                _selectedImageUri.value?.let { uri ->
+                    finalImageUrl = mediaRepository.uploadImage(uri)
+                }
+
+                val newPost = Post(
+                    id = UUID.randomUUID().toString(),
+                    name = _title.value,
+                    location = _location.value,
+                    rating = "0.0",
+                    imageUrl = finalImageUrl,
+                    description = _description.value,
+                    schedule = _schedule.value.ifEmpty { "No disponible" },
+                    priceRange = _priceRange.value.ifEmpty { "No disponible" },
+                    status = PostStatus.PENDING,
+                    authorId = session?.userId ?: "unknown",
+                    authorName = session?.name ?: "Usuario"
+                )
+                repository.savePost(newPost)
+                _isUploading.value = false
+                onSuccess()
+            } catch (e: Exception) {
+                _isUploading.value = false
+                // Proximamente: Manejo de errores en UI
+            }
         }
     }
 }

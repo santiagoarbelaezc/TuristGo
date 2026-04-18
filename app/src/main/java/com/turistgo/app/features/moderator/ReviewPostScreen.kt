@@ -27,6 +27,11 @@ import coil.compose.AsyncImage
 import com.turistgo.app.data.GeminiService
 import kotlinx.coroutines.launch
 
+import com.turistgo.app.domain.model.Post
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewPostScreen(
@@ -34,7 +39,14 @@ fun ReviewPostScreen(
     postId: String?,
     viewModel: ModeratorViewModel = viewModel()
 ) {
-    val post = remember(postId) { viewModel.getPostById(postId ?: "") }
+    var post by remember { mutableStateOf<Post?>(null) }
+    
+    LaunchedEffect(postId) {
+        if (postId != null) {
+            post = viewModel.getPostById(postId)
+        }
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showRejectDialog by remember { mutableStateOf(false) }
@@ -44,21 +56,23 @@ fun ReviewPostScreen(
     var aiSummary by remember { mutableStateOf<String?>(null) }
     var isLoadingAi by remember { mutableStateOf(false) }
 
-    if (post == null) {
+    val currentPost = post
+
+    if (currentPost == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Publicación no encontrada")
+            CircularProgressIndicator()
         }
         return
     }
 
     // Trigger AI analysis on load
-    LaunchedEffect(post.id) {
+    LaunchedEffect(currentPost.id) {
         isLoadingAi = true
         aiSummary = GeminiService.generateModeratorSummary(
-            title = post.title,
-            description = "Publicación de tipo turístico sobre ${post.title} en Colombia",
+            title = currentPost.name,
+            description = currentPost.description.ifEmpty { "Publicación de tipo turístico sobre ${currentPost.name} en Colombia" },
             category = "General",
-            author = post.author
+            author = currentPost.authorName
         )
         isLoadingAi = false
     }
@@ -89,7 +103,7 @@ fun ReviewPostScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = post.imageUrl,
+                model = currentPost.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -101,14 +115,17 @@ fun ReviewPostScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = post.title,
+                text = currentPost.name,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
 
+            val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val dateString = sdf.format(Date(currentPost.createdAt))
+
             Text(
-                text = "Autor: ${post.author} • ${post.date}",
+                text = "Autor: ${currentPost.authorName} • $dateString",
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -176,7 +193,7 @@ fun ReviewPostScreen(
             ) {
                 Button(
                     onClick = {
-                        viewModel.approvePost(post.id)
+                        viewModel.approvePost(currentPost.id)
                         scope.launch {
                             snackbarHostState.showSnackbar("Publicación aprobada con éxito")
                             navController.popBackStack()
@@ -207,7 +224,7 @@ fun ReviewPostScreen(
 
             OutlinedButton(
                 onClick = {
-                    viewModel.resolvePost(post.id)
+                    viewModel.resolvePost(currentPost.id)
                     scope.launch {
                         snackbarHostState.showSnackbar("Publicación marcada como resuelta")
                     }
@@ -238,7 +255,7 @@ fun ReviewPostScreen(
                 TextButton(
                     onClick = {
                         if (rejectionReason.isNotBlank()) {
-                            viewModel.rejectPost(post.id, rejectionReason)
+                            viewModel.rejectPost(currentPost.id, rejectionReason)
                             showRejectDialog = false
                             scope.launch {
                                 snackbarHostState.showSnackbar("Publicación rechazada: $rejectionReason")

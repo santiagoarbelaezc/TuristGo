@@ -176,5 +176,16 @@
     <!-- Placeholder screens titles -->
     <string name="badges_title">Mis Logros</string>
     <string name="stats_title">Mi Progreso</string>
-    <string name="review_post_title">Revisar Publicación</string>
+    <!-- Post Details -->
+    <string name="post_detail_title">Detalle del Destino</string>
+    <string name="verified">Verificado</string>
+    <string name="visited">Visitado</string>
+    <string name="mark_visited">Marcar Visitado</string>
+    <string name="important">Es Importante</string>
+    <string name="comments">Comentarios</string>
+    <string name="related_posts">Publicaciones relacionadas</string>
+    <string name="schedule">Horario</string>
+    <string name="price_range">Rango de Precio</string>
+    <string name="write_experience">Escribe tu experiencia...</string>
+    <string name="view_all_comments">Ver todos los comentarios</string>
 </resources>

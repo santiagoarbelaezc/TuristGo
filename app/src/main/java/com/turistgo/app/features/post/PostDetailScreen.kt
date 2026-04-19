@@ -17,10 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.turistgo.app.R
 import com.turistgo.app.core.components.Destination
 import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.Person
@@ -58,7 +60,7 @@ fun PostDetailScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
-            title = { Text("Detalle del Destino", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.post_detail_title), fontSize = 18.sp, fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
@@ -139,7 +141,7 @@ fun PostDetailScreen(
                         ) {
                             Icon(if (isVisited) Icons.Default.CheckCircle else Icons.Default.AddTask, null, Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isVisited) "Visitado" else "Marcar Visitado", fontSize = 12.sp)
+                            Text(if (isVisited) stringResource(R.string.visited) else stringResource(R.string.mark_visited), fontSize = 12.sp)
                         }
 
                         OutlinedButton(
@@ -156,7 +158,7 @@ fun PostDetailScreen(
                         ) {
                             Icon(if (isImportant) Icons.Default.ThumbUp else Icons.Default.ThumbUpOffAlt, null, Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Es Importante ($votesCount)", fontSize = 12.sp)
+                            Text(stringResource(R.string.important) + " ($votesCount)", fontSize = 12.sp)
                         }
                     }
 
@@ -164,12 +166,12 @@ fun PostDetailScreen(
 
                     // Detalles Adicionales
                     SectionHeader("Detalles del Lugar")
-                    DetailRow(Icons.Default.Schedule, "Horario", schedule)
-                    DetailRow(Icons.Default.AttachMoney, "Rango de Precio", priceRange)
+                    DetailRow(Icons.Default.Schedule, stringResource(R.string.schedule), schedule)
+                    DetailRow(Icons.Default.AttachMoney, stringResource(R.string.price_range), priceRange)
 
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    Text(text = "Descripción", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = stringResource(R.string.description), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = description, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
                 }
@@ -178,7 +180,7 @@ fun PostDetailScreen(
             // Sección de Comentarios
             item {
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(text = "Comentarios (12)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = stringResource(R.string.comments) + " (12)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Input para nuevo comentario
@@ -186,7 +188,7 @@ fun PostDetailScreen(
                         value = commentText,
                         onValueChange = { commentText = it },
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("Escribe tu experiencia...") },
+                        placeholder = { Text(stringResource(R.string.write_experience)) },
                         trailingIcon = {
                             if (commentText.isNotEmpty()) {
                                 IconButton(onClick = { commentText = "" }) {
@@ -203,7 +205,7 @@ fun PostDetailScreen(
                     CommentItem("Sofía R.", "Recomiendo llevar mucha agua y protector solar.", "Hace 5 horas")
                     
                     TextButton(onClick = { /* View more */ }) {
-                        Text("Ver todos los comentarios")
+                        Text(stringResource(R.string.view_all_comments))
                     }
                 }
             }
@@ -212,7 +214,7 @@ fun PostDetailScreen(
             item {
                 Column(modifier = Modifier.padding(vertical = 20.dp)) {
                     Text(
-                        text = "Publicaciones relacionadas",
+                        text = stringResource(R.string.related_posts),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)

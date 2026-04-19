@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // NavController import omitted
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 import com.turistgo.app.core.navigation.MainRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +42,7 @@ fun ModeratorProfileScreen(
                 title = { Text("Perfil de Moderador", fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.logout))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -108,9 +110,9 @@ fun ModeratorProfileScreen(
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    ModeratorStat(label = "Verificadas", value = "142")
-                    ModeratorStat(label = "Rechazadas", value = "28")
-                    ModeratorStat(label = "Reportes", value = "12")
+                    ModeratorStat(label = stringResource(R.string.resolved_posts), value = "142")
+                    ModeratorStat(label = stringResource(R.string.pending_posts), value = "28")
+                    ModeratorStat(label = stringResource(R.string.nav_alerts), value = "12")
                 }
 
                 Spacer(modifier = Modifier.height(40.dp))

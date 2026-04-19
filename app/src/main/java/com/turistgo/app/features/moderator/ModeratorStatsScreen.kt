@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 @Composable
 fun ModeratorStatsScreen() {
@@ -41,7 +41,7 @@ fun ModeratorStatsScreen() {
             .padding(24.dp)
     ) {
         Text(
-            text = "Estadísticas Globales",
+            text = stringResource(R.string.stats_title),
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = Color(0xFF1A1A1A)

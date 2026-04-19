@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 import com.turistgo.app.domain.model.Post
 import com.turistgo.app.domain.model.PostStatus
 import java.text.SimpleDateFormat
@@ -47,7 +49,7 @@ fun ModeratorDashboard(
                 title = { 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Panel de control", 
+                            text = stringResource(R.string.nav_home), // Or dashboard title
                             style = MaterialTheme.typography.headlineSmall, 
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1A1A1A)
@@ -63,7 +65,7 @@ fun ModeratorDashboard(
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Logout, 
-                            contentDescription = "Cerrar sesión",
+                            contentDescription = stringResource(R.string.logout),
                             tint = Color(0xFF333333)
                         )
                     }
@@ -90,7 +92,7 @@ fun ModeratorDashboard(
                 ) {
                     // Lavender/Purple Card for "Pendientes"
                     StatCardRedesigned(
-                        label = "Pendientes",
+                        label = stringResource(R.string.pending_posts),
                         count = pendingCount.toString(),
                         backgroundColor = Color(0xFFEDE7F6), // Light Purple
                         iconColor = Color(0xFF512DA8),
@@ -99,7 +101,7 @@ fun ModeratorDashboard(
                     )
                     // Mint/Green Card for "Verificadas"
                     StatCardRedesigned(
-                        label = "Verificadas",
+                        label = stringResource(R.string.resolved_posts),
                         count = verifiedCount.toString(),
                         backgroundColor = Color(0xFFE8F5E9), // Light Green
                         iconColor = Color(0xFF2E7D32),

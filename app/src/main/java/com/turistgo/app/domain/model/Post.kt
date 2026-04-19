@@ -4,7 +4,9 @@ data class Post(
     val id: String,
     val name: String,
     val categories: List<String> = emptyList(),
-    val location: String,
+    val location: String, // Esta será la dirección manual o detalle
+    val department: String? = null,
+    val city: String? = null,
     val latitude: Double? = null,
     val longitude: Double? = null,
     val rating: String,

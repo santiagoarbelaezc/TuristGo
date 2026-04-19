@@ -14,5 +14,8 @@ data class User(
     val password: String? = null,
     val username: String? = null,
     val profilePhotoUrl: String? = null,
-    val interests: List<String>? = emptyList()
+    val interests: List<String>? = emptyList(),
+    val consentAccepted: Boolean = false,
+    val consentTimestamp: Long? = null,
+    val locale: String? = null
 )

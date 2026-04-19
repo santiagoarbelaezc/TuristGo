@@ -66,7 +66,12 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     override fun getUsers(): Flow<List<User>> = users
 
     override suspend fun saveUser(user: User) {
-        users.value = users.value + user
+        val exists = users.value.any { it.id == user.id }
+        if (exists) {
+            updateUser(user)
+        } else {
+            users.value = users.value + user
+        }
     }
 
     override suspend fun updateUser(user: User) {

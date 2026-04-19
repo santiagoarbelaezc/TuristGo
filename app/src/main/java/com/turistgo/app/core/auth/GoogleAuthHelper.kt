@@ -10,6 +10,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import android.util.Log
+import android.util.Base64
+import org.json.JSONObject
 
 /**
  * Helper class to manage Google Sign-In using Credential Manager
@@ -45,12 +47,16 @@ class GoogleAuthHelper @Inject constructor() {
             val credential = result.credential
             
             return if (credential is GoogleIdTokenCredential) {
+                val idToken = credential.idToken
+                val locale = extractLocaleFromIdToken(idToken)
+                
                 Result.success(
                     GoogleUserData(
                         id = credential.id,
                         email = credential.id,
                         name = credential.displayName ?: "Google User",
-                        photoUrl = credential.profilePictureUri?.toString()
+                        photoUrl = credential.profilePictureUri?.toString(),
+                        locale = locale
                     )
                 )
             } else {
@@ -61,11 +67,24 @@ class GoogleAuthHelper @Inject constructor() {
             return Result.failure(e)
         }
     }
+
+    private fun extractLocaleFromIdToken(idToken: String): String? {
+        return try {
+            val parts = idToken.split(".")
+            if (parts.size < 2) return null
+            val payload = String(Base64.decode(parts[1], Base64.DEFAULT))
+            val json = JSONObject(payload)
+            json.optString("locale", null)
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
 data class GoogleUserData(
     val id: String,
     val email: String,
     val name: String,
-    val photoUrl: String?
+    val photoUrl: String?,
+    val locale: String? = null
 )

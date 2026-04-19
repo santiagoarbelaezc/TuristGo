@@ -53,12 +53,22 @@ class EditProfileViewModel @Inject constructor(
             val session = sessionManager.userSession.firstOrNull()
             if (session?.userId != null) {
                 currentUser = repository.getUserById(session.userId)
-                currentUser?.let { user ->
-                    _name.value = user.name
-                    _lastName.value = user.lastName
-                    _phone.value = user.phone
-                    _country.value = user.country
-                    _city.value = user.city
+                
+                if (currentUser != null) {
+                    currentUser?.let { user ->
+                        _name.value = user.name
+                        _lastName.value = user.lastName
+                        _phone.value = user.phone
+                        _country.value = user.country
+                        _city.value = user.city
+                    }
+                } else {
+                    // Fallback a los datos de la sesión si no está en el repositorio
+                    session.name?.let { fullName ->
+                        val parts = fullName.split(" ", limit = 2)
+                        _name.value = parts.getOrNull(0) ?: fullName
+                        _lastName.value = parts.getOrNull(1) ?: ""
+                    }
                 }
             }
         }

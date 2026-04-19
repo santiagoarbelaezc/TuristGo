@@ -1,4 +1,6 @@
 package com.turistgo.app.features.post
+ 
+import com.turistgo.app.core.utils.ColombiaGeography
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +33,18 @@ class CreatePostViewModel @Inject constructor(
 
     private val _location = mutableStateOf("")
     val location: State<String> = _location
+ 
+    private val _department = mutableStateOf("")
+    val department: State<String> = _department
+ 
+    private val _city = mutableStateOf("")
+    val city: State<String> = _city
+ 
+    private val _availableDepartments = mutableStateOf(ColombiaGeography.getDepartments())
+    val availableDepartments: State<List<String>> = _availableDepartments
+ 
+    private val _availableCities = mutableStateOf<List<String>>(emptyList())
+    val availableCities: State<List<String>> = _availableCities
 
     private val _schedule = mutableStateOf("")
     val schedule: State<String> = _schedule
@@ -78,6 +92,15 @@ class CreatePostViewModel @Inject constructor(
     }
     
     fun onLocationChange(v: String) { _location.value = v }
+    
+    fun onDepartmentChange(v: String) {
+        _department.value = v
+        _city.value = ""
+        _availableCities.value = ColombiaGeography.getCities(v)
+    }
+    
+    fun onCityChange(v: String) { _city.value = v }
+ 
     fun onStartTimeChange(v: String) { _startTime.value = v }
     fun onEndTimeChange(v: String) { _endTime.value = v }
     fun onPriceRangeChange(v: String) { _priceRange.value = v }
@@ -149,6 +172,8 @@ class CreatePostViewModel @Inject constructor(
                     name = _title.value,
                     categories = _selectedCategories.value.toList(),
                     location = _location.value,
+                    department = _department.value.ifEmpty { null },
+                    city = _city.value.ifEmpty { null },
                     latitude = _latitude.value,
                     longitude = _longitude.value,
                     rating = "0.0",

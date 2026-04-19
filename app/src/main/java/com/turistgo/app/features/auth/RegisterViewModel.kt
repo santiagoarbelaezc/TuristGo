@@ -1,4 +1,6 @@
 package com.turistgo.app.features.auth
+ 
+import com.turistgo.app.core.utils.ColombiaGeography
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -50,41 +52,9 @@ class RegisterViewModel @Inject constructor(
     // Lista restringida de países
     val countries = listOf("Colombia", "Argentina", "Brasil")
     
-    // Datos de geografía para Colombia (Departamentos y sus ciudades principales)
-    private val colombiaGeography = mapOf(
-        "Amazonas" to listOf("Leticia", "Puerto Nariño"),
-        "Antioquia" to listOf("Medellín", "Envigado", "Itagüí", "Bello", "Rionegro", "Sabaneta", "Apartadó", "Turbo"),
-        "Arauca" to listOf("Arauca", "Tame", "Saravena"),
-        "Atlántico" to listOf("Barranquilla", "Soledad", "Malambo", "Puerto Colombia"),
-        "Bolívar" to listOf("Cartagena", "Magangué", "Turbaco"),
-        "Boyacá" to listOf("Tunja", "Duitama", "Sogamoso", "Chiquinquirá"),
-        "Caldas" to listOf("Manizales", "La Dorada", "Chinchiná"),
-        "Caquetá" to listOf("Florencia", "San Vicente del Caguán"),
-        "Casanare" to listOf("Yopal", "Aguazul", "Villanueva"),
-        "Cauca" to listOf("Popayán", "Santander de Quilichao", "Puerto Tejada"),
-        "Cesar" to listOf("Valledupar", "Aguachica", "Codazzi"),
-        "Chocó" to listOf("Quibdó", "Istmina", "Condoto"),
-        "Córdoba" to listOf("Montería", "Cereté", "Lorica"),
-        "Cundinamarca" to listOf("Bogotá", "Soacha", "Fusagasugá", "Facatativá", "Chía", "Zipaquirá", "Girardot"),
-        "Guainía" to listOf("Inírida"),
-        "Guaviare" to listOf("San José del Guaviare"),
-        "Huila" to listOf("Neiva", "Pitalito", "Garzón"),
-        "La Guajira" to listOf("Riohacha", "Maicao", "Uribia"),
-        "Magdalena" to listOf("Santa Marta", "Ciénaga", "Fundación"),
-        "Meta" to listOf("Villavicencio", "Acacías", "Granada"),
-        "Nariño" to listOf("Pasto", "Ipiales", "Tumaco"),
-        "Norte de Santander" to listOf("Cúcuta", "Ocaña", "Villa del Rosario", "Pamplona"),
-        "Putumayo" to listOf("Mocoa", "Puerto Asís", "Orito"),
-        "Quindío" to listOf("Armenia", "Calarcá", "Montenegro", "Quimbaya", "Salento"),
-        "Risaralda" to listOf("Pereira", "Dosquebradas", "Santa Rosa de Cabal"),
-        "San Andrés" to listOf("San Andrés", "Providencia"),
-        "Santander" to listOf("Bucaramanga", "Floridablanca", "Girón", "Barrancabermeja", "Piedecuesta", "San Gil"),
-        "Sucre" to listOf("Sincelejo", "Corozal", "San Marcos"),
-        "Tolima" to listOf("Ibagué", "Espinal", "Melgar", "Mariquita"),
-        "Valle del Cauca" to listOf("Cali", "Buenaventura", "Palmira", "Tuluá", "Buga", "Cartago", "Jamundí"),
-        "Vaupés" to listOf("Mitú"),
-        "Vichada" to listOf("Puerto Carreño")
-    )
+    // Datos de geografía para Colombia se obtienen de ColombiaGeography utility
+ 
+    private val argentinaCities = listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "San Miguel de Tucumán", "Salta", "Santa Fe", "Corrientes")
 
     private val argentinaCities = listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "San Miguel de Tucumán", "Salta", "Santa Fe", "Corrientes")
     private val brasilCities = listOf("São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre")
@@ -123,7 +93,7 @@ class RegisterViewModel @Inject constructor(
         
         when (v) {
             "Colombia" -> {
-                _availableDepartments.value = colombiaGeography.keys.sorted()
+                _availableDepartments.value = ColombiaGeography.getDepartments()
                 _availableCities.value = emptyList()
             }
             "Argentina" -> {
@@ -145,7 +115,7 @@ class RegisterViewModel @Inject constructor(
         _department.value = v
         _city.value = ""
         if (_country.value == "Colombia") {
-            _availableCities.value = colombiaGeography[v]?.sorted() ?: emptyList()
+            _availableCities.value = ColombiaGeography.getCities(v)
         }
     }
     

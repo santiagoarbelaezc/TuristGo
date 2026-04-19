@@ -57,6 +57,14 @@ fun CreatePostScreen(
     val latitude           by viewModel.latitude
     val longitude          by viewModel.longitude
     
+    val department           by viewModel.department
+    val city                 by viewModel.city
+    val availableDepartments by viewModel.availableDepartments
+    val availableCities      by viewModel.availableCities
+    
+    var departmentExpanded by remember { mutableStateOf(false) }
+    var cityExpanded       by remember { mutableStateOf(false) }
+    
     val RedAccent          = MaterialTheme.colorScheme.primary 
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -307,27 +315,115 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Ubicación & Mapa ---
+            // --- Ubicación Estructurada ---
             Text(
-                text = "Ubicación",
+                text = "Ubicación (Colombia)",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+
+            // Selector de Departamento
+            ExposedDropdownMenuBox(
+                expanded = departmentExpanded,
+                onExpandedChange = { departmentExpanded = !departmentExpanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = department,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Departamento") },
+                    leadingIcon = { Icon(Icons.Default.Map, contentDescription = null, tint = RedAccent) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                        unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                        focusedIndicatorColor = RedAccent
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = departmentExpanded,
+                    onDismissRequest = { departmentExpanded = false }
+                ) {
+                    availableDepartments.forEach { selectionOption ->
+                        DropdownMenuItem(
+                            text = { Text(selectionOption) },
+                            onClick = {
+                                viewModel.onDepartmentChange(selectionOption)
+                                departmentExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Selector de Ciudad
+            ExposedDropdownMenuBox(
+                expanded = cityExpanded,
+                onExpandedChange = { 
+                    if (department.isNotEmpty()) cityExpanded = !cityExpanded 
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = city,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Ciudad") },
+                    leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = RedAccent) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
+                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = department.isNotEmpty(),
+                    colors = TextFieldDefaults.colors(
+                        unfocusedContainerColor = Color.White,
+                        focusedContainerColor = Color.White,
+                        unfocusedIndicatorColor = Color(0xFFDDDDDD),
+                        focusedIndicatorColor = RedAccent
+                    )
+                )
+                if (availableCities.isNotEmpty()) {
+                    ExposedDropdownMenu(
+                        expanded = cityExpanded,
+                        onDismissRequest = { cityExpanded = false }
+                    ) {
+                        availableCities.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    viewModel.onCityChange(selectionOption)
+                                    cityExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Dirección Manual y Mapa
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.onLocationChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                placeholder = { Text("Nombre del lugar o dirección", color = Color(0xFF999999)) },
+                label = { Text("Dirección manual") },
+                placeholder = { Text("Ej: Calle 123 #45-67", color = Color(0xFF999999)) },
                 leadingIcon = {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF555555))
+                    Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFF555555))
                 },
                 trailingIcon = {
                     IconButton(onClick = onNavigateToMapPicker) {
                         Icon(
-                            Icons.Default.Map, 
-                            contentDescription = "Mapa", 
+                            Icons.Default.MyLocation, 
+                            contentDescription = "Fijar en Mapa", 
                             tint = if (latitude != null) Color(0xFF4CAF50) else RedAccent
                         )
                     }
@@ -342,13 +438,19 @@ fun CreatePostScreen(
             )
             
             if (latitude != null && longitude != null) {
-                Text(
-                    text = "Coordenadas fijadas: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}",
-                    fontSize = 11.sp,
-                    color = Color(0xFF4CAF50),
+                Row(
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp),
-                    fontWeight = FontWeight.Medium
-                )
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = "Ubicación GPS fijada: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}",
+                        fontSize = 11.sp,
+                        color = Color(0xFF4CAF50),
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

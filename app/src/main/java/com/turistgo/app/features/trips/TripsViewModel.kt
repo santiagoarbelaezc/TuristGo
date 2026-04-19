@@ -16,13 +16,16 @@ import com.turistgo.app.domain.repository.AppDataRepository
 import com.turistgo.app.data.remote.GroqService
 import com.turistgo.app.data.remote.model.GroqMessage
 import com.turistgo.app.data.remote.model.GroqRequest
+import com.turistgo.app.data.datastore.UserSessionManager
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import com.turistgo.app.BuildConfig
 
 @HiltViewModel
 class TripsViewModel @Inject constructor(
     private val repository: AppDataRepository,
-    private val groqService: GroqService
+    private val groqService: GroqService,
+    private val sessionManager: UserSessionManager
 ) : ViewModel() {
 
     private val _messages = mutableStateListOf<ChatMessage>()
@@ -67,41 +70,68 @@ class TripsViewModel @Inject constructor(
             _isLoading.value = true
             
             try {
-                // 1. Obtener los lugares disponibles (posts)
+                // 1. Obtener datos del usuario para personalización
+                val session = sessionManager.userSession.firstOrNull()
+                val userProfile = session?.userId?.let { repository.getUserById(it) }
+                
+                val userContext = """
+                    DATOS DEL USUARIO:
+                    - Nombre: ${userProfile?.name ?: session?.name ?: "Viajero"}
+                    - Ubicación Actual: ${userProfile?.city ?: "No especificada"}, ${userProfile?.country ?: "No especificada"}
+                    - Intereses: ${userProfile?.interests?.joinToString(", ") ?: "Viajes, aventura, relax"}
+                """.trimIndent()
+
+                // 2. Obtener los lugares disponibles (posts)
                 val availablePosts = repository.getPosts().first()
                 
-                // 2. Construir el prompt del sistema
                 val placesContext = availablePosts.joinToString("\n") { 
-                    "- ID: ${it.id}, Nombre: ${it.name}, Ubicación: ${it.location}, Descripción: ${it.description}"
+                    "- ID: ${it.id}, Nombre: ${it.name}, Categorías: ${it.categories.joinToString(", ")}, Ubicación: ${it.location}, Descripción: ${it.description}"
                 }
                 
                 val systemPrompt = """
-                    Eres un asistente de viajes experto y apasionado para la app TuristGo. 
-                    Tu objetivo es analizar los lugares disponibles y generar un itinerario detallado, natural y emocionante.
+                    Eres un asistente de viajes experto, local y consultivo para la aplicación TuristGo. 
+                    Tu misión es guiar al usuario para crear el viaje perfecto, combinando sus intereses con los destinos disponibles.
                     
-                    ESTILO DE RESPUESTA:
-                    - Usa muchos emojis relevantes para que la respuesta sea visual y divertida.
-                    - Estructura la respuesta con un título como "🗓️ Itinerario sugerido día a día".
-                    - Separa por días usando etiquetas claras como "Día 1", "Día 2", etc.
-                    - Incluye horarios sugeridos para las actividades (ej: 08:00, 10:00, 14:00, 19:00).
-                    - Sé muy amable, entusiasta y usa un tono de experto local.
+                    USUARIO ACTUAL:
+                    $userContext
                     
-                    LUGARES DISPONIBLES EN LA APP (Usa estos nombres y datos):
-                    ${if (availablePosts.isEmpty()) "No hay lugares registrados aún." else placesContext}
+                    ESTILO DE NARRACIÓN:
+                    - ¡Escribe de forma natural, cercana y apasionada! Saluda al usuario por su nombre.
+                    - REGLA DE TONO: Debes TUTEAR al usuario siempre. Usa "tú", "te", "tuyo", etc. NUNCA uses "usted". Somos amigos y expertos locales.
+                    - Sé CONSULTIVO: Tu objetivo no es solo dar un plan, sino asegurarte de que sea el adecuado.
                     
-                    INSTRUCCIONES CRÍTICAS:
-                    1. Al FINAL de tu respuesta, después del itinerario, debes incluir OBLIGATORIAMENTE la sección: 
-                       SUGGESTED_IDS: [id1, id2, ...] 
-                       donde los IDs correspondan a los lugares de la lista anterior que mencionaste en el itinerario. 
-                    2. Si el usuario pide algo que no está disponible, sugiérele los lugares de la lista como la mejor opción actual en TuristGo.
+                    COMPORTAMIENTO CONSULTIVO (REGLA DE ORO):
+                    - Si la petición del usuario es vaga (ej: "Quiero viajar"), NO generes un plan final. En su lugar, salúdalo con entusiasmo y hazle preguntas clave como:
+                      * ¿Cuánto tiempo tienes para este plan? (ej: 1 día, un fin de semana).
+                      * ¿Prefieres algo cercano a tu ubicación actual (${userProfile?.city ?: "tu ciudad"}) o quieres ir más lejos?
+                      * ¿Hay algún interés específico hoy?
+                    - Si ya tienes información suficiente (duración, distancia, intereses), genera un itinerario inolvidable.
+                    
+                    ESTRUCTURA DEL ITINERARIO:
+                    - Usa títulos vibrantes como "🌟 Tu Gran Aventura Personalizada".
+                    - Planifica por días con horarios sugeridos y emojis creativos.
+                    - Justifica cada parada basándote en los intereses del usuario (ej: "Como te gusta la cultura, he incluido...").
+                    
+                    CATÁLOGO DE LUGARES DISPONIBLES (Prioriza estos):
+                    ${if (availablePosts.isEmpty()) "Sugerencias genéricas de Colombia." else placesContext}
+                    
+                    REGLAS CRÍTICAS:
+                    1. NO menciones IDs técnicos en el texto narrativo.
+                    2. Al FINAL absoluto, si mencionaste lugares del catálogo, añade: SUGGESTED_IDS: [id1, id2, ...]
+                    3. Si vas a preguntar al usuario (flujo consultivo), NO incluyas el bloque SUGGESTED_IDS.
                 """.trimIndent()
 
-                // 3. Llamar a Groq API
-                val request = GroqRequest(
-                    messages = listOf(
-                        GroqMessage(role = "system", content = systemPrompt),
-                        GroqMessage(role = "user", content = userMessage)
+                // 3. Preparar historial (últimos 10 mensajes)
+                val conversationHistory = _messages.takeLast(10).map { msg ->
+                    GroqMessage(
+                        role = if (msg.isFromUser) "user" else "assistant",
+                        content = msg.content
                     )
+                }
+
+                // 4. Llamar a Groq API
+                val request = GroqRequest(
+                    messages = listOf(GroqMessage(role = "system", content = systemPrompt)) + conversationHistory
                 )
                 
                 // API Key from .env (via BuildConfig) - Se agrega el prefijo Bearer programáticamente

@@ -239,6 +239,26 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // --- CONSENTIMIENTO DE PRIVACIDAD ---
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = viewModel.isPrivacyAccepted.value,
+                        onCheckedChange = { viewModel.onPrivacyAcceptanceChange(it) },
+                        enabled = !isLoading
+                    )
+                    Text(
+                        text = "Acepto los términos de uso y el tratamiento de mis datos personales según la política de privacidad",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        lineHeight = 14.sp
+                    )
+                }
+
                 // --- ENLACE "OLVIDASTE LA CONTRASEÑA" ---
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text(

@@ -21,6 +21,8 @@ import javax.inject.Inject
 
 import com.turistgo.app.data.datastore.UserSessionManager
 import com.turistgo.app.core.auth.GoogleAuthHelper
+import com.turistgo.app.domain.repository.AppDataRepository
+import com.turistgo.app.domain.model.User
 
 /**
  * LoginViewModel - Maneja la lógica de negocio y el estado de la pantalla de inicio de sesión
@@ -40,7 +42,8 @@ import com.turistgo.app.core.auth.GoogleAuthHelper
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val sessionManager: UserSessionManager,
-    private val googleAuthHelper: GoogleAuthHelper
+    private val googleAuthHelper: GoogleAuthHelper,
+    private val repository: AppDataRepository
 ) : ViewModel() {
     
     // ==================== ESTADOS PRIVADOS MUTABLES ====================
@@ -101,7 +104,17 @@ class LoginViewModel @Inject constructor(
      */
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
     
+    /**
+     * Estado de aceptación de términos y privacidad
+     */
+    private val _isPrivacyAccepted = mutableStateOf(false)
+    val isPrivacyAccepted: State<Boolean> = _isPrivacyAccepted
+    
     // ==================== MÉTODOS PÚBLICOS (EVENTOS DEL UI) ====================
+
+    fun onPrivacyAcceptanceChange(newValue: Boolean) {
+        _isPrivacyAccepted.value = newValue
+    }
     
     /**
      * Actualiza el valor del email cuando el usuario escribe en el campo
@@ -130,6 +143,11 @@ class LoginViewModel @Inject constructor(
      * @param onSuccess Callback que devuelve true si es administrador, false si es usuario normal
      */
     fun login(onSuccess: (Boolean) -> Unit) {
+        if (!_isPrivacyAccepted.value) {
+            _snackbarMessage.value = "Debes aceptar el uso de datos personales para continuar"
+            return
+        }
+
         if (_email.value.isEmpty() || _password.value.isEmpty()) {
             _snackbarMessage.value = "Por favor, completa todos los campos"
             return
@@ -160,6 +178,11 @@ class LoginViewModel @Inject constructor(
      * @param onSuccess Callback de éxito
      */
     fun loginWithSocial(context: Context, provider: String, onSuccess: (Boolean) -> Unit) {
+        if (!_isPrivacyAccepted.value) {
+            _snackbarMessage.value = "Debes aceptar el uso de datos personales para iniciar sesión"
+            return
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             
@@ -176,6 +199,30 @@ class LoginViewModel @Inject constructor(
                                 email = googleUser.email,
                                 photoUrl = googleUser.photoUrl
                             )
+                            
+                            // PERSISTIR EN EL REPOSITORIO
+                            // Intentamos separar el nombre en partes
+                            val nameParts = googleUser.name.split(" ", limit = 2)
+                            val firstName = nameParts.getOrNull(0) ?: googleUser.name
+                            val lastName = nameParts.getOrNull(1) ?: ""
+
+                            repository.saveUser(
+                                User(
+                                    id = googleUser.id,
+                                    name = firstName,
+                                    lastName = lastName,
+                                    age = "",
+                                    country = "",
+                                    city = "",
+                                    phone = "",
+                                    email = googleUser.email,
+                                    profilePhotoUrl = googleUser.photoUrl,
+                                    consentAccepted = true,
+                                    consentTimestamp = System.currentTimeMillis(),
+                                    locale = googleUser.locale
+                                )
+                            )
+
                             _snackbarMessage.value = "¡Bienvenido, ${googleUser.name}!"
                             onSuccess(false)
                         } else {
@@ -196,6 +243,21 @@ class LoginViewModel @Inject constructor(
                     name = "$provider User",
                     email = "${provider.lowercase()}@example.com"
                 )
+                
+                // También persistir en el repositorio para otros proveedores
+                repository.saveUser(
+                    User(
+                        id = "social_${System.currentTimeMillis()}",
+                        name = "$provider",
+                        lastName = "User",
+                        age = "",
+                        country = "",
+                        city = "",
+                        phone = "",
+                        email = "${provider.lowercase()}@example.com"
+                    )
+                )
+
                 _snackbarMessage.value = "¡Bienvenido vía $provider!"
                 onSuccess(false)
             }

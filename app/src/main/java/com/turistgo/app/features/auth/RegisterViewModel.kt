@@ -55,8 +55,6 @@ class RegisterViewModel @Inject constructor(
     // Datos de geografía para Colombia se obtienen de ColombiaGeography utility
  
     private val argentinaCities = listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "San Miguel de Tucumán", "Salta", "Santa Fe", "Corrientes")
-
-    private val argentinaCities = listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "San Miguel de Tucumán", "Salta", "Santa Fe", "Corrientes")
     private val brasilCities = listOf("São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre")
 
     private val _availableDepartments = mutableStateOf<List<String>>(emptyList())

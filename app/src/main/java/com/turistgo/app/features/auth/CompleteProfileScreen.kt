@@ -3,14 +3,15 @@ package com.turistgo.app.features.auth
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.turistgo.app.core.locale.AppStrings
 import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.core.locale.AppLanguage
 import com.turistgo.app.core.components.LoadingOverlay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -43,6 +45,8 @@ fun CompleteProfileScreen(
     val username by viewModel.username
     val photoUri by viewModel.photoUri
     val interests by viewModel.interests
+    val selectedLanguage by viewModel.selectedLanguage
+    val notificationsEnabled by viewModel.notificationsEnabled
     val isLoading by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
 
@@ -64,13 +68,13 @@ fun CompleteProfileScreen(
     val availableInterests = listOf(
         s.interestTourism,
         s.interestEvents,
+        s.interestGastronomy,
+        s.interestAdventure,
+        s.interestCulture,
+        s.interestNature,
+        s.interestBeach,
         s.interestConcerts,
         s.interestRelax,
-        s.catMountain,
-        s.catBeach,
-        s.catGastronomy,
-        s.catCulture,
-        s.catAdventure
     )
 
     Scaffold(
@@ -93,121 +97,183 @@ fun CompleteProfileScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-            Text(
-                text = s.completeProfile,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = s.completeProfileDesc,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.secondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
+                Text(
+                    text = s.completeProfile,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = s.completeProfileDesc,
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                )
 
-            // Foto de perfil
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable(enabled = !isLoading) { photoPickerLauncher.launch("image/*") },
-                contentAlignment = Alignment.Center
-            ) {
-                if (photoUri != null) {
-                    AsyncImage(
-                        model = photoUri,
-                        contentDescription = "Profile Photo",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Add Photo",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = s.profilePhoto, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Nombre de usuario
-            OutlinedTextField(
-                value = username,
-                onValueChange = { viewModel.onUsernameChange(it) },
-                placeholder = { Text(s.usernameLabel) },
-                leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                singleLine = true,
-                enabled = !isLoading
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Intereses
-            Text(
-                text = s.whatInterestsYou,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Start
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                availableInterests.forEach { interest ->
-                    val isSelected = interests.contains(interest)
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.clickable(enabled = !isLoading) { viewModel.toggleInterest(interest) }
-                    ) {
-                        Text(
-                            text = interest,
-                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
+                // 1. Photo Section
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable(enabled = !isLoading) { photoPickerLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (photoUri != null) {
+                        AsyncImage(
+                            model = photoUri,
+                            contentDescription = "Profile Photo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Add Photo",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(36.dp)
                         )
                     }
                 }
-            }
+                Text(text = s.profilePhoto, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(top = 8.dp))
 
-            Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón
-            Button(
-                onClick = { viewModel.saveProfile(userId, onNavigateToFeed) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .padding(bottom = 24.dp),
-                shape = RoundedCornerShape(16.dp),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                } else {
-                    Text(s.continueToFeed, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                // 2. Language Selection
+                Text(
+                    text = s.selectYourLanguage,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    AppLanguage.entries.forEach { appLang ->
+                        val isSelected = selectedLanguage == appLang
+                        val borderColor by animateColorAsState(if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray)
+                        
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(50.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(2.dp, borderColor, RoundedCornerShape(12.dp))
+                                .clickable { viewModel.onLanguageChange(appLang) },
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = appLang.displayName,
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground
+                                )
+                            }
+                        }
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 3. Username
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { viewModel.onUsernameChange(it) },
+                    placeholder = { Text(s.usernameLabel) },
+                    leadingIcon = { Icon(Icons.Default.AlternateEmail, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
+                    enabled = !isLoading
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 4. Interests
+                Text(
+                    text = s.whatInterestsYou,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    availableInterests.forEach { interest ->
+                        val isSelected = interests.contains(interest)
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.toggleInterest(interest) },
+                            label = { Text(interest) },
+                            enabled = !isLoading,
+                            shape = RoundedCornerShape(12.dp),
+                            leadingIcon = if (isSelected) {
+                                { Icon(Icons.Default.Check, null, Modifier.size(16.dp)) }
+                            } else null
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // 5. Configurations
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(s.enableNotifications, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                        }
+                        Switch(
+                            checked = notificationsEnabled,
+                            onCheckedChange = { viewModel.onNotificationsToggle(it) },
+                            enabled = !isLoading
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Botón Final
+                Button(
+                    onClick = { viewModel.saveProfile(userId, onNavigateToFeed) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isLoading
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text(s.continueToFeed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(40.dp))
             }
             
             LoadingOverlay(isLoading = isLoading, text = "Guardando perfil...")
         }
     }
-}
 }

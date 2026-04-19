@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Verified
@@ -24,7 +23,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserManagementScreen(
     navController: NavController,
@@ -33,59 +31,73 @@ fun UserManagementScreen(
     val users = viewModel.users
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    
+    val warmBg = Color(0xFFFBFAF5)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text("Gestión de Usuarios", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0)
-            )
-        }
+        containerColor = warmBg
     ) { padding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(users) { user ->
-                UserCard(
-                    user = user,
-                    onVerify = {
-                        viewModel.verifyUser(user.id)
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Usuario ${user.name} verificado")
-                        }
-                    },
-                    onDelete = {
-                        viewModel.deleteUser(user.id)
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Usuario ${user.name} eliminado")
-                        }
-                    }
+            PaddingValues(horizontal = 24.dp).let {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Gestión de Usuarios",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(it),
+                    color = Color(0xFF1A1A1A)
                 )
+                Text(
+                    text = "Administra los permisos y acceso a la plataforma",
+                    fontSize = 14.sp,
+                    color = Color(0xFF666666),
+                    modifier = Modifier.padding(it)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(users) { user ->
+                    UserCardRedesigned(
+                        user = user,
+                        onVerify = {
+                            viewModel.verifyUser(user.id)
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Usuario ${user.name} verificado")
+                            }
+                        },
+                        onDelete = {
+                            viewModel.deleteUser(user.id)
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Usuario ${user.name} eliminado")
+                            }
+                        }
+                    )
+                }
+                
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-fun UserCard(user: ModeratorUser, onVerify: () -> Unit, onDelete: () -> Unit) {
+fun UserCardRedesigned(user: ModeratorUser, onVerify: () -> Unit, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -93,25 +105,48 @@ fun UserCard(user: ModeratorUser, onVerify: () -> Unit, onDelete: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(48.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
+                modifier = Modifier.size(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFF3E5F5) // Soft Purple
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF7E57C2))
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = user.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = user.name, 
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 17.sp,
+                        color = Color(0xFF1A1A1A)
+                    )
                     if (user.isVerified) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(Icons.Default.Verified, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Icon(
+                            Icons.Default.Verified, 
+                            contentDescription = null, 
+                            tint = Color(0xFF4CAF50), 
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
-                Text(text = user.email, fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
-                Text(text = user.role, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+                Text(text = user.email, fontSize = 13.sp, color = Color.Gray)
+                
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFFE3F2FD),
+                    modifier = Modifier.padding(top = 4.dp)
+                ) {
+                    Text(
+                        text = user.role.uppercase(), 
+                        fontSize = 9.sp, 
+                        color = Color(0xFF1E88E5), 
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
             Row {
                 if (!user.isVerified) {
@@ -120,7 +155,7 @@ fun UserCard(user: ModeratorUser, onVerify: () -> Unit, onDelete: () -> Unit) {
                     }
                 }
                 IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = MaterialTheme.colorScheme.error)
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF5350))
                 }
             }
         }

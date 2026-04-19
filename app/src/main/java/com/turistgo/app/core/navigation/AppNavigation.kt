@@ -45,6 +45,9 @@ import com.turistgo.app.features.home.HomeScreen
 import com.turistgo.app.features.feed.FeedScreen
 import com.turistgo.app.features.moderator.ModeratorDashboard
 import com.turistgo.app.features.moderator.ModeratorProfileScreen
+import com.turistgo.app.features.moderator.ModeratorStatsScreen
+import com.turistgo.app.features.moderator.ModeratorSettingsScreen
+import com.turistgo.app.features.moderator.UserManagementScreen
 import com.turistgo.app.features.post.CreatePostScreen
 import com.turistgo.app.features.post.MapPickerScreen
 import com.turistgo.app.features.post.PostDetailScreen
@@ -93,14 +96,25 @@ fun AppNavigation(
         BottomNavItem(s.navAlerts,  MainRoutes.Notifications, Icons.Default.Notifications),
         BottomNavItem(s.navProfile, MainRoutes.Profile,       Icons.Default.Person)
     )
+    
+    val modDestinations = listOf(
+        BottomNavItem("Panel",        MainRoutes.ModeratorDashboard, Icons.Default.Dashboard),
+        BottomNavItem("Estadísticas", MainRoutes.ModeratorStats,     Icons.Default.BarChart),
+        BottomNavItem("Usuarios",     MainRoutes.ModeratorUsers,     Icons.Default.People),
+        BottomNavItem("Configuración", MainRoutes.ModeratorSettings,  Icons.Default.Settings)
+    )
 
-    val showBottomBar = bottomBarDestinations.any { item ->
+    val showUserBottomBar = bottomBarDestinations.any { item ->
         currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true
     } || currentDestination?.hasRoute(MainRoutes.PostDetail::class) == true
+    
+    val showModBottomBar = modDestinations.any { item ->
+        currentDestination?.hierarchy?.any { it.hasRoute(item.route::class) } == true
+    }
 
     Scaffold(
         bottomBar = {
-        if (showBottomBar) {
+            if (showUserBottomBar) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -177,8 +191,49 @@ fun AppNavigation(
                         }
                     }
                 }
+            } else if (showModBottomBar) {
+                NavigationBar(
+                    containerColor = Color(0xFFFBFAF5),
+                    tonalElevation = 8.dp,
+                    modifier = Modifier.height(80.dp)
+                ) {
+                    modDestinations.forEach { item ->
+                        val isSelected = currentDestination?.hierarchy?.any {
+                            it.hasRoute(item.route::class)
+                        } == true
+                        
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(item.route) {
+                                    popUpTo(MainRoutes.ModeratorDashboard) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    item.icon,
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    item.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = Color.Gray,
+                                indicatorColor = Color(0xFFF3E5F5)
+                            )
+                        )
+                    }
+                }
             }
-
         }
     ) { innerPadding ->
         NavHost(
@@ -277,6 +332,24 @@ fun AppNavigation(
                 )
             }
             
+            composable<MainRoutes.ModeratorStats> {
+                ModeratorStatsScreen()
+            }
+            
+            composable<MainRoutes.ModeratorUsers> {
+                UserManagementScreen(navController = navController)
+            }
+            
+            composable<MainRoutes.ModeratorSettings> {
+                ModeratorSettingsScreen(
+                    onLogout = {
+                        navController.navigate(MainRoutes.Home) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            
             composable<MainRoutes.ModeratorProfile> {
                 ModeratorProfileScreen(
                     onLogout = {
@@ -333,8 +406,6 @@ fun AppNavigation(
                 )
             }
             composable<MainRoutes.Notifications> { NotificationsScreen() }
-            composable<MainRoutes.UserManagement> { /* Placeholder */ }
-            composable<MainRoutes.EditPost> { /* Placeholder */ }
             composable<MainRoutes.ReviewPost> { /* Placeholder */ }
             composable<MainRoutes.Stats> { /* Placeholder */ }
             composable<MainRoutes.Badges> { /* Placeholder */ }

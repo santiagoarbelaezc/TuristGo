@@ -14,13 +14,18 @@ sealed class MainRoutes {
     @Serializable data object Profile
     @Serializable data object ForgotPassword
     @Serializable data object ResetPassword
+    
+    // Moderator Section
     @Serializable data object ModeratorDashboard
-    @Serializable data class ReviewPost(val postId: String)
-    @Serializable data object UserManagement
+    @Serializable data object ModeratorStats
+    @Serializable data object ModeratorUsers
+    @Serializable data object ModeratorSettings
     @Serializable data object ModeratorProfile
+    @Serializable data object Stats
+    
+    @Serializable data class ReviewPost(val postId: String)
     @Serializable data class EditPost(val postId: String)
     @Serializable data class PostDetail(val postId: String)
-    @Serializable data object Stats
     @Serializable data object Badges
     @Serializable data object MapPicker
     @Serializable data object Settings

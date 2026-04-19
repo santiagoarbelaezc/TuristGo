@@ -17,5 +17,6 @@ data class User(
     val interests: List<String>? = emptyList(),
     val consentAccepted: Boolean = false,
     val consentTimestamp: Long? = null,
-    val locale: String? = null
+    val locale: String? = null,
+    val notificationsEnabled: Boolean = true
 )

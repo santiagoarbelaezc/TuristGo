@@ -1,16 +1,13 @@
 package com.turistgo.app.features.moderator
 
-import androidx.compose.runtime.Composable
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,11 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.turistgo.app.core.navigation.MainRoutes
-
-import androidx.compose.runtime.collectAsState
 import com.turistgo.app.domain.model.Post
 import com.turistgo.app.domain.model.PostStatus
 import java.text.SimpleDateFormat
@@ -43,110 +36,153 @@ fun ModeratorDashboard(
 ) {
     val posts by viewModel.posts.collectAsState()
     val pendingCount = posts.count { it.status == PostStatus.PENDING }
-    // En el modelo Post, 'APPROVED' reemplaza a 'VERIFIED'
     val verifiedCount = posts.count { it.status == PostStatus.APPROVED }
+    
+    // Aesthetic config matching the screenshot
+    val warmBg = Color(0xFFFBFAF5)
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("Panel de Control", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Moderador", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                        Text(
+                            text = "Panel de control", 
+                            style = MaterialTheme.typography.headlineSmall, 
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1A1A)
+                        )
+                        Text(
+                            text = "Moderador", 
+                            style = MaterialTheme.typography.bodyMedium, 
+                            color = Color.Gray
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout, 
+                            contentDescription = "Cerrar sesión",
+                            tint = Color(0xFF333333)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = warmBg
                 ),
                 windowInsets = WindowInsets(0, 0, 0, 0)
             )
-        }
+        },
+        containerColor = warmBg
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(32.dp))
-                ModeratorStats(pendingCount, verifiedCount)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Lavender/Purple Card for "Pendientes"
+                    StatCardRedesigned(
+                        label = "Pendientes",
+                        count = pendingCount.toString(),
+                        backgroundColor = Color(0xFFEDE7F6), // Light Purple
+                        iconColor = Color(0xFF512DA8),
+                        icon = Icons.Default.AssignmentLate,
+                        modifier = Modifier.weight(1f)
+                    )
+                    // Mint/Green Card for "Verificadas"
+                    StatCardRedesigned(
+                        label = "Verificadas",
+                        count = verifiedCount.toString(),
+                        backgroundColor = Color(0xFFE8F5E9), // Light Green
+                        iconColor = Color(0xFF2E7D32),
+                        icon = Icons.Default.CheckCircle,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             item {
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Publicaciones Pendientes",
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    color = Color(0xFF1A1A1A)
                 )
             }
 
             if (pendingCount == 0) {
                 item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Text("No hay publicaciones pendientes", color = MaterialTheme.colorScheme.secondary)
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(40.dp), 
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No hay publicaciones pendientes", color = Color.Gray)
                     }
                 }
             } else {
                 items(posts.filter { it.status == PostStatus.PENDING }) { post ->
-                    ModeratorPostCard(post) {
+                    ModeratorPostCardRedesigned(post) {
                         onReviewPost(post.id)
                     }
                 }
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
 }
 
 @Composable
-fun ModeratorStats(pending: Int, verified: Int) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        StatCard(
-            label = "Pendientes",
-            count = pending.toString(),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            icon = Icons.Default.PendingActions,
-            modifier = Modifier.weight(1f)
-        )
-        StatCard(
-            label = "Verificadas",
-            count = verified.toString(),
-            color = Color(0xFFE8F5E9),
-            icon = Icons.Default.CheckCircle,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-fun StatCard(label: String, count: String, color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier = Modifier) {
+fun StatCardRedesigned(
+    label: String, 
+    count: String, 
+    backgroundColor: Color, 
+    iconColor: Color, 
+    icon: androidx.compose.ui.graphics.vector.ImageVector, 
+    modifier: Modifier = Modifier
+) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = color)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = count, fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
-            Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(modifier = Modifier.padding(20.dp)) {
+            Icon(
+                imageVector = icon, 
+                contentDescription = null, 
+                tint = iconColor, 
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = count, 
+                fontSize = 28.sp, 
+                fontWeight = FontWeight.ExtraBold, 
+                color = Color(0xFF1A1A1A)
+            )
+            Text(
+                text = label, 
+                fontSize = 14.sp, 
+                color = Color(0xFF555555).copy(alpha = 0.8f),
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
 
 @Composable
-fun ModeratorPostCard(post: Post, onClick: () -> Unit) {
+fun ModeratorPostCardRedesigned(post: Post, onClick: () -> Unit) {
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val dateString = sdf.format(Date(post.createdAt))
 
@@ -154,13 +190,13 @@ fun ModeratorPostCard(post: Post, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
-                .padding(12.dp)
+                .padding(16.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -168,37 +204,61 @@ fun ModeratorPostCard(post: Post, onClick: () -> Unit) {
                 model = post.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(8.dp)),
+                    .size(90.dp)
+                    .clip(RoundedCornerShape(16.dp)),
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = post.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1)
-                Text(text = "Por: ${post.authorName}", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
-                Text(text = dateString, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                Text(
+                    text = post.name, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 17.sp, 
+                    color = Color(0xFF1A1A1A),
+                    maxLines = 1
+                )
+                Text(
+                    text = "Por: ${post.authorName}", 
+                    fontSize = 14.sp, 
+                    color = Color.Gray
+                )
+                Text(
+                    text = dateString, 
+                    fontSize = 13.sp, 
+                    color = Color.LightGray.copy(alpha = 0.9f)
+                )
                 
-                // AI Insight Badge
+                // AI Badge matching the screenshot (Lavender tone)
                 Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                    modifier = Modifier.padding(top = 4.dp)
+                    shape = RoundedCornerShape(6.dp),
+                    color = Color(0xFFF3E5F5), // Very light lavender
+                    modifier = Modifier.padding(top = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.AutoAwesome, null, Modifier.size(12.dp), MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("AI: Categoría validada", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome, 
+                            contentDescription = null, 
+                            modifier = Modifier.size(14.dp), 
+                            tint = Color(0xFF9C27B0)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "AI: Categoría validada", 
+                            fontSize = 11.sp, 
+                            fontWeight = FontWeight.Bold, 
+                            color = Color(0xFF9C27B0)
+                        )
                     }
                 }
             }
             Icon(
                 imageVector = Icons.Default.HourglassEmpty,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
+                tint = Color(0xFFE57373), // Soft red/orange
+                modifier = Modifier.size(24.dp)
             )
         }
     }

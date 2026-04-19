@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
 import android.net.Uri
-import com.turistgo.app.core.network.CloudinaryManager
+import com.turistgo.app.core.locale.AppLanguage
+import com.turistgo.app.core.locale.LanguageState
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
@@ -29,7 +30,14 @@ class CompleteProfileViewModel @Inject constructor(
 
     private val _interests = mutableStateOf<List<String>>(emptyList())
     val interests: State<List<String>> = _interests
-
+    
+    // New Onboarding States
+    private val _selectedLanguage = mutableStateOf(LanguageState.current.value)
+    val selectedLanguage: State<AppLanguage> = _selectedLanguage
+    
+    private val _notificationsEnabled = mutableStateOf(true)
+    val notificationsEnabled: State<Boolean> = _notificationsEnabled
+    
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -38,6 +46,16 @@ class CompleteProfileViewModel @Inject constructor(
 
     fun onUsernameChange(v: String) { _username.value = v }
     fun onPhotoUriChange(v: String?) { _photoUri.value = v }
+    
+    fun onLanguageChange(lang: AppLanguage) {
+        _selectedLanguage.value = lang
+        // Update global state immediately so UI reflects it
+        LanguageState.current.value = lang
+    }
+    
+    fun onNotificationsToggle(enabled: Boolean) {
+        _notificationsEnabled.value = enabled
+    }
     
     fun toggleInterest(interest: String) {
         val current = _interests.value.toMutableList()
@@ -77,7 +95,9 @@ class CompleteProfileViewModel @Inject constructor(
                 val updatedUser = user.copy(
                     username = _username.value,
                     profilePhotoUrl = finalPhotoUrl,
-                    interests = _interests.value
+                    interests = _interests.value,
+                    locale = _selectedLanguage.value.code,
+                    notificationsEnabled = _notificationsEnabled.value
                 )
                 repository.updateUser(updatedUser)
                 onSuccess()

@@ -86,6 +86,10 @@ data class Strings(
     val cancel: String,
     val accept: String,
 
+    // Search filter
+    val searchPlaceholder: String,
+    val filterBy: String,
+
     // Create post
     val newPost: String,
     val shareWithCommunity: String,
@@ -146,6 +150,12 @@ data class Strings(
     val interestBeach: String,
     val selectYourLanguage: String,
     val enableNotifications: String,
+
+    val filterEvents: String,
+    val filterPlaces: String,
+    val filterConcerts: String,
+    val filterSports: String,
+    val filterAll: String,
 
     // Feed (authenticated)
     val exploreWorld: String,
@@ -282,6 +292,12 @@ val SpanishStrings = Strings(
     selectYourLanguage = "Selecciona tu idioma",
     enableNotifications = "Permitir notificaciones del sitio",
 
+    filterEvents = "Eventos",
+    filterPlaces = "Lugares",
+    filterConcerts = "Conciertos",
+    filterSports = "Deportes",
+    filterAll = "Todo",
+
     exploreWorld = "Explora el mundo 🌍",
     changeView = "Cambiar vista",
     popularDestinations = "Destinos Populares",
@@ -414,6 +430,12 @@ val EnglishStrings = Strings(
     interestBeach = "Beach",
     selectYourLanguage = "Select your language",
     enableNotifications = "Enable site notifications",
+
+    filterEvents = "Events",
+    filterPlaces = "Places",
+    filterConcerts = "Concerts",
+    filterSports = "Sports",
+    filterAll = "All",
 
     exploreWorld = "Explore the world 🌍",
     changeView = "Change view",

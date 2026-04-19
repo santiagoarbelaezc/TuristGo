@@ -14,6 +14,7 @@ import android.content.Context
 import android.net.Uri
 import com.turistgo.app.core.locale.AppLanguage
 import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.core.network.CloudinaryManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 

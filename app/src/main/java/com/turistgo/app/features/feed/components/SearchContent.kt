@@ -12,6 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.SportsSoccer
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,25 +27,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.turistgo.app.domain.model.Post
 
 @Composable
-fun SearchContent() {
+fun SearchContent(
+    results: List<Post>,
+    onNavigateToDetail: (String) -> Unit
+) {
+    if (results.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.LocationOn, null, Modifier.size(64.dp), Color.LightGray)
+                Text("No encontramos resultados para tu búsqueda", color = Color.Gray, modifier = Modifier.padding(top = 16.dp))
+            }
+        }
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(20.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Personas por descubrir
+        // Personas por descubrir (Always show as recommendation if search is just starting)
         item {
             Column {
-                SectionHeader("Personas por descubrir")
+                SectionHeader("Suguerencias para ti")
                 Spacer(modifier = Modifier.height(16.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val people = listOf(
                         Person("Ana María", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039020/engin_akyurt-woman-4605248_640_ehaplz.jpg"),
                         Person("Carlos Ruiz", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039016/istockphoto-1550589735-612x612_lgfnwy.jpg"),
-                        Person("Juan Pérez", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif"),
-                        Person("Laura G.", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039017/818376-woman-657753_640_wv958x.jpg")
+                        Person("Juan Pérez", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif")
                     )
                     items(people) { person ->
                         PersonItem(person)
@@ -50,29 +67,66 @@ fun SearchContent() {
             }
         }
 
-        // Destinos Populares (Grid-like)
+        // Search Results
         item {
-            Column {
-                SectionHeader("Destinos Sugeridos")
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    val destinations = listOf("Playas de Santa Marta", "Eje Cafetero", "Desierto de la Tatacoa", "Caño Cristales")
-                    destinations.forEach { dest ->
-                        SearchSuggestionItem(dest, "Colombia")
-                    }
-                }
-            }
+            SectionHeader("Resultados encontrados (${results.size})")
         }
 
-        // Eventos próximos
-        item {
-            Column {
-                SectionHeader("Eventos Próximos")
-                Spacer(modifier = Modifier.height(16.dp))
-                EventCard("Feria de las Flores", "Medellín, Agosto 2026")
-                Spacer(modifier = Modifier.height(12.dp))
-                EventCard("Carnaval de Barranquilla", "Barranquilla, Feb 2026")
+        items(results) { post ->
+            SearchResultItem(post) { onNavigateToDetail(post.id) }
+        }
+    }
+}
+
+@Composable
+fun SearchResultItem(post: Post, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = post.imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val icon = when {
+                        post.categories.contains("Events") || post.categories.contains("Eventos") -> Icons.Default.Event
+                        post.categories.contains("Concerts") || post.categories.contains("Conciertos") -> Icons.Default.MusicNote
+                        post.categories.contains("Sports") || post.categories.contains("Deportes") -> Icons.Default.SportsSoccer
+                        else -> Icons.Default.LocationOn
+                    }
+                    Icon(icon, null, Modifier.size(14.dp), MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        text = post.categories.firstOrNull() ?: "General",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(text = post.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = post.location, fontSize = 13.sp, color = Color.Gray)
             }
+            
+            Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
         }
     }
 }
@@ -84,8 +138,7 @@ fun SectionHeader(title: String) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-        Text(text = "Ver todo", color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+        Text(text = title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
     }
 }
 
@@ -99,70 +152,21 @@ fun PersonItem(person: Person) {
                 model = person.avatar,
                 contentDescription = null,
                 modifier = Modifier
-                    .size(70.dp)
+                    .size(60.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .size(24.dp),
+                    .size(20.dp),
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary,
-                border = BorderStroke(2.dp, Color.White)
+                border = BorderStroke(1.dp, Color.White)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.padding(4.dp))
+                Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.padding(3.dp))
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = person.name, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
-fun SearchSuggestionItem(title: String, subtitle: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            Text(text = subtitle, color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
-        }
-        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
-    }
-}
-
-@Composable
-fun EventCard(name: String, date: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                modifier = Modifier.size(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primary
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                }
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(text = date, fontSize = 13.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
-        }
+        Text(text = person.name, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
     }
 }

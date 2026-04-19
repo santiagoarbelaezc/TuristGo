@@ -58,7 +58,16 @@ fun SearchContent(
                     val people = listOf(
                         Person("Ana María", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039020/engin_akyurt-woman-4605248_640_ehaplz.jpg"),
                         Person("Carlos Ruiz", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039016/istockphoto-1550589735-612x612_lgfnwy.jpg"),
-                        Person("Juan Pérez", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif")
+                        Person("Juan Pérez", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif"),
+                        Person("Laura G.", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039017/818376-woman-657753_640_wv958x.jpg"),
+                        Person("Sofia Castro", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776531326310.jpg"),
+                        Person("Andrés M.", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776531017303.jpg"),
+                        Person("Valentina V.", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"),
+                        Person("Diego F.", "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80"),
+                        Person("Camila R.", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80"),
+                        Person("Mateo T.", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"),
+                        Person("Isabella G.", "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=256&q=80"),
+                        Person("Sebastián L.", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80")
                     )
                     items(people) { person ->
                         PersonItem(person)

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.turistgo.app.R
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.turistgo.app.core.components.SuccessModal
 import com.turistgo.app.data.repository.InMemoryRepository
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,6 +40,19 @@ fun ReviewPostScreen(
 
     LaunchedEffect(postId) {
         viewModel.loadPost(postId)
+    }
+
+    var showApprovedModal by remember { mutableStateOf(false) }
+
+    if (showApprovedModal) {
+        SuccessModal(
+            title = stringResource(R.string.post_approved_title),
+            message = stringResource(R.string.post_approved_msg),
+            onDismiss = {
+                showApprovedModal = false
+                onBack()
+            }
+        )
     }
 
     Scaffold(
@@ -125,7 +139,11 @@ fun ReviewPostScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
-                    onClick = { viewModel.approvePost { onBack() } },
+                    onClick = { 
+                        viewModel.approvePost { 
+                            showApprovedModal = true
+                        } 
+                    },
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                     shape = RoundedCornerShape(16.dp)

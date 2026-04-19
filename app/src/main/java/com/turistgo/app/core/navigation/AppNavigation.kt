@@ -196,45 +196,53 @@ fun AppNavigation(
                     }
                 }
             } else if (showModBottomBar) {
-                NavigationBar(
-                    containerColor = Color(0xFFFBFAF5),
-                    tonalElevation = 8.dp,
-                    modifier = Modifier.height(80.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .navigationBarsPadding()
                 ) {
-                    modDestinations.forEach { item ->
-                        val isSelected = currentDestination?.hierarchy?.any {
-                            it.hasRoute(item.route::class)
-                        } == true
-                        
-                        NavigationBarItem(
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(MainRoutes.ModeratorDashboard) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(64.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        modDestinations.forEach { item ->
+                            val isSelected = currentDestination?.hierarchy?.any {
+                                it.hasRoute(item.route::class)
+                            } == true
+
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                                    .clickable {
+                                        navController.navigate(item.route) {
+                                            popUpTo(MainRoutes.ModeratorDashboard) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    },
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Icon(
-                                    item.icon,
+                                    imageVector = item.icon,
                                     contentDescription = item.label,
-                                    modifier = Modifier.size(24.dp)
+                                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(22.dp)
                                 )
-                            },
-                            label = {
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    item.label,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    text = item.label,
+                                    fontSize = 10.sp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
                                 )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = Color.Gray,
-                                indicatorColor = Color(0xFFF3E5F5)
-                            )
-                        )
+                            }
+                        }
                     }
                 }
             }
@@ -338,7 +346,7 @@ fun AppNavigation(
             }
             
             composable<MainRoutes.ModeratorStats> {
-                ModeratorStatsScreen()
+                ModeratorStatsScreen(innerPadding = innerPadding)
             }
             
             composable<MainRoutes.ModeratorUsers> {
@@ -350,6 +358,7 @@ fun AppNavigation(
             
             composable<MainRoutes.ModeratorSettings> {
                 ModeratorSettingsScreen(
+                    innerPadding = innerPadding,
                     onLogout = {
                         navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
@@ -360,6 +369,7 @@ fun AppNavigation(
             
             composable<MainRoutes.ModeratorProfile> {
                 ModeratorProfileScreen(
+                    innerPadding = innerPadding,
                     onLogout = {
                         navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
@@ -405,7 +415,22 @@ fun AppNavigation(
                 PostDetailScreen(
                     innerPadding = innerPadding,
                     destinationId = route.postId,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToUserProfile = { userId ->
+                        navController.navigate(MainRoutes.PublicProfile(userId))
+                    }
+                )
+            }
+
+            composable<MainRoutes.PublicProfile> { backStackEntry ->
+                val route = backStackEntry.toRoute<MainRoutes.PublicProfile>()
+                com.turistgo.app.features.profile.PublicProfileScreen(
+                    innerPadding = innerPadding,
+                    userId = route.userId,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToDetail = { postId ->
+                        navController.navigate(MainRoutes.PostDetail(postId))
+                    }
                 )
             }
 

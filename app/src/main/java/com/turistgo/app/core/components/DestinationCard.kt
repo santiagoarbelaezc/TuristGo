@@ -26,6 +26,7 @@ data class Destination(
     val location: String,
     val rating: String,
     val imageUrl: String,
+    val commentCount: Int = 0,
     val createdAt: Long = 0L // Nueva propiedad para controlar visibilidad de visitantes
 )
 
@@ -185,7 +186,7 @@ fun DestinationCard(
                     IconButton(onClick = { /* Comment */ }) {
                         Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Comentar", tint = MaterialTheme.colorScheme.secondary)
                     }
-                    Text("12", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+                    Text(destination.commentCount.toString(), fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.width(16.dp))
                     IconButton(onClick = { /* Share */ }) {
                         Icon(Icons.Default.Share, contentDescription = "Compartir", tint = MaterialTheme.colorScheme.secondary)

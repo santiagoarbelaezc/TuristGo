@@ -19,6 +19,8 @@ data class User(
     val consentTimestamp: Long? = null,
     val locale: String? = null,
     val notificationsEnabled: Boolean = true,
+    val isVerified: Boolean = false,
+    val role: String = "USER",
     val savedPostIds: List<String> = emptyList(),
     val likedPostIds: List<String> = emptyList()
 )

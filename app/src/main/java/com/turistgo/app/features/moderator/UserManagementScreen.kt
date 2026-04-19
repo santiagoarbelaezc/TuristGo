@@ -29,38 +29,40 @@ fun UserManagementScreen(
     navController: NavController,
     viewModel: UserManagementViewModel = hiltViewModel()
 ) {
-    val users = viewModel.users
+    val users by viewModel.users.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
-    val warmBg = Color(0xFFFBFAF5)
-
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
-            .background(warmBg)
+            .background(MaterialTheme.colorScheme.background)
     ) {
+        // Header matches Feed/Dashboard style
         Column(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
-            PaddingValues(horizontal = 24.dp).let {
-                Spacer(modifier = Modifier.height(24.dp))
-                Text(
-                    text = "Gestión de Usuarios",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(it),
-                    color = Color(0xFF1A1A1A)
-                )
-                Text(
-                    text = "Administra los permisos y acceso a la plataforma",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666),
-                    modifier = Modifier.padding(it)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-            }
+            Text(
+                text = "Gestión",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                text = "Usuarios",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Administra los permisos y acceso a la plataforma",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+            )
+        }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -85,10 +87,6 @@ fun UserManagementScreen(
                     )
                 }
                 
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            }
         }
     }
 }

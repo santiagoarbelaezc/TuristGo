@@ -26,7 +26,9 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             phone = "3054078225",
             email = "santiago@turistgo.com",
             username = "santiarco",
-            password = "santi123"
+            password = "santi123",
+            role = "ADMIN",
+            isVerified = true
         ),
         User(
             id = "juanda_001",
@@ -39,7 +41,8 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             email = "juanda@turistgo.com",
             username = "juanda",
             password = "juanda123",
-            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_1_l9dbve.jpg"
+            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_1_l9dbve.jpg",
+            isVerified = true
         ),
         User(
             id = "eli_001",
@@ -449,13 +452,15 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
 
     // Comments implementation
     override fun getComments(postId: String): Flow<List<Comment>> {
-        return comments.map { allComments -> 
-            allComments.filter { it.postId == postId }.sortedByDescending { it.timestamp }
-        }
+        return comments.map { list -> list.filter { it.postId == postId } }
     }
-
+    
     override suspend fun addComment(comment: Comment) {
         comments.value = comments.value + comment
+        // Increment comment count on the post
+        posts.value = posts.value.map { 
+            if (it.id == comment.postId) it.copy(commentCount = it.commentCount + 1) else it 
+        }
     }
 
     // Notifications implementation

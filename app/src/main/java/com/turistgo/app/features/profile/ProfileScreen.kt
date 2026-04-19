@@ -140,9 +140,11 @@ fun ProfileScreen(
                     modifier = Modifier.padding(top = 4.dp).clickable { onNavigateToProgressGuide() }
                 ) {
                     Text(
-                        text = "${stats.levelName} Nivel ${stats.levelNumber}",
+                        text = if (stats.levelNumber > 0) 
+                            "${stats.levelName} Nivel ${stats.levelNumber}"
+                        else 
+                            stats.levelName,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -188,7 +190,10 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(stringResource(R.string.level), fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    if (stats.levelNumber > 0) "${stats.levelName} Nivel ${stats.levelNumber}" else stats.levelName, 
+                                    fontWeight = FontWeight.SemiBold
+                                )
                                 Text("${stats.points} pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -203,7 +208,10 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                if (stats.levelNumber < 3) "Faltan ${stats.nextLevelPoints - stats.points} pts para el siguiente nivel" else "¡Nivel máximo alcanzado!",
+                                if (stats.levelNumber < 3) 
+                                    stringResource(R.string.points_to_next_raw, stats.nextLevelPoints - stats.points)
+                                else 
+                                    stringResource(R.string.max_level_reached),
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -224,9 +232,9 @@ fun ProfileScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            if (stats.postsCount >= 1) BadgeItem("Primer Paso", Icons.Default.Public)
-                            if (stats.savedCount >= 5) BadgeItem("Curador", Icons.Default.Bookmark)
-                            if (stats.likedCount >= 10) BadgeItem("Entusiasta", Icons.Default.Favorite)
+                            if (stats.postsCount >= 1) BadgeItem(stringResource(R.string.badge_first_step), Icons.Default.Public)
+                            if (stats.savedCount >= 5) BadgeItem(stringResource(R.string.badge_curator), Icons.Default.Bookmark)
+                            if (stats.likedCount >= 10) BadgeItem(stringResource(R.string.badge_enthusiast), Icons.Default.Favorite)
                         }
                     }
                 }
@@ -239,9 +247,9 @@ fun ProfileScreen(
                 val likedPosts by viewModel.likedPosts.collectAsState(initial = emptyList())
                 
                 val tabs = listOf(
-                    "Mis posteos" to myPosts.size,
+                    stringResource(R.string.tab_my_posts) to myPosts.size,
                     stringResource(R.string.favorites) to savedPosts.size,
-                    "Me gusta" to likedPosts.size
+                    stringResource(R.string.tab_likes) to likedPosts.size
                 )
                 
                 PrimaryTabRow(

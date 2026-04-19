@@ -84,6 +84,7 @@ class PostDetailViewModel @Inject constructor(
                 postId = post.id,
                 authorId = userId,
                 authorName = userName,
+                authorPhotoUrl = session.photoUrl,
                 content = content
             )
             repository.addComment(newComment)

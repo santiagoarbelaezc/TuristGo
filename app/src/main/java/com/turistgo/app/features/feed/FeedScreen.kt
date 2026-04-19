@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.List
@@ -59,46 +60,68 @@ fun FeedScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(bottom = innerPadding.calculateBottomPadding())
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
     ) {
         // Top Bar
         TopAppBar(
             title = {
                 Column {
-                    Text(
-                        text = stringResource(R.string.welcome_msg, userSession?.name ?: stringResource(R.string.default_user)),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            modifier = Modifier.size(6.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {}
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.welcome_msg, userSession?.name ?: stringResource(R.string.default_user)),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
                     Text(
                         text = stringResource(R.string.explore_world),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        letterSpacing = (-0.5).sp
                     )
                 }
             },
             actions = {
                 Surface(
                     onClick = { isMapView = !isMapView },
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(40.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isMapView) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.height(40.dp).padding(end = 24.dp)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             imageVector = if (isMapView) Icons.AutoMirrored.Filled.List else Icons.Default.Map,
                             contentDescription = stringResource(R.string.change_view),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
+                            tint = if (isMapView) Color.White else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = if (isMapView) "Lista" else "Mapa",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isMapView) Color.White else MaterialTheme.colorScheme.primary
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background
             ),
             windowInsets = WindowInsets(0, 0, 0, 0)
         )
@@ -176,6 +199,7 @@ fun FeedScreen(
                             location = post.location, 
                             rating = post.rating, 
                             imageUrl = post.imageUrl,
+                            commentCount = post.commentCount,
                             createdAt = post.createdAt
                         )
                         DestinationCard(

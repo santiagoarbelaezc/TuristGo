@@ -28,6 +28,7 @@ import com.turistgo.app.core.navigation.MainRoutes
 import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
+import com.turistgo.app.core.components.SuccessModal
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -129,14 +130,28 @@ fun CreatePostScreen(
         }
     }
 
+    var showSuccessModal by remember { mutableStateOf(false) }
+
+    if (showSuccessModal) {
+        SuccessModal(
+            title = stringResource(R.string.post_submitted_title),
+            message = stringResource(R.string.post_submitted_msg),
+            onDismiss = {
+                showSuccessModal = false
+                onBack()
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(bottom = innerPadding.calculateBottomPadding())
             .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
     ) {
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.new_post), fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.new_post), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onBackground)
@@ -144,7 +159,8 @@ fun CreatePostScreen(
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
-            )
+            ),
+            windowInsets = WindowInsets(0, 0, 0, 0)
         )
 
         Column(
@@ -572,7 +588,11 @@ fun CreatePostScreen(
 
             // --- Botón Publicar ---
             Button(
-                onClick = { viewModel.savePost { onBack() } },
+                onClick = { 
+                    viewModel.savePost { 
+                        showSuccessModal = true
+                    } 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),

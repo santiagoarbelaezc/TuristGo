@@ -41,52 +41,52 @@ fun ModeratorDashboard(
     val pendingCount = posts.count { it.status == PostStatus.PENDING }
     val verifiedCount = posts.count { it.status == PostStatus.APPROVED }
     
-    // Aesthetic config matching the screenshot
-    val warmBg = Color(0xFFFBFAF5)
-
-    Scaffold(
-        containerColor = warmBg,
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Panel", 
-                            style = MaterialTheme.typography.headlineSmall, 
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1A1A)
-                        )
-                        Text(
-                            text = "Moderador", 
-                            style = MaterialTheme.typography.bodyMedium, 
-                            color = Color.Gray
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Logout, 
-                            contentDescription = stringResource(R.string.logout),
-                            tint = Color(0xFF333333)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = warmBg
-                )
-            )
-        }
-    ) { localPadding ->
-        LazyColumn(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        // Top Bar matches Feed/Profile style
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = innerPadding.calculateBottomPadding()), // Account for AppNavigation's BottomBar
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Panel",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = "Moderador",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
+            IconButton(
+                onClick = onLogout,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = stringResource(R.string.logout),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
-                top = localPadding.calculateTopPadding() + 20.dp,
-                bottom = 20.dp,
-                start = 24.dp,
-                end = 24.dp
+                horizontal = 24.dp,
+                vertical = 8.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -142,10 +142,6 @@ fun ModeratorDashboard(
                     }
                 }
             }
-            
-            item {
-                Spacer(modifier = Modifier.height(20.dp))
-            }
         }
     }
 }
@@ -161,8 +157,9 @@ fun StatCardRedesigned(
 ) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor.copy(alpha = 0.2f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Icon(

@@ -15,7 +15,9 @@ data class Post(
     val schedule: String = "No disponible",
     val priceRange: String = "No disponible",
     val status: PostStatus = PostStatus.APPROVED,
-    val authorId: String = "admin",
-    val authorName: String = "TuristGo",
+    val authorId: String = "santi_001",
+    val authorName: String = "Santiago Arbelaez",
+    val authorPhotoUrl: String? = null,
+    val commentCount: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
 )

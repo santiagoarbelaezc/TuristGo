@@ -16,11 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.turistgo.app.R
 import com.turistgo.app.core.components.Destination
@@ -34,7 +37,8 @@ fun PostDetailScreen(
     innerPadding: PaddingValues,
     destinationId: String?, 
     onBack: () -> Unit,
-    viewModel: PostDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+    onNavigateToUserProfile: (String) -> Unit = {},
+    viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
 
@@ -190,6 +194,38 @@ fun PostDetailScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // SECCIÓN DE AUTOR - NUEVO
+                    post?.let { p ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onNavigateToUserProfile(p.authorId) },
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = p.authorPhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(text = p.authorName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Text(text = "Ver perfil", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
+                                }
+                                Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.secondary)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     // Detalles Adicionales
                     SectionHeader("Detalles del Lugar")
                     DetailRow(Icons.Default.Schedule, stringResource(R.string.schedule), schedule)
@@ -242,7 +278,8 @@ fun PostDetailScreen(
                              CommentItem(
                                 author = comment.authorName, 
                                 content = comment.content, 
-                                time = "Justo ahora" // For simplicity
+                                time = "Justo ahora",
+                                authorPhoto = comment.authorPhotoUrl
                             )
                         }
                     }
@@ -308,9 +345,14 @@ fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: Stri
 
 
 @Composable
-fun CommentItem(author: String, content: String, time: String) {
+fun CommentItem(author: String, content: String, time: String, authorPhoto: String? = null) {
     Row(modifier = Modifier.padding(vertical = 8.dp)) {
-        Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant))
+        AsyncImage(
+            model = authorPhoto ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+            contentDescription = null,
+            modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
+            contentScale = ContentScale.Crop
+        )
         Spacer(modifier = Modifier.width(12.dp))
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -53,8 +53,9 @@ fun TripsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
+            .padding(bottom = innerPadding.calculateBottomPadding())
             .background(Color(0xFFFEF7F3))
+            .statusBarsPadding()
     ) {
         // Pinned Top Bar
         TopAppBar(

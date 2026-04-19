@@ -21,25 +21,43 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorSettingsScreen(
+    innerPadding: PaddingValues = PaddingValues(),
     onLogout: () -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val warmBg = Color(0xFFFBFAF5)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(warmBg)
+            .padding(innerPadding)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "Configuración",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.Start)
-        )
+        // Header matches Feed/Dashboard style
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+        ) {
+            Text(
+                text = "Sesión",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                text = "Configuración",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
         
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -66,17 +84,20 @@ fun ModeratorSettingsScreen(
         SettingsItem(icon = Icons.Default.Notifications, title = "Alertas de revisión", subtitle = "Activado")
         SettingsItem(icon = Icons.Default.Shield, title = "Políticas de moderación", subtitle = "Ver guía")
         
-        Spacer(modifier = Modifier.height(24.dp))
-
         Button(
             onClick = onLogout,
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFEBEE), contentColor = Color.Red),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.error
+            ),
             shape = RoundedCornerShape(16.dp)
         ) {
             Icon(Icons.Default.Logout, null)
             Spacer(Modifier.width(12.dp))
             Text("Cerrar Sesión Administrativa", fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

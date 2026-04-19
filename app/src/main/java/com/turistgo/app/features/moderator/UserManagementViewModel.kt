@@ -6,6 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.turistgo.app.domain.repository.AppDataRepository
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,26 +23,43 @@ data class ModeratorUser(
 )
 
 @HiltViewModel
-class UserManagementViewModel @Inject constructor() : ViewModel() {
-    private val _users = mutableStateListOf(
-        ModeratorUser("1", "Santiago Arbelaez", "santiago@example.com", isVerified = true),
-        ModeratorUser("2", "Maria Lopez", "maria@example.com"),
-        ModeratorUser("3", "Carlos Ruiz", "carlos@example.com"),
-        ModeratorUser("4", "Ana Gomez", "ana@example.com")
-    )
-    val users: List<ModeratorUser> = _users
+class UserManagementViewModel @Inject constructor(
+    private val repository: AppDataRepository
+) : ViewModel() {
+    
+    val users: StateFlow<List<ModeratorUser>> = repository.getUsers()
+        .map { domainUsers ->
+            domainUsers.map { user ->
+                ModeratorUser(
+                    id = user.id,
+                    name = "${user.name} ${user.lastName}",
+                    email = user.email,
+                    role = user.role,
+                    isVerified = user.isVerified
+                )
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
     fun verifyUser(userId: String) {
-        val index = _users.indexOfFirst { it.id == userId }
-        if (index != -1) {
-            _users[index] = _users[index].copy(isVerified = true)
+        viewModelScope.launch {
+            val user = repository.getUserById(userId)
+            if (user != null) {
+                repository.updateUser(user.copy(isVerified = true))
+            }
         }
     }
 
     fun deleteUser(userId: String) {
-        _users.removeIf { it.id == userId }
+        viewModelScope.launch {
+            repository.deleteUser(userId)
+        }
     }
 }

@@ -26,35 +26,50 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.R
 
 @Composable
-fun ModeratorStatsScreen() {
+fun ModeratorStatsScreen(
+    innerPadding: PaddingValues = PaddingValues(),
+    viewModel: ModeratorStatsViewModel = hiltViewModel()
+) {
     val scrollState = rememberScrollState()
-    
-    // Background color following the new warm aesthetic
-    val warmBg = Color(0xFFFBFAF5)
+    val stats by viewModel.stats.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(warmBg)
+            .padding(innerPadding)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
-            .padding(24.dp)
     ) {
-        Text(
-            text = stringResource(R.string.stats_title),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF1A1A1A)
-        )
-        Text(
-            text = "Análisis de rendimiento de la plataforma",
-            fontSize = 14.sp,
-            color = Color(0xFF666666)
-        )
+        // Header matches Feed/Dashboard style
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 24.dp)
+        ) {
+            Text(
+                text = "Análisis",
+                fontSize = 13.sp,
+                color = MaterialTheme.colorScheme.secondary
+            )
+            Text(
+                text = stringResource(R.string.stats_title),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Rendimiento y crecimiento de la plataforma",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+            )
+        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Column(modifier = Modifier.padding(horizontal = 24.dp)) {
 
         // Hero Stats
         Row(
@@ -63,16 +78,16 @@ fun ModeratorStatsScreen() {
         ) {
             StatsGridCard(
                 label = "Usuarios",
-                value = "1,284",
-                delta = "+12%",
+                value = stats.totalUsers.toString(),
+                delta = if (stats.totalUsers > 0) "+1" else "0", // Simulación simple de delta
                 icon = Icons.Default.Group,
                 color = Color(0xFFE8EAF6),
                 modifier = Modifier.weight(1f)
             )
             StatsGridCard(
                 label = "Publicaciones",
-                value = "452",
-                delta = "+5%",
+                value = stats.totalPosts.toString(),
+                delta = if (stats.totalPosts > 0) "+1" else "0",
                 icon = Icons.Default.PostAdd,
                 color = Color(0xFFE0F2F1),
                 modifier = Modifier.weight(1f)
@@ -94,14 +109,13 @@ fun ModeratorStatsScreen() {
         // Publication Status (Approved vs Pending)
         AnalyticsCard(title = "Estado de Publicaciones") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                ComparisonBar(label = "Aprobadas", percentage = 0.75f, color = Color(0xFF4CAF50), count = "339")
-                ComparisonBar(label = "Pendientes", percentage = 0.15f, color = Color(0xFFFB8C00), count = "68")
-                ComparisonBar(label = "Rechazadas", percentage = 0.10f, color = Color(0xFFE53935), count = "45")
+                ComparisonBar(label = "Aprobadas", percentage = stats.approvedPercentage, color = Color(0xFF4CAF50), count = stats.approvedPosts.toString())
+                ComparisonBar(label = "Pendientes", percentage = stats.pendingPercentage, color = Color(0xFFFB8C00), count = stats.pendingPosts.toString())
+                ComparisonBar(label = "Rechazadas", percentage = stats.rejectedPercentage, color = Color(0xFFE53935), count = stats.rejectedPosts.toString())
             }
         }
-        
-        Spacer(modifier = Modifier.height(32.dp))
     }
+}
 }
 
 @Composable

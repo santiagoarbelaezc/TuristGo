@@ -18,17 +18,16 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
     val userSession = sessionManager.userSession
 
+    private val _userId = userSession.map { it.userId }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val userProfile: Flow<User?> = userSession.flatMapLatest { session ->
-        val userId = session.userId
-        if (userId != null) {
-            flow {
-                emit(repository.getUserById(userId))
-            }
+    val userProfile: StateFlow<User?> = _userId.flatMapLatest { id ->
+        if (id != null) {
+            flow { emit(repository.getUserById(id)) }
         } else {
-            flowOf(null)
+            flowOf<User?>(null)
         }
-    }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val myPosts = userSession.flatMapLatest { session ->
@@ -61,17 +60,6 @@ class ProfileViewModel @Inject constructor(
     }
 
     // --- Dynamic Gamification Logic ---
-    data class ProfileStats(
-        val levelName: String = "Novato",
-        val levelNumber: Int = 0,
-        val points: Int = 0,
-        val nextLevelPoints: Int = 500,
-        val levelProgress: Float = 0f,
-        val badgesCount: Int = 0,
-        val postsCount: Int = 0,
-        val savedCount: Int = 0,
-        val likedCount: Int = 0
-    )
 
     val profileStats: StateFlow<ProfileStats> = combine(
         myPosts, savedPosts, likedPosts
@@ -94,9 +82,11 @@ class ProfileViewModel @Inject constructor(
         
         // Simple badge logic for UI counters
         var badges = 0
-        if (postsSize >= 1) badges++
-        if (savedSize >= 5) badges++
-        if (likedSize >= 10) badges++
+        if (postsSize >= 1) {
+            badges++ // First Step
+            if (savedSize >= 5) badges++ // Curator
+            if (likedSize >= 10) badges++ // Enthusiast
+        }
 
         ProfileStats(
             levelName = levelName,

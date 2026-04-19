@@ -35,7 +35,14 @@
     <string name="logout">Cerrar Sesión</string>
     <string name="my_posts">Mis publicaciones</string>
     <string name="reputation">Mi Reputación</string>
-    <string name="level">Nivel 2: Explorador</string>
+    <string name="points_to_next_raw">Faltan %1$d pts para el siguiente rango</string>
+    <string name="tab_my_posts">Mis posteos</string>
+    <string name="stat_posts">Posts</string>
+    <string name="stat_followers">Seguidores</string>
+    <string name="stat_following">Seguidos</string>
+    <string name="stat_favorites">Favoritos</string>
+    <string name="stat_likes">Me gusta</string>
+    <string name="tab_likes">Me gusta</string>
     <string name="points_to_next">Faltan 250 pts para Nivel 3: Aventurero</string>
     <string name="active_posts">Activas</string>
     <string name="resolved_posts">Resueltas</string>
@@ -94,11 +101,11 @@
     <string name="discover_next_adventure">Descubre tu próxima aventura</string>
     <string name="login_btn">Iniciar Sesión</string>
     <string name="register_btn">Crear Cuenta</string>
-    <string name="explore_world">Explora el mundo 🌍</string>
+    <string name="explore_world">Explora el mundo</string>
     <string name="change_view">Cambiar vista</string>
     <string name="popular_destinations">Destinos Populares</string>
     <string name="default_user">Viajero</string>
-    <string name="welcome_msg">Hola, %1$s 👋</string>
+    <string name="welcome_msg">Hola, %1$s</string>
     <string name="app_description">Explora, planea y comparte rutas turísticas con una comunidad apasionada por viajar. Descubre destinos increíbles, crea itinerarios personalizados y conecta con viajeros de todo el mundo.</string>
 
     <!-- Categories -->
@@ -192,9 +199,6 @@
     <string name="save_changes">Guardar cambios</string>
 
     <!-- Gamification & Profile -->
-    <string name="stat_posts">Posteos</string>
-    <string name="stat_favorites">Favoritos</string>
-    <string name="stat_likes">Me gusta</string>
     <string name="progress_guide_title">Guía de Progreso</string>
     <string name="tab_levels">Niveles</string>
     <string name="tab_reputation">Reputación</string>
@@ -206,17 +210,17 @@
     <string name="badge_guide_title">Manual de Insignias</string>
     <string name="badge_guide_desc">Logros especiales por hitos específicos.</string>
     <string name="coming_soon">Próximamente</string>
-    <string name="level_0_name">Nivel 0: Novato</string>
+    <string name="level_0_name">Novato</string>
     <string name="level_0_req">0 posteos</string>
     <string name="level_0_desc">Acabas de empezar tu viaje. ¡Publica tu primer destino para ganar rango!</string>
-    <string name="level_1_name">Nivel 1: Explorador</string>
-    <string name="level_1_req">1-2 posteos</string>
+    <string name="level_1_name">Explorador</string>
+    <string name="level_1_req">1 publicación</string>
     <string name="level_1_desc">Ya eres un miembro activo de la comunidad.</string>
-    <string name="level_2_name">Nivel 2: Viajero</string>
-    <string name="level_2_req">3-5 posteos</string>
+    <string name="level_2_name">Viajero</string>
+    <string name="level_2_req">5 posteos</string>
     <string name="level_2_desc">Tus recomendaciones ayudan a otros a descubrir el mundo.</string>
-    <string name="level_3_name">Nivel 3: Guía Local</string>
-    <string name="level_3_req">6+ posteos</string>
+    <string name="level_3_name">Guía Local</string>
+    <string name="level_3_req">10+ posteos</string>
     <string name="level_3_desc">Eres una autoridad en turismo. ¡Tu opinión es sagrada!</string>
     <string name="action_publish_dest">Publicar Destino</string>
     <string name="action_save_place">Guardar un lugar</string>
@@ -230,4 +234,11 @@
     <string name="badge_enthusiast_req">Dar 10 \'Me gusta\' a otros</string>
     <string name="pts_to_next_fmt">Faltan %1$d pts para el siguiente nivel</string>
     <string name="max_level_reached">¡Nivel máximo alcanzado!</string>
+    
+    <!-- Success Modals -->
+    <string name="post_submitted_title">¡Publicación enviada!</string>
+    <string name="post_submitted_msg">Has realizado una publicación. Espera a que sea aceptada por el equipo de moderación.</string>
+    <string name="post_approved_title">¡Felicidades!</string>
+    <string name="post_approved_msg">Tu publicación ha sido aprobada. ¡Ahora es visible para toda la comunidad!</string>
+    <string name="understand">Entendido</string>
 </resources>

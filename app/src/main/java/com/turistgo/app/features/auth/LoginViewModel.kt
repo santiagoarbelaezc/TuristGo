@@ -159,14 +159,31 @@ class LoginViewModel @Inject constructor(
             
             val isAdmin = _email.value == "admin" && _password.value == "admin"
             
-            // Si es un login normal exitoso, guardamos una sesión ficticia
-            sessionManager.saveSession(
-                userId = if (isAdmin) "admin_001" else "user_001",
-                name = if (isAdmin) "Administrador" else "Usuario Demo",
-                email = _email.value
-            )
-
-            onSuccess(isAdmin)
+            if (isAdmin) {
+                sessionManager.saveSession(
+                    userId = "admin_001",
+                    name = "Administrador",
+                    email = _email.value
+                )
+                onSuccess(true)
+            } else {
+                // Buscar usuario en el repositorio por email o username
+                val user = repository.getUserByEmail(_email.value) 
+                        ?: repository.getUserByUsername(_email.value)
+                
+                if (user != null && user.password == _password.value) {
+                    sessionManager.saveSession(
+                        userId = user.id,
+                        name = "${user.name} ${user.lastName}",
+                        email = user.email,
+                        photoUrl = user.profilePhotoUrl
+                    )
+                    onSuccess(false)
+                } else {
+                    _snackbarMessage.value = "Credenciales incorrectas"
+                }
+            }
+            
             _isLoading.value = false
         }
     }

@@ -177,4 +177,17 @@
     <string name="badges_title">My Achievements</string>
     <string name="stats_title">My Progress</string>
     <string name="review_post_title">Review Post</string>
+    <!-- Post Details -->
+    <string name="post_detail_title">Destination Details</string>
+    <string name="verified">Verified</string>
+    <string name="visited">Visited</string>
+    <string name="mark_visited">Mark as Visited</string>
+    <string name="important">It\'s Important</string>
+    <string name="comments">Comments</string>
+    <string name="related_posts">Related posts</string>
+    <string name="schedule">Schedule</string>
+    <string name="price_range">Price Range</string>
+    <string name="write_experience">Write your experience...</string>
+    <string name="view_all_comments">View all comments</string>
+    <string name="save_changes">Save changes</string>
 </resources>

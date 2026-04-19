@@ -28,11 +28,18 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReviewPostScreen(postId: String, onBack: () -> Unit) {
-    // In a real app, this would use a ViewModel. For now, we use a simple state to mock the post data.
-    // We'll just implement the UI to meet the "all screens" requirement.
+fun ReviewPostScreen(
+    postId: String, 
+    onBack: () -> Unit,
+    viewModel: ReviewPostViewModel = hiltViewModel()
+) {
+    val post by viewModel.post.collectAsState()
     val warmBg = Color(0xFFFBFAF5)
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(postId) {
+        viewModel.loadPost(postId)
+    }
 
     Scaffold(
         topBar = {
@@ -55,38 +62,60 @@ fun ReviewPostScreen(postId: String, onBack: () -> Unit) {
                 .verticalScroll(scrollState)
                 .padding(24.dp)
         ) {
-            // Placeholder for Post Preview
+            // Post Preview
             Surface(
-                modifier = Modifier.fillMaxWidth().height(240.dp),
+                modifier = Modifier.fillMaxWidth().height(260.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = Color.LightGray
+                color = Color.White,
+                shadowElevation = 4.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Image, contentDescription = null, size = 48.dp, tint = Color.Gray)
-                    Text("Previsualización del Destino", modifier = Modifier.padding(top = 64.dp), color = Color.Gray)
+                    if (post?.imageUrl != null) {
+                        AsyncImage(
+                            model = post?.imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.Image, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(48.dp), 
+                                tint = Color.Gray
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("Sin imagen disponible", color = Color.Gray)
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Detalles de la Propuesta", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+            Text("Enviado por: ${post?.authorName ?: "Usuario"}", fontSize = 14.sp, color = Color.Gray)
+            
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = "Título Sugerido",
+                value = post?.name ?: "",
                 onValueChange = {},
                 label = { Text("Título") },
                 modifier = Modifier.fillMaxWidth(),
-                readOnly = true
+                readOnly = true,
+                shape = RoundedCornerShape(12.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             OutlinedTextField(
-                value = "Descripción detallada del lugar...",
+                value = post?.description ?: "",
                 onValueChange = {},
                 label = { Text("Descripción") },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
-                minLines = 3
+                minLines = 4,
+                shape = RoundedCornerShape(12.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -96,7 +125,7 @@ fun ReviewPostScreen(postId: String, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
-                    onClick = onBack,
+                    onClick = { viewModel.approvePost { onBack() } },
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                     shape = RoundedCornerShape(16.dp)
@@ -107,7 +136,7 @@ fun ReviewPostScreen(postId: String, onBack: () -> Unit) {
                 }
                 
                 Button(
-                    onClick = onBack,
+                    onClick = { viewModel.rejectPost { onBack() } },
                     modifier = Modifier.weight(1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
                     shape = RoundedCornerShape(16.dp)

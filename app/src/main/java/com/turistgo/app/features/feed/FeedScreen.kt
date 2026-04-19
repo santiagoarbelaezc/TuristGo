@@ -22,13 +22,14 @@ import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.FeedSearchBar
 import com.turistgo.app.features.feed.components.SearchContent
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedScreen(
+    innerPadding: PaddingValues,
     onNavigateToDetail: (String) -> Unit,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
@@ -58,6 +59,7 @@ fun FeedScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Top Bar
@@ -102,6 +104,7 @@ fun FeedScreen(
         )
 
         // Search bar
+        val context = LocalContext.current
         FeedSearchBar(
             query = searchQuery,
             onQueryChange = { 
@@ -115,7 +118,7 @@ fun FeedScreen(
             onFocusChange = { active ->
                 isSearchActive = active || searchQuery.isNotEmpty()
                 if (!isSearchActive) {
-                    viewModel.updateSearchCategory(stringResource(R.string.cat_all))
+                    viewModel.updateSearchCategory(context.getString(R.string.cat_all))
                 }
             }
         )
@@ -139,7 +142,6 @@ fun FeedScreen(
             }
         }
 
-        // Main content
         Box(modifier = Modifier.weight(1f)) {
             if (isSearchActive) {
                 SearchContent(
@@ -152,6 +154,8 @@ fun FeedScreen(
                 }
                 MapPlaceholder(destinations)
             } else {
+                val savedPostIds by viewModel.savedPostIds.collectAsState()
+                val likedPostIds by viewModel.likedPostIds.collectAsState()
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 20.dp),
@@ -165,11 +169,23 @@ fun FeedScreen(
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
-                    items(filteredPosts) { it ->
-                        val destination = Destination(it.id, it.name, it.location, it.rating, it.imageUrl)
-                        DestinationCard(destination) {
-                            onNavigateToDetail(it.id)
-                        }
+                    items(filteredPosts) { post ->
+                        val destination = Destination(
+                            id = post.id, 
+                            name = post.name, 
+                            location = post.location, 
+                            rating = post.rating, 
+                            imageUrl = post.imageUrl,
+                            createdAt = post.createdAt
+                        )
+                        DestinationCard(
+                            destination = destination,
+                            isSaved = savedPostIds.contains(post.id),
+                            isLiked = likedPostIds.contains(post.id),
+                            onSaveToggle = { viewModel.toggleSave(post.id) },
+                            onLikeToggle = { viewModel.toggleLike(post.id) },
+                            onClick = { onNavigateToDetail(post.id) }
+                        )
                     }
                     item { Spacer(modifier = Modifier.height(20.dp)) }
                 }

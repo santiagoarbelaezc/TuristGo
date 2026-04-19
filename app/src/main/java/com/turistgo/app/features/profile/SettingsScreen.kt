@@ -25,29 +25,19 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    innerPadding: PaddingValues,
     onBack: () -> Unit, 
     onLogout: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToTerms: () -> Unit,
+    onNavigateToSupport: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val lang by LanguageState.current
     val currentTheme by ThemeState.isDarkMode
     
     var showLanguagePicker by remember { mutableStateOf(false) }
-    var showPrivacyDialog by remember { mutableStateOf(false) }
-    var showTermsDialog by remember { mutableStateOf(false) }
-    var showSupportDialog by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
-
-    // Reusable Info Dialog
-    if (showPrivacyDialog) {
-        InfoDialog(stringResource(R.string.privacy), stringResource(R.string.privacy_policy_content)) { showPrivacyDialog = false }
-    }
-    if (showTermsDialog) {
-        InfoDialog(stringResource(R.string.usage_policy), stringResource(R.string.usage_terms_content)) { showTermsDialog = false }
-    }
-    if (showSupportDialog) {
-        InfoDialog(stringResource(R.string.help_support), stringResource(R.string.help_support_content)) { showSupportDialog = false }
-    }
 
     // Delete confirmation
     if (showDeleteConfirm) {
@@ -112,6 +102,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
@@ -155,19 +146,19 @@ fun SettingsScreen(
                     SettingsRow(
                         icon = Icons.Default.Policy,
                         title = stringResource(R.string.usage_policy),
-                        onClick = { showTermsDialog = true }
+                        onClick = onNavigateToTerms
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.PrivacyTip,
                         title = stringResource(R.string.privacy),
-                        onClick = { showPrivacyDialog = true }
+                        onClick = onNavigateToPrivacy
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.Help,
                         title = stringResource(R.string.help_support),
-                        onClick = { showSupportDialog = true }
+                        onClick = onNavigateToSupport
                     )
                     SettingsDivider()
                     SettingsRow(
@@ -180,17 +171,17 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SettingsSectionLabel(s.account)
+                SettingsSectionLabel(stringResource(R.string.account))
                 SettingsCard {
                     SettingsRow(
                         icon = Icons.Default.Logout,
-                        title = s.closeSession,
+                        title = stringResource(R.string.close_session),
                         onClick = { viewModel.logout(onLogout) }
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.DeleteForever,
-                        title = s.deleteAccount,
+                        title = stringResource(R.string.delete_account),
                         titleColor = MaterialTheme.colorScheme.error,
                         iconTint = MaterialTheme.colorScheme.error,
                         onClick = { showDeleteConfirm = true }

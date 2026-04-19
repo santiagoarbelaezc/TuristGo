@@ -25,11 +25,19 @@ data class Destination(
     val name: String,
     val location: String,
     val rating: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val createdAt: Long = 0L // Nueva propiedad para controlar visibilidad de visitantes
 )
 
 @Composable
-fun DestinationCard(destination: Destination, onClick: () -> Unit) {
+fun DestinationCard(
+    destination: Destination, 
+    isSaved: Boolean = false,
+    isLiked: Boolean = false,
+    onSaveToggle: () -> Unit = {},
+    onLikeToggle: () -> Unit = {},
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -53,13 +61,17 @@ fun DestinationCard(destination: Destination, onClick: () -> Unit) {
                 
                 // Botón Guardar flotante
                 IconButton(
-                    onClick = { /* Save action */ },
+                    onClick = onSaveToggle,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(8.dp)
-                        .background(Color.White.copy(alpha = 0.7f), CircleShape)
+                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
                 ) {
-                    Icon(Icons.Default.BookmarkBorder, contentDescription = "Guardar", tint = MaterialTheme.colorScheme.primary)
+                    Icon(
+                        imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder, 
+                        contentDescription = "Guardar", 
+                        tint = if (isSaved) Color(0xFFC62828) else MaterialTheme.colorScheme.primary
+                    )
                 }
             }
 
@@ -91,43 +103,47 @@ fun DestinationCard(destination: Destination, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Stack de visitantes (Facebook style)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val visitorAvatars = listOf(
-                    "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039020/engin_akyurt-woman-4605248_640_ehaplz.jpg",
-                    "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039016/istockphoto-1550589735-612x612_lgfnwy.jpg",
-                    "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif",
-                    "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039017/818376-woman-657753_640_wv958x.jpg"
-                )
+            // Stack de visitantes (Facebook style) - Solo mostrar si no es nuevo (más de 24h)
+            val isRecentlyAdded = (System.currentTimeMillis() - destination.createdAt) < 24 * 60 * 60 * 1000
+            
+            if (!isRecentlyAdded) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val visitorAvatars = listOf(
+                        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039020/engin_akyurt-woman-4605248_640_ehaplz.jpg",
+                        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039016/istockphoto-1550589735-612x612_lgfnwy.jpg",
+                        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif",
+                        "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039017/818376-woman-657753_640_wv958x.jpg"
+                    )
 
-                Box(modifier = Modifier.height(30.dp)) {
-                    visitorAvatars.forEachIndexed { index, url ->
-                        AsyncImage(
-                            model = url,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(start = (index * 16).dp)
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surface)
-                                .padding(1.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
-                        )
+                    Box(modifier = Modifier.height(30.dp)) {
+                        visitorAvatars.forEachIndexed { index, url ->
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(start = (index * 16).dp)
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .padding(1.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
                     }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Text(
+                        text = "y más 1000 usuarios visitaron este destino",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
-                
-                Spacer(modifier = Modifier.width(8.dp))
-                
-                Text(
-                    text = "y más 1000 usuarios visitaron este destino",
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Medium
-                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -139,7 +155,6 @@ fun DestinationCard(destination: Destination, onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 var isInterested by remember { mutableStateOf(false) }
-                var isLiked by remember { mutableStateOf(false) }
                 
                 Button(
                     onClick = { isInterested = !isInterested },
@@ -160,7 +175,7 @@ fun DestinationCard(destination: Destination, onClick: () -> Unit) {
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { isLiked = !isLiked }) {
+                    IconButton(onClick = onLikeToggle) {
                         Icon(
                             imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Me gusta",

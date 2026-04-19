@@ -151,6 +151,11 @@ class CreatePostViewModel @Inject constructor(
         viewModelScope.launch {
             _isUploading.value = true
             try {
+                // Simulación de optimización de imagen (compresión/redimensión)
+                if (_selectedImageUri.value != null) {
+                    delay(800) // Simular tiempo de procesamiento
+                }
+
                 val session = sessionManager.userSession.firstOrNull()
                 
                 var finalImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772036015/destinos-naturales-en-colombia-sin-turismo-masivo_ei0akp.jpg"
@@ -183,7 +188,8 @@ class CreatePostViewModel @Inject constructor(
                     priceRange = _priceRange.value.ifEmpty { "No disponible" },
                     status = PostStatus.PENDING,
                     authorId = session?.userId ?: "unknown",
-                    authorName = session?.name ?: "Usuario"
+                    authorName = session?.name ?: "Usuario",
+                    createdAt = System.currentTimeMillis()
                 )
                 repository.savePost(newPost)
                 _isUploading.value = false

@@ -58,7 +58,11 @@ import com.turistgo.app.features.notifications.NotificationsScreen
 import com.turistgo.app.features.trips.TripsScreen
 import com.turistgo.app.features.profile.UserStatsScreen
 import com.turistgo.app.features.profile.BadgesScreen
+import com.turistgo.app.features.profile.ProgressGuideScreen
 import com.turistgo.app.features.moderator.ReviewPostScreen
+import com.turistgo.app.features.profile.PrivacyPolicyScreen
+import com.turistgo.app.features.profile.UsagePolicyScreen
+import com.turistgo.app.features.profile.HelpSupportScreen
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
 
@@ -238,8 +242,7 @@ fun AppNavigation(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = MainRoutes.Home,
-            modifier = Modifier.padding(innerPadding)
+            startDestination = MainRoutes.Home
         ) {
             // Unauthenticated Graph
             composable<MainRoutes.Home> {
@@ -315,6 +318,7 @@ fun AppNavigation(
             // Authenticated Graph
             composable<MainRoutes.Feed> {
                 FeedScreen(
+                    innerPadding = innerPadding,
                     onNavigateToDetail = { postId ->
                         navController.navigate(MainRoutes.PostDetail(postId))
                     }
@@ -323,6 +327,7 @@ fun AppNavigation(
 
             composable<MainRoutes.ModeratorDashboard> {
                 ModeratorDashboard(
+                    innerPadding = innerPadding,
                     onLogout = {
                         navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
@@ -337,7 +342,10 @@ fun AppNavigation(
             }
             
             composable<MainRoutes.ModeratorUsers> {
-                UserManagementScreen(navController = navController)
+                UserManagementScreen(
+                    innerPadding = innerPadding,
+                    navController = navController
+                )
             }
             
             composable<MainRoutes.ModeratorSettings> {
@@ -363,6 +371,7 @@ fun AppNavigation(
             composable<MainRoutes.Create> { backStackEntry ->
                 val mapResult = backStackEntry.savedStateHandle.get<String>("selected_location")
                 CreatePostScreen(
+                    innerPadding = innerPadding,
                     mapResult = mapResult,
                     onConsumeMapResult = { backStackEntry.savedStateHandle.remove<String>("selected_location") },
                     onNavigateToMapPicker = { navController.navigate(MainRoutes.MapPicker) },
@@ -372,12 +381,14 @@ fun AppNavigation(
 
             composable<MainRoutes.Profile> {
                 ProfileScreen(
+                    innerPadding = innerPadding,
                     onNavigateToSettings = { navController.navigate(MainRoutes.Settings) },
                     onNavigateToEditProfile = { navController.navigate(MainRoutes.EditProfile) },
                     onLogout = {
                         navController.navigate(MainRoutes.Home) { popUpTo(0) { inclusive = true } }
                     },
                     onNavigateToBadges = { navController.navigate(MainRoutes.Badges) },
+                    onNavigateToProgressGuide = { navController.navigate(MainRoutes.ProgressGuide) },
                     onNavigateToStats = { navController.navigate(MainRoutes.Stats) },
                     onNavigateToEditPost = { postId -> navController.navigate(MainRoutes.EditPost(postId)) }
                 )
@@ -392,6 +403,7 @@ fun AppNavigation(
             composable<MainRoutes.PostDetail> { backStackEntry ->
                 val route = backStackEntry.toRoute<MainRoutes.PostDetail>()
                 PostDetailScreen(
+                    innerPadding = innerPadding,
                     destinationId = route.postId,
                     onBack = { navController.popBackStack() }
                 )
@@ -400,6 +412,7 @@ fun AppNavigation(
             // Placeholders para rutas secundarias
             composable<MainRoutes.Trips> {
                 TripsScreen(
+                    innerPadding = innerPadding,
                     onNavigateToDetail = { postId ->
                         navController.navigate(MainRoutes.PostDetail(postId))
                     }
@@ -412,6 +425,7 @@ fun AppNavigation(
             }
             composable<MainRoutes.Stats> { UserStatsScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.Badges> { BadgesScreen(onBack = { navController.popBackStack() }) }
+            composable<MainRoutes.ProgressGuide> { ProgressGuideScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.MapPicker> {
                 MapPickerScreen(
                     onLocationSelected = { lat, lng ->
@@ -423,12 +437,19 @@ fun AppNavigation(
             }
             composable<MainRoutes.Settings> {
                 SettingsScreen(
+                    innerPadding = innerPadding,
                     onBack = { navController.popBackStack() },
                     onLogout = {
                         navController.navigate(MainRoutes.Home) { popUpTo(0) { inclusive = true } }
-                    }
+                    },
+                    onNavigateToPrivacy = { navController.navigate(MainRoutes.PrivacyPolicy) },
+                    onNavigateToTerms = { navController.navigate(MainRoutes.UsagePolicy) },
+                    onNavigateToSupport = { navController.navigate(MainRoutes.HelpSupport) }
                 )
             }
+            composable<MainRoutes.PrivacyPolicy> { PrivacyPolicyScreen(onBack = { navController.popBackStack() }) }
+            composable<MainRoutes.UsagePolicy> { UsagePolicyScreen(onBack = { navController.popBackStack() }) }
+            composable<MainRoutes.HelpSupport> { HelpSupportScreen(onBack = { navController.popBackStack() }) }
         }
     }
 }

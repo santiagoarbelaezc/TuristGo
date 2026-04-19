@@ -39,12 +39,14 @@ import androidx.compose.ui.layout.ContentScale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CreatePostScreen(
+    innerPadding: PaddingValues,
     viewModel: CreatePostViewModel = hiltViewModel(),
     mapResult: String? = null,
     onConsumeMapResult: () -> Unit = {},
     onNavigateToMapPicker: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
+    // ... rest of state stays the same ...
     val title              by viewModel.title
     val description        by viewModel.description
     val location           by viewModel.location
@@ -130,6 +132,7 @@ fun CreatePostScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
         CenterAlignedTopAppBar(

@@ -21,11 +21,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import com.turistgo.app.BuildConfig
 
+import com.turistgo.app.domain.repository.ChatRepository
+import kotlinx.coroutines.flow.collectLatest
+
 @HiltViewModel
 class TripsViewModel @Inject constructor(
     private val repository: AppDataRepository,
     private val groqService: GroqService,
-    private val sessionManager: UserSessionManager
+    private val sessionManager: UserSessionManager,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     private val _messages = mutableStateListOf<ChatMessage>()
@@ -35,29 +39,39 @@ class TripsViewModel @Inject constructor(
     val isLoading: State<Boolean> = _isLoading
 
     init {
-        // Mensaje de bienvenida inicial
-        _messages.add(
-            ChatMessage(
-                id = UUID.randomUUID().toString(),
-                content = "¿Qué viaje quieres planear?",
-                isFromUser = false
-            )
-        )
+        viewModelScope.launch {
+            chatRepository.getMessages().collectLatest { savedMessages ->
+                if (savedMessages.isEmpty()) {
+                    val initialMessage = ChatMessage(
+                        id = UUID.randomUUID().toString(),
+                        content = "¿Qué viaje quieres planear?",
+                        isFromUser = false
+                    )
+                    _messages.clear()
+                    _messages.add(initialMessage)
+                    chatRepository.saveMessages(listOf(initialMessage))
+                } else {
+                    _messages.clear()
+                    _messages.addAll(savedMessages)
+                }
+            }
+        }
     }
 
     fun sendMessage(content: String) {
         if (content.isBlank()) return
 
-        // Agregar mensaje del usuario
-        _messages.add(
-            ChatMessage(
-                id = UUID.randomUUID().toString(),
-                content = content,
-                isFromUser = true
-            )
+        val userMessage = ChatMessage(
+            id = UUID.randomUUID().toString(),
+            content = content,
+            isFromUser = true
         )
+        
+        _messages.add(userMessage)
+        viewModelScope.launch {
+            chatRepository.saveMessages(_messages.toList())
+        }
 
-        // Llamar a Groq API con el mensaje del usuario
         generateAiResponse(content)
     }
 
@@ -143,15 +157,15 @@ class TripsViewModel @Inject constructor(
                 val suggestedPosts = availablePosts.filter { it.id in suggestedIds }
                 
                 // 5. Agregar mensaje a la lista
-                _messages.add(
-                    ChatMessage(
-                        id = UUID.randomUUID().toString(),
-                        content = cleanContent,
-                        isFromUser = false,
-                        isPlanResponse = suggestedPosts.isNotEmpty(),
-                        suggestedDestinations = suggestedPosts
-                    )
+                val aiMessage = ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    content = cleanContent,
+                    isFromUser = false,
+                    isPlanResponse = suggestedPosts.isNotEmpty(),
+                    suggestedDestinations = suggestedPosts
                 )
+                _messages.add(aiMessage)
+                chatRepository.saveMessages(_messages.toList())
                 
             } catch (e: Exception) {
                 _messages.add(

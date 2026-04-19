@@ -19,14 +19,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 @Composable
 fun UserManagementScreen(
+    innerPadding: PaddingValues,
     navController: NavController,
-    viewModel: UserManagementViewModel = viewModel()
+    viewModel: UserManagementViewModel = hiltViewModel()
 ) {
     val users = viewModel.users
     val snackbarHostState = remember { SnackbarHostState() }
@@ -34,14 +35,14 @@ fun UserManagementScreen(
     
     val warmBg = Color(0xFFFBFAF5)
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = warmBg
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .background(warmBg)
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+            modifier = Modifier.fillMaxSize()
         ) {
             PaddingValues(horizontal = 24.dp).let {
                 Spacer(modifier = Modifier.height(24.dp))

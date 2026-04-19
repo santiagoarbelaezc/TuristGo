@@ -38,16 +38,19 @@ import com.turistgo.app.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    innerPadding: PaddingValues,
     onNavigateToSettings: () -> Unit,
     onNavigateToEditProfile: () -> Unit,
     onLogout: () -> Unit,
     onNavigateToBadges: () -> Unit,
+    onNavigateToProgressGuide: () -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToEditPost: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userSession by viewModel.userSession.collectAsState(initial = null)
     val userProfile by viewModel.userProfile.collectAsState(initial = null)
+    val stats by viewModel.profileStats.collectAsState()
 
     // Prioritize user profile photo, then session photo, then default placeholder
     val profileImageUrl = userProfile?.profilePhotoUrl 
@@ -57,6 +60,7 @@ fun ProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
         // Custom TopBar Area
@@ -133,10 +137,10 @@ fun ProfileScreen(
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.padding(top = 4.dp).clickable { onNavigateToBadges() }
+                    modifier = Modifier.padding(top = 4.dp).clickable { onNavigateToProgressGuide() }
                 ) {
                     Text(
-                        text = "Explorador Nivel 2",
+                        text = "${stats.levelName} Nivel ${stats.levelNumber}",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -146,21 +150,21 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Estadísticas Dashboard
+                // Estadísticas Dashboard (Dinámicas)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = stringResource(R.string.active_posts),   value = "5")
-                    StatItem(label = stringResource(R.string.resolved_posts), value = "8")
-                    StatItem(label = stringResource(R.string.pending_posts),  value = "2")
+                    StatItem(label = stringResource(R.string.stat_posts),   value = stats.postsCount.toString())
+                    StatItem(label = stringResource(R.string.stat_favorites), value = stats.savedCount.toString())
+                    StatItem(label = stringResource(R.string.stat_likes),  value = stats.likedCount.toString())
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Reputación e Insignias
+                // Reputación e Insignias (Dinámicas)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -174,7 +178,7 @@ fun ProfileScreen(
                     )
                     
                     Surface(
-                        modifier = Modifier.fillMaxWidth().clickable { onNavigateToBadges() },
+                        modifier = Modifier.fillMaxWidth().clickable { onNavigateToProgressGuide() },
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                     ) {
@@ -185,11 +189,11 @@ fun ProfileScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(stringResource(R.string.level), fontWeight = FontWeight.SemiBold)
-                                Text("1,250 pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("${stats.points} pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             LinearProgressIndicator(
-                                progress = { 0.65f },
+                                progress = { stats.levelProgress },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(8.dp)
@@ -199,44 +203,223 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                stringResource(R.string.points_to_next),
+                                if (stats.levelNumber < 3) "Faltan ${stats.nextLevelPoints - stats.points} pts para el siguiente nivel" else "¡Nivel máximo alcanzado!",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    if (stats.badgesCount > 0) {
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                    Text(
-                        text = stringResource(R.string.my_badges),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        BadgeItem("Primera", Icons.Default.Public)
-                        BadgeItem("10 Check", Icons.Default.Verified)
-                        BadgeItem("Destacado", Icons.Default.Star)
-                        BadgeItem("Coment.", Icons.Default.Chat)
+                        Text(
+                            text = stringResource(R.string.my_badges),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (stats.postsCount >= 1) BadgeItem("Primer Paso", Icons.Default.Public)
+                            if (stats.savedCount >= 5) BadgeItem("Curador", Icons.Default.Bookmark)
+                            if (stats.likedCount >= 10) BadgeItem("Entusiasta", Icons.Default.Favorite)
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
+
+                var selectedTab by remember { mutableIntStateOf(0) }
+                val myPosts by viewModel.myPosts.collectAsState(initial = emptyList())
+                val savedPosts by viewModel.savedPosts.collectAsState(initial = emptyList())
+                val likedPosts by viewModel.likedPosts.collectAsState(initial = emptyList())
+                
+                val tabs = listOf(
+                    "Mis posteos" to myPosts.size,
+                    stringResource(R.string.favorites) to savedPosts.size,
+                    "Me gusta" to likedPosts.size
+                )
+                
+                PrimaryTabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    divider = {},
+                    indicator = { 
+                        TabRowDefaults.PrimaryIndicator(
+                            modifier = Modifier.tabIndicatorOffset(selectedTab),
+                            width = 64.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTab == index,
+                            onClick = { selectedTab = index },
+                            text = { 
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        title.first, 
+                                        fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
+                                        fontSize = 14.sp
+                                    )
+                                    if (title.second > 0) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                            shape = CircleShape,
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Text(
+                                                    text = title.second.toString(),
+                                                    color = if (selectedTab == index) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            unselectedContentColor = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    if (selectedTab == 0) {
+                        // Mis Publicaciones
+                        val myPosts by viewModel.myPosts.collectAsState(initial = emptyList())
+                        if (myPosts.isNotEmpty()) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(bottom = 16.dp)
+                            ) {
+                                items(myPosts) { post ->
+                                    MyPostItem(post) {
+                                        onNavigateToEditPost(post.id)
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Aún no tienes publicaciones.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+                    } else if (selectedTab == 1) {
+                        // Guardados (Grid 2 columnas)
+                        val savedPosts by viewModel.savedPosts.collectAsState(initial = emptyList())
+                        if (savedPosts.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                savedPosts.chunked(2).forEach { rowPosts ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        rowPosts.forEach { post ->
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                com.turistgo.app.core.components.SmallDestinationCard(
+                                                    destination = com.turistgo.app.core.components.Destination(
+                                                        post.id, post.name, post.location, post.rating, post.imageUrl
+                                                    ),
+                                                    isSaved = true,
+                                                    onSaveToggle = { viewModel.toggleSave(post.id) },
+                                                    onClick = { /* Navigate to detail? */ }
+                                                )
+                                            }
+                                        }
+                                        // Empty spacer to fill row if it has only 1 element
+                                        if (rowPosts.size == 1) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "No tienes publicaciones guardadas.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+                    } else {
+                        // Me gusta (Grid 2 columnas)
+                        val likedPosts by viewModel.likedPosts.collectAsState(initial = emptyList())
+                        if (likedPosts.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                likedPosts.chunked(2).forEach { rowPosts ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        rowPosts.forEach { post ->
+                                            Box(modifier = Modifier.weight(1f)) {
+                                                com.turistgo.app.core.components.SmallDestinationCard(
+                                                    destination = com.turistgo.app.core.components.Destination(
+                                                        post.id, post.name, post.location, post.rating, post.imageUrl
+                                                    ),
+                                                    isLiked = true,
+                                                    onLikeToggle = { viewModel.toggleLike(post.id) },
+                                                    onClick = { /* Navigate to detail? */ }
+                                                )
+                                            }
+                                        }
+                                        // Empty spacer to fill row if it has only 1 element
+                                        if (rowPosts.size == 1) {
+                                            Spacer(modifier = Modifier.weight(1f))
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Aún no tienes publicaciones favoritas.",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(vertical = 12.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceVariant)
+                
+                Text(
+                    text = "Opciones",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 12.dp)
+                )
             }
 
-            // Opciones del Menú
             item {
                 ProfileMenuItem(
                     icon = Icons.Default.Person, 
                     title = stringResource(R.string.edit_profile),
                     onClick = onNavigateToEditProfile
                 )
-                ProfileMenuItem(icon = Icons.Default.Bookmark, title = stringResource(R.string.favorites))
                 ProfileMenuItem(
                     icon = Icons.Default.BarChart, 
                     title = stringResource(R.string.detailed_stats),
@@ -247,9 +430,9 @@ fun ProfileScreen(
                     title = stringResource(R.string.my_badges),
                     onClick = onNavigateToBadges
                 )
-                
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp), color = MaterialTheme.colorScheme.surfaceVariant)
-                
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Button(
                     onClick = onLogout,
                     colors = ButtonDefaults.buttonColors(
@@ -263,44 +446,8 @@ fun ProfileScreen(
                 ) {
                     Text(stringResource(R.string.logout), fontWeight = FontWeight.Bold)
                 }
-
-                // Eliminamos el botón de aquí ya que se movió a ajustes
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Nueva Sección: Mis publicaciones
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.my_posts),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                    
-                    val myPosts by viewModel.myPosts.collectAsState(initial = emptyList())
-                    if (myPosts.isNotEmpty()) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(bottom = 16.dp)
-                        ) {
-                            items(myPosts) { post ->
-                                MyPostItem(post) {
-                                    onNavigateToEditPost(post.id)
-                                }
-                            }
-                        }
-                    } else {
-                        Text(
-                            text = "Aún no tienes publicaciones.",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.padding(vertical = 12.dp)
-                        )
-                    }
-                }
+                
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }

@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.R
 
 data class BadgeData(
@@ -33,18 +36,56 @@ data class BadgeData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BadgesScreen(onBack: () -> Unit = {}) {
+fun BadgesScreen(
+    onBack: () -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val warmBg = Color(0xFFFBFAF5)
+    val stats by viewModel.profileStats.collectAsState()
     
     val badges = listOf(
-        BadgeData("Primer Explorador", "Publicaste tu primer destino", Icons.Default.Public, true),
-        BadgeData("Crítico Experto", "Diste 10 reseñas verificadas", Icons.Default.Star, true),
-        BadgeData("Verificador", "Ayudaste a verificar 5 lugares", Icons.Default.Verified, true),
-        BadgeData("Socialite", "Conectaste con 20 viajeros", Icons.Default.Group, false, 0.45f),
-        BadgeData("Reportero", "Informaste sobre 3 eventos", Icons.Default.Event, false, 0.66f),
-        BadgeData("Aventurero", "Visitaste 5 departamentos", Icons.Default.Explore, false, 0.2f),
-        BadgeData("Gourmet", "Reseñaste 5 restaurantes", Icons.Default.Restaurant, true),
-        BadgeData("Búho Nocturno", "Visitaste 3 lugares de noche", Icons.Default.NightsStay, false, 0.33f)
+        BadgeData(
+            title = "Primer Paso", 
+            description = "Publicaste tu primer destino", 
+            icon = Icons.Default.Public, 
+            isUnlocked = stats.postsCount >= 1,
+            progress = if (stats.postsCount >= 1) 1f else 0f
+        ),
+        BadgeData(
+            title = "Curador", 
+            description = "Guardaste 5 destinos favoritos", 
+            icon = Icons.Default.Bookmark, 
+            isUnlocked = stats.savedCount >= 5,
+            progress = (stats.savedCount.toFloat() / 5f).coerceAtMost(1f)
+        ),
+        BadgeData(
+            title = "Entusiasta", 
+            description = "Diste 10 'Me gusta' a otros", 
+            icon = Icons.Default.Favorite, 
+            isUnlocked = stats.likedCount >= 10,
+            progress = (stats.likedCount.toFloat() / 10f).coerceAtMost(1f)
+        ),
+        BadgeData(
+            title = "Crítico Experto", 
+            description = "Diste 10 reseñas verificadas", 
+            icon = Icons.Default.Star, 
+            isUnlocked = false, 
+            progress = 0f
+        ),
+        BadgeData(
+            title = "Verificador", 
+            description = "Ayudaste a verificar 5 lugares", 
+            icon = Icons.Default.Verified, 
+            isUnlocked = false, 
+            progress = 0f
+        ),
+        BadgeData(
+            title = "Socialite", 
+            description = "Conectaste con 20 viajeros", 
+            icon = Icons.Default.Group, 
+            isUnlocked = false, 
+            progress = 0.1f
+        )
     )
 
     Scaffold(

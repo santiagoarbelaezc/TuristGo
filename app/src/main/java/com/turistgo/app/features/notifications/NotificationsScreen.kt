@@ -20,31 +20,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
 
-data class Notification(
-    val id: Int,
-    val titleKey: String,   // key into strings
-    val messageKey: String,
-    val timeKey: String,
-    val type: NotificationType,
-    val isRead: Boolean
-)
-
-enum class NotificationType { NEW_POST, VERIFICATION, REPUTATION, SYSTEM }
+import com.turistgo.app.domain.model.Notification
+import com.turistgo.app.domain.model.NotificationType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationsScreen() {
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
-
-    val initialNotifications = listOf(
-        Notification(1, s.notifNewPost,  s.notifNewPostMsg,  s.timeAgo5m, NotificationType.NEW_POST,     false),
-        Notification(2, s.notifVerified, s.notifVerifiedMsg, s.timeAgo1h, NotificationType.VERIFICATION, true),
-        Notification(3, s.notifBadge,    s.notifBadgeMsg,    s.timeAgo3h, NotificationType.REPUTATION,   false),
-        Notification(4, s.notifSecurity, s.notifSecurityMsg, s.timeAgo1d, NotificationType.SYSTEM,       true),
-    )
-
-    var notifications by remember(lang) { mutableStateOf(initialNotifications) }
+fun NotificationsScreen(
+    viewModel: NotificationsViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+) {
+    val notifications by viewModel.notifications.collectAsState()
 
     Column(
         modifier = Modifier
@@ -55,7 +39,7 @@ fun NotificationsScreen() {
         TopAppBar(
             title = {
                 Text(
-                    text = s.notificationsTitle,
+                    text = stringResource(R.string.notifications_title),
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                     color = MaterialTheme.colorScheme.onBackground
@@ -64,10 +48,10 @@ fun NotificationsScreen() {
             actions = {
                 if (notifications.any { !it.isRead }) {
                     TextButton(
-                        onClick = { notifications = notifications.map { it.copy(isRead = true) } }
+                        onClick = { viewModel.markAllAsRead() }
                     ) {
                         Text(
-                            text = s.readAll,
+                            text = stringResource(R.string.read_all),
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -93,7 +77,7 @@ fun NotificationsScreen() {
                         MaterialTheme.colorScheme.outline
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text(s.noNotifications, color = MaterialTheme.colorScheme.secondary)
+                    Text(stringResource(R.string.no_notifications), color = MaterialTheme.colorScheme.secondary)
                 }
             }
         } else {
@@ -104,11 +88,7 @@ fun NotificationsScreen() {
                 items(notifications, key = { it.id }) { notification ->
                     NotificationItem(
                         notification = notification,
-                        onClick = {
-                            notifications = notifications.map { n ->
-                                if (n.id == notification.id) n.copy(isRead = true) else n
-                            }
-                        }
+                        onClick = { viewModel.markAsRead(notification.id) }
                     )
                     if (notification.id != notifications.last().id) {
                         HorizontalDivider(
@@ -132,6 +112,7 @@ fun NotificationItem(
         NotificationType.VERIFICATION -> Triple(Icons.Default.Verified,    Color(0xFFE8F5E9), Color(0xFF2E7D32))
         NotificationType.REPUTATION   -> Triple(Icons.Default.EmojiEvents, Color(0xFFFFF3E0), Color(0xFFEF6C00))
         NotificationType.SYSTEM       -> Triple(Icons.Default.Info,        Color(0xFFE3F2FD), Color(0xFF1565C0))
+        NotificationType.COMMENT      -> Triple(Icons.Default.ChatBubble,  Color(0xFFF3E5F5), Color(0xFF8E24AA))
     }
 
     Row(
@@ -170,7 +151,7 @@ fun NotificationItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = notification.titleKey,
+                    text = notification.title,
                     fontWeight = if (notification.isRead) FontWeight.SemiBold else FontWeight.Bold,
                     fontSize = 15.sp,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -188,14 +169,14 @@ fun NotificationItem(
             }
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = notification.messageKey,
+                text = notification.message,
                 fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 lineHeight = 20.sp
             )
             Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = notification.timeKey,
+                text = "Justo ahora", // Simplified
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.secondary
             )

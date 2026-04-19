@@ -188,4 +188,46 @@
     <string name="price_range">Rango de Precio</string>
     <string name="write_experience">Escribe tu experiencia...</string>
     <string name="view_all_comments">Ver todos los comentarios</string>
+    <string name="review_post_title">Revisar Publicación</string>
+    <string name="save_changes">Guardar cambios</string>
+
+    <!-- Gamification & Profile -->
+    <string name="stat_posts">Posteos</string>
+    <string name="stat_favorites">Favoritos</string>
+    <string name="stat_likes">Me gusta</string>
+    <string name="progress_guide_title">Guía de Progreso</string>
+    <string name="tab_levels">Niveles</string>
+    <string name="tab_reputation">Reputación</string>
+    <string name="tab_badges">Insignias</string>
+    <string name="level_guide_title">Escala de Explorador</string>
+    <string name="level_guide_desc">Publica destinos para subir de nivel y desbloquear funciones.</string>
+    <string name="reputation_guide_title">Sistema de Reputación</string>
+    <string name="reputation_guide_desc">Gana puntos por cada acción positiva que realices.</string>
+    <string name="badge_guide_title">Manual de Insignias</string>
+    <string name="badge_guide_desc">Logros especiales por hitos específicos.</string>
+    <string name="coming_soon">Próximamente</string>
+    <string name="level_0_name">Nivel 0: Novato</string>
+    <string name="level_0_req">0 posteos</string>
+    <string name="level_0_desc">Acabas de empezar tu viaje. ¡Publica tu primer destino para ganar rango!</string>
+    <string name="level_1_name">Nivel 1: Explorador</string>
+    <string name="level_1_req">1-2 posteos</string>
+    <string name="level_1_desc">Ya eres un miembro activo de la comunidad.</string>
+    <string name="level_2_name">Nivel 2: Viajero</string>
+    <string name="level_2_req">3-5 posteos</string>
+    <string name="level_2_desc">Tus recomendaciones ayudan a otros a descubrir el mundo.</string>
+    <string name="level_3_name">Nivel 3: Guía Local</string>
+    <string name="level_3_req">6+ posteos</string>
+    <string name="level_3_desc">Eres una autoridad en turismo. ¡Tu opinión es sagrada!</string>
+    <string name="action_publish_dest">Publicar Destino</string>
+    <string name="action_save_place">Guardar un lugar</string>
+    <string name="action_give_like">Dar Me gusta</string>
+    <string name="action_verify">Recibir verificación</string>
+    <string name="badge_first_step">Primer Paso</string>
+    <string name="badge_first_step_req">Tu primera publicación aprobada</string>
+    <string name="badge_curator">Curador</string>
+    <string name="badge_curator_req">Guardar 5 destinos favoritos</string>
+    <string name="badge_enthusiast">Entusiasta</string>
+    <string name="badge_enthusiast_req">Dar 10 \'Me gusta\' a otros</string>
+    <string name="pts_to_next_fmt">Faltan %1$d pts para el siguiente nivel</string>
+    <string name="max_level_reached">¡Nivel máximo alcanzado!</string>
 </resources>

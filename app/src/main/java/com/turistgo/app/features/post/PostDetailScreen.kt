@@ -31,6 +31,7 @@ import com.turistgo.app.features.feed.components.PersonItem
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostDetailScreen(
+    innerPadding: PaddingValues,
     destinationId: String?, 
     onBack: () -> Unit,
     viewModel: PostDetailViewModel = androidx.hilt.navigation.compose.hiltViewModel()
@@ -57,6 +58,7 @@ fun PostDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
@@ -124,8 +126,8 @@ fun PostDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    // Botones Interactivos
+                    val isSaved by viewModel.isSaved.collectAsState()
+                    val isLiked by viewModel.isLiked.collectAsState()
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -139,26 +141,50 @@ fun PostDetailScreen(
                                 contentColor = if (isVisited) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         ) {
-                            Icon(if (isVisited) Icons.Default.CheckCircle else Icons.Default.AddTask, null, Modifier.size(18.dp))
+                            Icon(if (isVisited) Icons.Default.CheckCircle else Icons.Default.AddCircleOutline, null, Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(if (isVisited) stringResource(R.string.visited) else stringResource(R.string.mark_visited), fontSize = 12.sp)
                         }
-
-                        OutlinedButton(
-                            onClick = { 
-                                if (isImportant) votesCount-- else votesCount++
-                                isImportant = !isImportant 
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = if (isImportant) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            border = if (isImportant) androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+                        
+                        IconButton(
+                            onClick = { viewModel.toggleSave() },
+                            modifier = Modifier
+                                .background(
+                                    if (isSaved) Color(0xFFFFEBEE) else MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .size(40.dp)
                         ) {
-                            Icon(if (isImportant) Icons.Default.ThumbUp else Icons.Default.ThumbUpOffAlt, null, Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.important) + " ($votesCount)", fontSize = 12.sp)
+                            Icon(
+                                imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = "Guardar",
+                                tint = if (isSaved) Color(0xFFC62828) else MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { viewModel.toggleLike() },
+                            modifier = Modifier
+                                .background(
+                                    if (isLiked) Color(0xFFFFEBEE) else MaterialTheme.colorScheme.surfaceVariant,
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Me gusta",
+                                tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        
+                        IconButton(
+                            onClick = { /* Share */ },
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+                                .size(40.dp)
+                        ) {
+                            Icon(Icons.Default.Share, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
 
@@ -179,8 +205,9 @@ fun PostDetailScreen(
 
             // Sección de Comentarios
             item {
+                val realComments by viewModel.comments.collectAsState(initial = emptyList())
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    Text(text = stringResource(R.string.comments) + " (12)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Text(text = stringResource(R.string.comments) + " (${realComments.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Input para nuevo comentario
@@ -191,7 +218,10 @@ fun PostDetailScreen(
                         placeholder = { Text(stringResource(R.string.write_experience)) },
                         trailingIcon = {
                             if (commentText.isNotEmpty()) {
-                                IconButton(onClick = { commentText = "" }) {
+                                IconButton(onClick = { 
+                                    viewModel.addComment(commentText)
+                                    commentText = "" 
+                                }) {
                                     Icon(Icons.Default.Send, null, tint = MaterialTheme.colorScheme.primary)
                                 }
                             }
@@ -201,11 +231,26 @@ fun PostDetailScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    CommentItem("Juan David", "Excelente lugar para desconectarse.", "Hace 2 horas")
-                    CommentItem("Sofía R.", "Recomiendo llevar mucha agua y protector solar.", "Hace 5 horas")
+                    if (realComments.isEmpty()) {
+                        Text(
+                            "Sé el primero en comentar",
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        realComments.forEach { comment ->
+                             CommentItem(
+                                author = comment.authorName, 
+                                content = comment.content, 
+                                time = "Justo ahora" // For simplicity
+                            )
+                        }
+                    }
                     
-                    TextButton(onClick = { /* View more */ }) {
-                        Text(stringResource(R.string.view_all_comments))
+                    if (realComments.size > 3) {
+                        TextButton(onClick = { /* View more */ }) {
+                            Text(stringResource(R.string.view_all_comments))
+                        }
                     }
                 }
             }

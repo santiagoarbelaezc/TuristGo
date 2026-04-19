@@ -2,16 +2,61 @@ package com.turistgo.app.data.repository
 
 import com.turistgo.app.domain.model.Post
 import com.turistgo.app.domain.model.User
+import com.turistgo.app.domain.model.Comment
+import com.turistgo.app.domain.model.Notification
 import com.turistgo.app.domain.repository.AppDataRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class InMemoryRepository @Inject constructor() : AppDataRepository {
-    private val users = MutableStateFlow<List<User>>(emptyList())
+    private val users = MutableStateFlow<List<User>>(listOf(
+        User(
+            id = "santi_001",
+            name = "Santiago",
+            lastName = "Arbelaez",
+            age = "25",
+            country = "Colombia",
+            city = "Armenia",
+            department = "Quindío",
+            phone = "3054078225",
+            email = "santiago@turistgo.com",
+            username = "santiarco",
+            password = "santi123"
+        ),
+        User(
+            id = "juanda_001",
+            name = "Juan",
+            lastName = "David",
+            age = "22",
+            country = "Colombia",
+            city = "Medellín",
+            phone = "3000000001",
+            email = "juanda@turistgo.com",
+            username = "juanda",
+            password = "juanda123",
+            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_1_l9dbve.jpg"
+        ),
+        User(
+            id = "eli_001",
+            name = "Eliana",
+            lastName = "Lopez",
+            age = "24",
+            country = "Colombia",
+            city = "Bogotá",
+            phone = "3000000002",
+            email = "eli@turistgo.com",
+            username = "eli",
+            password = "eli123",
+            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_xn4jqm.jpg"
+        )
+    ))
+    private val comments = MutableStateFlow<List<Comment>>(emptyList())
+    private val notifications = MutableStateFlow<List<Notification>>(emptyList())
     private val posts = MutableStateFlow<List<Post>>(listOf(
         Post(
             id = "1", 
@@ -304,6 +349,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     }
 
     override suspend fun getUserByEmail(email: String): User? = users.value.find { it.email == email }
+    override suspend fun getUserByUsername(username: String): User? = users.value.find { it.username == username }
     override suspend fun getUserById(userId: String): User? = users.value.find { it.id == userId }
     override suspend fun deleteUser(userId: String) {
         users.value = users.value.filter { it.id != userId }
@@ -327,4 +373,105 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     }
 
     override suspend fun getPostById(postId: String): Post? = posts.value.find { it.id == postId }
+
+    override suspend fun toggleSavedPost(userId: String, postId: String) {
+        val userExists = users.value.any { it.id == userId }
+        if (!userExists) {
+            // Auto-register mock user for persistent sessions
+            val newUser = User(
+                id = userId,
+                name = "Usuario",
+                lastName = "App",
+                age = "25",
+                country = "Colombia",
+                city = "Bogotá",
+                phone = "0000000000",
+                email = "user@turistgo.com"
+            )
+            users.value = users.value + newUser
+        }
+        
+        users.value = users.value.map { user ->
+            if (user.id == userId) {
+                val newSavedIds = if (user.savedPostIds.contains(postId)) {
+                    user.savedPostIds - postId
+                } else {
+                    user.savedPostIds + postId
+                }
+                user.copy(savedPostIds = newSavedIds)
+            } else user
+        }
+    }
+
+    override fun getSavedPosts(userId: String): Flow<List<Post>> {
+        return combine(users, posts) { currentUsers, currentPosts ->
+            val user = currentUsers.find { it.id == userId }
+            val savedIds = user?.savedPostIds ?: emptyList()
+            currentPosts.filter { it.id in savedIds && it.status == com.turistgo.app.domain.model.PostStatus.APPROVED }
+        }
+    }
+
+    override suspend fun toggleLikedPost(userId: String, postId: String) {
+        val userExists = users.value.any { it.id == userId }
+        if (!userExists) {
+            val newUser = User(
+                id = userId,
+                name = "Usuario",
+                lastName = "App",
+                age = "25",
+                country = "Colombia",
+                city = "Bogotá",
+                phone = "0000000000",
+                email = "user@turistgo.com"
+            )
+            users.value = users.value + newUser
+        }
+        
+        users.value = users.value.map { user ->
+            if (user.id == userId) {
+                val newLikedIds = if (user.likedPostIds.contains(postId)) {
+                    user.likedPostIds - postId
+                } else {
+                    user.likedPostIds + postId
+                }
+                user.copy(likedPostIds = newLikedIds)
+            } else user
+        }
+    }
+
+    override fun getLikedPosts(userId: String): Flow<List<Post>> {
+        return combine(users, posts) { currentUsers, currentPosts ->
+            val user = currentUsers.find { it.id == userId }
+            val likedIds = user?.likedPostIds ?: emptyList()
+            currentPosts.filter { it.id in likedIds && it.status == com.turistgo.app.domain.model.PostStatus.APPROVED }
+        }
+    }
+
+    // Comments implementation
+    override fun getComments(postId: String): Flow<List<Comment>> {
+        return comments.map { allComments -> 
+            allComments.filter { it.postId == postId }.sortedByDescending { it.timestamp }
+        }
+    }
+
+    override suspend fun addComment(comment: Comment) {
+        comments.value = comments.value + comment
+    }
+
+    // Notifications implementation
+    override fun getNotifications(userId: String): Flow<List<Notification>> {
+        return notifications.map { allNotifications ->
+            allNotifications.filter { it.userId == userId }.sortedByDescending { it.timestamp }
+        }
+    }
+
+    override suspend fun addNotification(notification: Notification) {
+        notifications.value = notifications.value + notification
+    }
+
+    override suspend fun markNotificationAsRead(notificationId: String) {
+        notifications.value = notifications.value.map {
+            if (it.id == notificationId) it.copy(isRead = true) else it
+        }
+    }
 }

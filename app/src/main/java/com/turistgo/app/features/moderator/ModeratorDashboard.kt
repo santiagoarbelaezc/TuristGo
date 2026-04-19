@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
@@ -32,9 +32,10 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModeratorDashboard(
+    innerPadding: PaddingValues,
     onLogout: () -> Unit,
     onReviewPost: (String) -> Unit,
-    viewModel: ModeratorViewModel = viewModel()
+    viewModel: ModeratorViewModel = hiltViewModel()
 ) {
     val posts by viewModel.posts.collectAsState()
     val pendingCount = posts.count { it.status == PostStatus.PENDING }
@@ -44,12 +45,13 @@ fun ModeratorDashboard(
     val warmBg = Color(0xFFFBFAF5)
 
     Scaffold(
+        containerColor = warmBg,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = stringResource(R.string.nav_home), // Or dashboard title
+                            text = "Panel", 
                             style = MaterialTheme.typography.headlineSmall, 
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1A1A1A)
@@ -72,17 +74,20 @@ fun ModeratorDashboard(
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                     containerColor = warmBg
-                ),
-                windowInsets = WindowInsets(0, 0, 0, 0)
+                )
             )
-        },
-        containerColor = warmBg
-    ) { padding ->
+        }
+    ) { localPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(horizontal = 24.dp, vertical = 20.dp),
+                .padding(bottom = innerPadding.calculateBottomPadding()), // Account for AppNavigation's BottomBar
+            contentPadding = PaddingValues(
+                top = localPadding.calculateTopPadding() + 20.dp,
+                bottom = 20.dp,
+                start = 24.dp,
+                end = 24.dp
+            ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
@@ -186,7 +191,7 @@ fun StatCardRedesigned(
 @Composable
 fun ModeratorPostCardRedesigned(post: Post, onClick: () -> Unit) {
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    val dateString = sdf.format(Date(post.createdAt))
+    val dateString = if (post.createdAt > 0) sdf.format(Date(post.createdAt)) else "Pendiente de fecha"
 
     Card(
         modifier = Modifier

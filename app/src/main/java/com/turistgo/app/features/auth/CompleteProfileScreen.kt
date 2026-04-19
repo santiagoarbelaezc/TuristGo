@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
 import com.turistgo.app.core.locale.LanguageState
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
@@ -240,7 +241,7 @@ fun CompleteProfileScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(s.enableNotifications, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text(stringResource(R.string.enable_notifications), fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                         }
                         Switch(
                             checked = notificationsEnabled,
@@ -264,14 +265,14 @@ fun CompleteProfileScreen(
                     if (isLoading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
                     } else {
-                        Text(s.continueToFeed, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.continue_to_feed), fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))
             }
             
-            LoadingOverlay(isLoading = isLoading, text = "Guardando perfil...")
+            LoadingOverlay(isLoading = isLoading, text = stringResource(R.string.creating_account_loading))
         }
     }
 }

@@ -134,9 +134,9 @@ fun LoginScreen(
             ) {
 
                 // --- SECCIÓN DEL LOGO / VIDEO ---
-                // Box contenedor del logo (tamaño ajustado a 120dp)
+                // Box contenedor del logo (tamaño aumentado a 200dp para recuperar el estilo original)
                 Box(
-                    modifier = Modifier.size(120.dp),
+                    modifier = Modifier.size(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     // Estado local para saber si el video ya está listo para reproducirse
@@ -148,7 +148,7 @@ fun LoginScreen(
                         val videoUri = "android.resource://${LocalContext.current.packageName}/${R.raw.video_login}"
                         // Surface: contenedor con forma circular y borde
                         Surface(
-                            modifier = Modifier.size(120.dp),
+                            modifier = Modifier.size(200.dp),
                             shape = CircleShape,  // Forma circular
                             color = MaterialTheme.colorScheme.background,  // Color de fondo
                             border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))  // Borde semitransparente
@@ -170,7 +170,7 @@ fun LoginScreen(
                         // AsyncImage: carga imagen desde URL de forma asíncrona
                         AsyncImage(
                             model = imageUrl,  // URL de la imagen
-                            contentDescription = "Logo de TuristGo",  // Accesibilidad
+                            contentDescription = stringResource(R.string.logo_description),  // Accesibilidad
                             modifier = Modifier
                                 .fillMaxSize()  // Ocupa todo el espacio del contenedor
                                 .clickable(  // Hace la imagen clickeable
@@ -184,22 +184,19 @@ fun LoginScreen(
                     }
                 }
 
-                // Espaciador vertical reducido
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // --- TEXTO DEL TÍTULO PRINCIPAL ---
+                // --- TÍTULOS (ESTILO ORIGINAL) ---
                 Text(
-                    text = stringResource(R.string.discover_next_adventure),  // Texto a mostrar
-                    fontSize = 28.sp,   // Tamaño de fuente 28sp
-                    fontWeight = FontWeight.Bold,  // Negrita
-                    color = MaterialTheme.colorScheme.primary  // Color primario del tema
+                    text = stringResource(R.string.app_name),
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFFE53935) // Rojo TuristGo
                 )
-                // --- TEXTO DEL SUBTÍTULO ---
+                
                 Text(
-                    text = stringResource(R.string.login_btn),
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.secondary,  // Color secundario del tema
-                    modifier = Modifier.padding(bottom = 8.dp)  // Padding inferior reducido
+                    text = stringResource(R.string.discover_next_adventure),
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
 
                 // --- CAMPO DE TEXTO: EMAIL ---

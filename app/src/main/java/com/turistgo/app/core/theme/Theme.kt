@@ -38,7 +38,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun TuristGoTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean = ThemeState.isDarkMode.value ?: isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme

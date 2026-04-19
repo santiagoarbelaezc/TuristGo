@@ -80,6 +80,9 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
 
     override suspend fun getUserByEmail(email: String): User? = users.value.find { it.email == email }
     override suspend fun getUserById(userId: String): User? = users.value.find { it.id == userId }
+    override suspend fun deleteUser(userId: String) {
+        users.value = users.value.filter { it.id != userId }
+    }
 
     override fun getPosts(status: com.turistgo.app.domain.model.PostStatus?): Flow<List<Post>> {
         return if (status == null) posts

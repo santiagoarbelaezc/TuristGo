@@ -80,6 +80,14 @@ data class Strings(
     val account: String,
     val closeSession: String,
     val deleteAccount: String,
+    val darkMode: String,
+    val useSystemTheme: String,
+    val helpSupport: String,
+    val helpSupportContent: String,
+    val privacyPolicyContent: String,
+    val usageTermsContent: String,
+    val confirmDeleteTitle: String,
+    val confirmDeleteMsg: String,
 
     // Language picker dialog
     val selectLanguage: String,
@@ -230,10 +238,21 @@ val SpanishStrings = Strings(
     account = "Cuenta",
     closeSession = "Cerrar Sesión",
     deleteAccount = "Eliminar cuenta",
+    darkMode = "Modo Oscuro",
+    useSystemTheme = "Usar tema del sistema",
+    helpSupport = "Ayuda y Soporte",
+    helpSupportContent = "Si necesitas ayuda, contáctanos en soporte@turistgo.com o visita nuestro centro de ayuda en línea.",
+    privacyPolicyContent = "En TuristGo, tu privacidad es nuestra prioridad. Recopilamos datos solo para mejorar tu experiencia de viaje y nunca los compartimos con terceros sin tu consentimiento explícito.",
+    usageTermsContent = "Al usar TuristGo, aceptas nuestras normas de comunidad: respeta a otros viajeros, publica información verídica y disfruta explorando el mundo de forma responsable.",
+    confirmDeleteTitle = "¿Eliminar cuenta?",
+    confirmDeleteMsg = "Esta acción es irreversible. Se perderán todos tus datos e historial.",
 
     selectLanguage = "Seleccionar idioma",
     cancel = "Cancelar",
     accept = "Aceptar",
+
+    searchPlaceholder = "¿A dónde quieres ir?",
+    filterBy = "Filtrar por",
 
     newPost = "Nueva Publicación",
     shareWithCommunity = "Comparte algo con la comunidad",
@@ -369,10 +388,21 @@ val EnglishStrings = Strings(
     account = "Account",
     closeSession = "Log Out",
     deleteAccount = "Delete account",
+    darkMode = "Dark Mode",
+    useSystemTheme = "Use system theme",
+    helpSupport = "Help & Support",
+    helpSupportContent = "If you need help, contact us at support@turistgo.com or visit our online help center.",
+    privacyPolicyContent = "At TuristGo, your privacy is our priority. We collect data only to improve your travel experience and never share it with third parties without your explicit consent.",
+    usageTermsContent = "By using TuristGo, you agree to our community rules: respect other travelers, post truthful information, and enjoy exploring the world responsibly.",
+    confirmDeleteTitle = "Delete account?",
+    confirmDeleteMsg = "This action is irreversible. All your data and history will be lost.",
 
     selectLanguage = "Select language",
     cancel = "Cancel",
     accept = "Accept",
+
+    searchPlaceholder = "Where do you want to go?",
+    filterBy = "Filter by",
 
     newPost = "New Post",
     shareWithCommunity = "Share something with the community",

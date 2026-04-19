@@ -11,6 +11,7 @@ interface AppDataRepository {
     suspend fun updateUser(user: User)
     suspend fun getUserByEmail(email: String): User?
     suspend fun getUserById(userId: String): User?
+    suspend fun deleteUser(userId: String)
 
     // Post related
     fun getPosts(status: com.turistgo.app.domain.model.PostStatus? = null): Flow<List<Post>>

@@ -222,11 +222,46 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                 }
-                Text(
-                    text = message.content,
-                    color = if (message.isFromUser) Color.White else Color.Black,
-                    fontSize = 14.sp
-                )
+                
+                // Parse and render content with special styling for "Día X" and Itinerary items
+                val lines = message.content.split("\n")
+                Column {
+                    lines.forEach { line ->
+                        val trimmedLine = line.trim()
+                        when {
+                            trimmedLine.startsWith("Día ", ignoreCase = true) -> {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                DayLabel(trimmedLine)
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+                            trimmedLine.contains(Regex("^\\p{So}|\\p{Sk}|\\p{Sm}") ) || trimmedLine.contains(Regex("\\d{2}:\\d{2}")) -> {
+                                // Line with emoji or time
+                                Text(
+                                    text = line,
+                                    color = if (message.isFromUser) Color.White else Color.Black,
+                                    fontSize = 14.sp,
+                                    modifier = Modifier.padding(vertical = 2.dp)
+                                )
+                            }
+                            trimmedLine.startsWith("🗓️") -> {
+                                Text(
+                                    text = line,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color.Black,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                            else -> {
+                                Text(
+                                    text = line,
+                                    color = if (message.isFromUser) Color.White else Color.Black,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -234,6 +269,22 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
             PlanResponseView(message.suggestedDestinations, onNavigateToDetail)
         }
+    }
+}
+
+@Composable
+fun DayLabel(text: String) {
+    Surface(
+        color = Color(0xFFF3E5F5), // Light purple/pink matching screenshot
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = text,
+            color = Color(0xFFAD1457), // Content color
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+        )
     }
 }
 

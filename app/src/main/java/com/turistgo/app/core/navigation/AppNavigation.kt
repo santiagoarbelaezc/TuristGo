@@ -56,8 +56,11 @@ import com.turistgo.app.features.profile.EditProfileScreen
 import com.turistgo.app.features.profile.SettingsScreen
 import com.turistgo.app.features.notifications.NotificationsScreen
 import com.turistgo.app.features.trips.TripsScreen
-import com.turistgo.app.core.locale.AppStrings
-import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.features.profile.UserStatsScreen
+import com.turistgo.app.features.profile.BadgesScreen
+import com.turistgo.app.features.moderator.ReviewPostScreen
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 @Composable
 fun AppNavigation(
@@ -86,15 +89,12 @@ fun AppNavigation(
         }
     }
 
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
-
     val bottomBarDestinations = listOf(
-        BottomNavItem(s.navHome,    MainRoutes.Feed,          Icons.Default.Home),
-        BottomNavItem(s.navTrips,   MainRoutes.Trips,         Icons.Default.Map),
-        BottomNavItem(s.navCreate,  MainRoutes.Create,        Icons.Default.Add),
-        BottomNavItem(s.navAlerts,  MainRoutes.Notifications, Icons.Default.Notifications),
-        BottomNavItem(s.navProfile, MainRoutes.Profile,       Icons.Default.Person)
+        BottomNavItem(stringResource(R.string.nav_home),    MainRoutes.Feed,          Icons.Default.Home),
+        BottomNavItem(stringResource(R.string.nav_trips),   MainRoutes.Trips,         Icons.Default.Map),
+        BottomNavItem(stringResource(R.string.nav_create),  MainRoutes.Create,        Icons.Default.Add),
+        BottomNavItem(stringResource(R.string.nav_alerts),  MainRoutes.Notifications, Icons.Default.Notifications),
+        BottomNavItem(stringResource(R.string.nav_profile), MainRoutes.Profile,       Icons.Default.Person)
     )
     
     val modDestinations = listOf(
@@ -406,9 +406,12 @@ fun AppNavigation(
                 )
             }
             composable<MainRoutes.Notifications> { NotificationsScreen() }
-            composable<MainRoutes.ReviewPost> { /* Placeholder */ }
-            composable<MainRoutes.Stats> { /* Placeholder */ }
-            composable<MainRoutes.Badges> { /* Placeholder */ }
+            composable<MainRoutes.ReviewPost> { backStackEntry -> 
+                val route = backStackEntry.toRoute<MainRoutes.ReviewPost>()
+                ReviewPostScreen(postId = route.postId, onBack = { navController.popBackStack() }) 
+            }
+            composable<MainRoutes.Stats> { UserStatsScreen(onBack = { navController.popBackStack() }) }
+            composable<MainRoutes.Badges> { BadgesScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.MapPicker> {
                 MapPickerScreen(
                     onLocationSelected = { lat, lng ->

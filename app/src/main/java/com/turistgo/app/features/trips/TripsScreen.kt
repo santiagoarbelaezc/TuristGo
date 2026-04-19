@@ -3,7 +3,6 @@ package com.turistgo.app.features.trips
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,14 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.turistgo.app.core.locale.AppStrings
-import com.turistgo.app.core.locale.LanguageState
+import com.turistgo.app.R
 import com.turistgo.app.domain.model.ChatMessage
 import com.turistgo.app.domain.model.Post
 import kotlinx.coroutines.launch
@@ -35,165 +34,70 @@ fun TripsScreen(
     onNavigateToDetail: (String) -> Unit,
     viewModel: TripsViewModel = hiltViewModel()
 ) {
-    var textInput by remember { mutableStateOf("") }
-    val messages = viewModel.messages
-    val isLoading by viewModel.isLoading
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
-
-    val mascotUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771977314/turistgo-logo_evi36h.png"
-
+    val messages by viewModel.messages.collectAsState()
+    val isAiTyping by viewModel.isAiTyping.collectAsState()
+    val scrollState = rememberLazyListState()
+    
+    // Auto-scroll when new messages arrive
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+            scrollState.animateScrollToItem(messages.size - 1)
         }
     }
 
-    // Same structure as ProfileScreen: Column → TopAppBar(windowInsets=0) → content
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFEF7F3))
-    ) {
-        TopAppBar(
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    AsyncImage(
-                        model = mascotUrl,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp).clip(CircleShape)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text("TuristGo AI", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFFC62828))
-                        Text(s.tripsAiSubtitle, fontSize = 12.sp, color = Color.Gray)
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(stringResource(R.string.nav_trips), fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                        Text(stringResource(R.string.trips_ai_subtitle), fontSize = 11.sp, color = MaterialTheme.colorScheme.secondary)
                     }
-                }
-            },
-            actions = {
-                IconButton(onClick = { }) {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFC62828))
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White),
-            windowInsets = WindowInsets(0, 0, 0, 0)
-        )
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            if (messages.size <= 1) {
-                item {
-                    Column(
-                        modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AsyncImage(
-                            model = mascotUrl,
-                            contentDescription = null,
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(s.tripsWelcome, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            s.tripsWelcomeBody,
-                            textAlign = TextAlign.Center,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(horizontal = 40.dp)
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            QuickActionChip(s.tripsQuickPlan1) {
-                                viewModel.onQuickPlanSelected("plan con mi novia")
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            QuickActionChip(s.tripsQuickPlan2) {
-                                viewModel.onQuickPlanSelected("aventura en familia")
-                            }
-                        }
-                    }
-                }
-            }
-
-            items(messages) { message ->
-                ChatBubble(message, onNavigateToDetail)
-            }
-
-            if (isLoading) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                    }
-                }
-            }
-        }
-
-        // Input Area
-        Surface(
-            tonalElevation = 2.dp,
-            color = Color.White,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = textInput,
-                    onValueChange = { textInput = it },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text(s.tripsInputPlaceholder) },
-                    shape = CircleShape,
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color(0xFFF5F5F5),
-                        focusedContainerColor = Color(0xFFF5F5F5),
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color(0xFFC62828)
-                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFFFEF7F3)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                FloatingActionButton(
-                    onClick = {
-                        if (textInput.isNotBlank()) {
-                            viewModel.sendMessage(textInput)
-                            textInput = ""
-                        }
-                    },
-                    containerColor = Color(0xFFC62828),
-                    contentColor = Color.White,
-                    shape = CircleShape,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(Icons.Default.Send, contentDescription = "Enviar")
+            )
+        },
+        containerColor = Color(0xFFFEF7F3)
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            LazyColumn(
+                state = scrollState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (messages.isEmpty()) {
+                    item {
+                        TripsWelcomeHeader(
+                            onQuickPlan = { viewModel.sendMessage(it) }
+                        )
+                    }
+                }
+                
+                items(messages) { message ->
+                    ChatBubble(message, onNavigateToDetail)
+                }
+                
+                if (isAiTyping) {
+                    item {
+                        TypingIndicator()
+                    }
                 }
             }
-        }
-    }
-}
 
-@Composable
-fun QuickActionChip(label: String, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFE1BEE7).copy(alpha = 0.5f), // Matching screenshot color
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF9C27B0).copy(alpha = 0.3f))
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
-        )
+            ChatInput(
+                onSendMessage = { viewModel.sendMessage(it) },
+                isLoading = isAiTyping
+            )
+        }
     }
 }
 
@@ -234,8 +138,7 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
                                 DayLabel(trimmedLine)
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
-                            trimmedLine.contains(Regex("^\\p{So}|\\p{Sk}|\\p{Sm}") ) || trimmedLine.contains(Regex("\\d{2}:\\d{2}")) -> {
-                                // Line with emoji or time
+                            trimmedLine.contains(Regex("^\\p{So}|\\p{Sk}|\\p{Sm}")) || trimmedLine.contains(Regex("\\d{2}:\\d{2}")) -> {
                                 Text(
                                     text = line,
                                     color = if (message.isFromUser) Color.White else Color.Black,
@@ -275,12 +178,12 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
 @Composable
 fun DayLabel(text: String) {
     Surface(
-        color = Color(0xFFF3E5F5), // Light purple/pink matching screenshot
+        color = Color(0xFFF3E5F5),
         shape = RoundedCornerShape(8.dp)
     ) {
         Text(
             text = text,
-            color = Color(0xFFAD1457), // Content color
+            color = Color(0xFFAD1457),
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -293,24 +196,14 @@ fun PlanResponseView(destinations: List<Post>, onNavigateToDetail: (String) -> U
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.TravelExplore, contentDescription = null, tint = Color(0xFFC62828))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Plan romántico para dos 💖", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("📍 Lugares recomendados", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text("Destinos Sugeridos", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             Spacer(modifier = Modifier.height(12.dp))
-            
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                items(destinations) { destination ->
-                    DestinationMiniCard(destination) {
-                        onNavigateToDetail(destination.id)
-                    }
+                items(destinations) { post ->
+                    SuggestedDestinationItem(post) { onNavigateToDetail(post.id) }
                 }
             }
         }
@@ -318,26 +211,149 @@ fun PlanResponseView(destinations: List<Post>, onNavigateToDetail: (String) -> U
 }
 
 @Composable
-fun DestinationMiniCard(destination: Post, onClick: () -> Unit) {
+fun SuggestedDestinationItem(post: Post, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.size(200.dp, 120.dp).clip(RoundedCornerShape(16.dp)),
-        onClick = onClick
+        modifier = Modifier.size(160.dp, 200.dp).clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Box {
             AsyncImage(
-                model = destination.imageUrl,
+                model = post.imageUrl,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-                    .padding(8.dp),
-                contentAlignment = Alignment.BottomStart
+                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
+            )
+            Column(
+                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
             ) {
-                Text(destination.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Text(post.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
+                Text(post.location, color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+fun TypingIndicator() {
+    Row(
+        modifier = Modifier.padding(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        repeat(3) {
+            Box(
+                modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.Gray.copy(alpha = 0.5f))
+            )
+        }
+    }
+}
+
+@Composable
+fun TripsWelcomeHeader(onQuickPlan: (String) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Surface(
+            modifier = Modifier.size(80.dp),
+            shape = CircleShape,
+            color = Color.White
+        ) {
+            Icon(
+                Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = Color(0xFFC62828),
+                modifier = Modifier.padding(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            stringResource(R.string.trips_welcome),
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Text(
+            stringResource(R.string.trips_welcome_body),
+            fontSize = 14.sp,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            QuickPlanCard(stringResource(R.string.trips_quick_plan_1), Icons.Default.Favorite, Modifier.weight(1f)) { onQuickPlan(it) }
+            QuickPlanCard(stringResource(R.string.trips_quick_plan_2), Icons.Default.Groups, Modifier.weight(1f)) { onQuickPlan(it) }
+        }
+    }
+}
+
+@Composable
+fun QuickPlanCard(label: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: (String) -> Unit) {
+    Card(
+        modifier = modifier.clickable { onClick(label) },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(icon, null, tint = Color(0xFFC62828))
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(label, fontSize = 12.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        }
+    }
+}
+
+@Composable
+fun ChatInput(onSendMessage: (String) -> Unit, isLoading: Boolean) {
+    var text by remember { mutableStateOf("") }
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color.White,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .navigationBarsPadding(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                value = text,
+                onValueChange = { text = it },
+                placeholder = { Text(stringResource(R.string.trips_input_placeholder), fontSize = 14.sp) },
+                modifier = Modifier.weight(1f),
+                colors = TextFieldDefaults.colors(
+                    containerColor = Color(0xFFF5F5F5),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                ),
+                shape = RoundedCornerShape(24.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            FloatingActionButton(
+                onClick = {
+                    if (text.isNotBlank() && !isLoading) {
+                        onSendMessage(text)
+                        text = ""
+                    }
+                },
+                containerColor = Color(0xFFC62828),
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(20.dp))
             }
         }
     }

@@ -1,0 +1,180 @@
+<resources>
+    <string name="app_name">TuristGo</string>
+    
+    <!-- Bottom nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_trips">Trips</string>
+    <string name="nav_create">Create</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Notifications screen -->
+    <string name="notifications_title">Notifications</string>
+    <string name="read_all">Read all</string>
+    <string name="no_notifications">You have no notifications</string>
+    <string name="notif_new_post">New post in your area</string>
+    <string name="notif_new_post_msg">A safe zone has been reported in Valle del Cocora.</string>
+    <string name="notif_verified">Post Verified</string>
+    <string name="notif_verified_msg">Congrats! Your post in Cartagena has been verified.</string>
+    <string name="notif_badge">New Achievement Unlocked</string>
+    <string name="notif_badge_msg">You earned the \'First Explorer\' badge.</string>
+    <string name="notif_security">Safety Reminder</string>
+    <string name="notif_security_msg">Check the new hiking guidelines for the rainy season.</string>
+    <string name="time_ago_5m">5 min ago</string>
+    <string name="time_ago_1h">1 hour ago</string>
+    <string name="time_ago_3h">3 hours ago</string>
+    <string name="time_ago_1d">1 day ago</string>
+
+    <!-- Profile screen -->
+    <string name="my_profile">My Profile</string>
+    <string name="settings">Settings</string>
+    <string name="edit_profile">Edit Personal Data</string>
+    <string name="favorites">Favorites</string>
+    <string name="detailed_stats">Detailed Statistics</string>
+    <string name="my_badges">My Badges</string>
+    <string name="logout">Log Out</string>
+    <string name="my_posts">My Posts</string>
+    <string name="reputation">My Reputation</string>
+    <string name="level">Level 2: Explorer</string>
+    <string name="points_to_next">250 pts to Level 3: Adventurer</string>
+    <string name="active_posts">Active</string>
+    <string name="resolved_posts">Resolved</string>
+    <string name="pending_posts">Pending</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="preferences">Preferences</string>
+    <string name="language">Language</string>
+    <string name="notifications_settings">Notifications</string>
+    <string name="configure_alerts">Configure alerts</string>
+    <string name="legal_info">Legal Information</string>
+    <string name="usage_policy">Usage Policy</string>
+    <string name="privacy">Privacy</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="accept_terms">I accept the terms of use and the processing of my personal data according to the privacy policy</string>
+    <string name="about_app">About TuristGo</string>
+    <string name="version">Version 1.0.0</string>
+    <string name="account">Account</string>
+    <string name="close_session">Log Out</string>
+    <string name="delete_account">Delete account</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="use_system_theme">Use system theme</string>
+    <string name="help_support">Help &amp; Support</string>
+    <string name="help_support_content">If you need help, contact us at support@turistgo.com or visit our online help center.</string>
+    <string name="privacy_policy_content">At TuristGo, your privacy is our priority. We collect data only to improve your travel experience and never share it with third parties without your explicit consent.</string>
+    <string name="usage_terms_content">By using TuristGo, you agree to our community rules: respect other travelers, post truthful information, and enjoy exploring the world responsibly.</string>
+    <string name="confirm_delete_title">Delete account?</string>
+    <string name="confirm_delete_msg">This action is irreversible. All your data and history will be lost.</string>
+
+    <!-- Language picker dialog -->
+    <string name="select_language">Select language</string>
+    <string name="cancel">Cancel</string>
+    <string name="accept">Accept</string>
+
+    <!-- Search filter -->
+    <string name="search_placeholder">Where do you want to go?</string>
+    <string name="filter_by">Filter by</string>
+
+    <!-- Create post -->
+    <string name="new_post">New Post</string>
+    <string name="share_with_community">Share something with the community</string>
+    <string name="post_title">Post title</string>
+    <string name="select_category">Select a category</string>
+    <string name="description">Description</string>
+    <string name="exact_location">Exact location or area</string>
+    <string name="add_photos">Add photos</string>
+    <string name="publish">Publish</string>
+    <string name="post_to_moderation">Your post will be sent to moderation before being visible.</string>
+    <string name="generate_with_ai">AI</string>
+    <string name="ai_suggestion">AI Suggestion</string>
+    <string name="is_it_a">Is this a</string>
+    <string name="generating">Generating...</string>
+
+    <!-- Feed / Home -->
+    <string name="discover_next_adventure">Discover your next adventure</string>
+    <string name="login_btn">Log In</string>
+    <string name="register_btn">Create Account</string>
+    <string name="explore_world">Explore the world 🌍</string>
+    <string name="change_view">Change view</string>
+    <string name="popular_destinations">Popular Destinations</string>
+    <string name="default_user">Traveler</string>
+    <string name="welcome_msg">Hello, %1$s 👋</string>
+    <string name="app_description">Explore, plan, and share tourist routes with a community passionate about traveling. Discover incredible destinations, create personalized itineraries, and connect with travelers from across the globe.</string>
+
+    <!-- Categories -->
+    <string name="cat_all">All</string>
+    <string name="cat_mountain">Mountain</string>
+    <string name="cat_beach">Beach</string>
+    <string name="cat_gastronomy">Gastronomy</string>
+    <string name="cat_culture">Culture</string>
+    <string name="cat_adventure">Adventure</string>
+
+    <!-- Search Filters -->
+    <string name="filter_events">Events</string>
+    <string name="filter_places">Places</string>
+    <string name="filter_concerts">Concerts</string>
+    <string name="filter_sports">Sports</string>
+    <string name="filter_all">All</string>
+
+    <!-- Auth -->
+    <string name="email_label">Email address</string>
+    <string name="password_label">Password</string>
+    <string name="forgot_password">Forgot your password?</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="register_action">Register here</string>
+    <string name="or_continue_with">Or continue with</string>
+    <string name="create_account_title">Create your account</string>
+    <string name="join_community">Join our traveler community</string>
+    <string name="name_label">First Name</string>
+    <string name="lastname_label">Last Name</string>
+    <string name="age_label">Age</string>
+    <string name="country_label">Country</string>
+    <string name="city_label">City</string>
+    <string name="phone_label">Phone</string>
+    <string name="confirm_password_label">Confirm password</string>
+    <string name="start_now">Start now</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="login_action">Log in here</string>
+    <string name="creating_account">Creating account...</string>
+    <string name="creating_account_loading">Creating account...</string>
+    <string name="logo_description">TuristGo Logo</string>
+    <string name="department_label">Dept/State</string>
+    <string name="select_department">Select a department</string>
+    <string name="select_country_first">Select a country first</string>
+    <string name="select_department_first">Select a department</string>
+    <string name="select_city">Select a city</string>
+    <string name="address_label">Address</string>
+    <string name="address_placeholder">e.g. 123 Main St</string>
+
+    <!-- Complete Profile -->
+    <string name="complete_profile">Complete your profile</string>
+    <string name="complete_profile_desc">Please tell us a bit more about yourself to personalize your experience.</string>
+    <string name="profile_photo">Profile photo</string>
+    <string name="username_label">Username (@user)</string>
+    <string name="what_interests_you">What interests you?</string>
+    <string name="continue_to_feed">Continue to feed</string>
+    <string name="interest_tourism">Tourism</string>
+    <string name="interest_events">Events</string>
+    <string name="interest_concerts">Concerts</string>
+    <string name="interest_relax">Relaxation</string>
+    <string name="interest_gastronomy">Gastronomy</string>
+    <string name="interest_culture">Culture</string>
+    <string name="interest_adventure">Adventure</string>
+    <string name="interest_nature">Nature</string>
+    <string name="interest_beach">Beach</string>
+    <string name="select_your_language">Select your language</string>
+    <string name="enable_notifications">Enable site notifications</string>
+
+    <!-- Trips -->
+    <string name="trips_ai_subtitle">Your intelligent travel assistant</string>
+    <string name="trips_welcome">Hi! I\'m your travel assistant 🌍</string>
+    <string name="trips_welcome_body">Tell me what kind of trip you dream about and we\'ll plan it together.</string>
+    <string name="trips_quick_plan_1">Trip with my partner 💑</string>
+    <string name="trips_quick_plan_2">Family adventure 🏕️</string>
+    <string name="trips_input_placeholder">What trip do you want to plan?</string>
+
+    <!-- Placeholder screens titles -->
+    <string name="badges_title">My Achievements</string>
+    <string name="stats_title">My Progress</string>
+    <string name="review_post_title">Review Post</string>
+</resources>

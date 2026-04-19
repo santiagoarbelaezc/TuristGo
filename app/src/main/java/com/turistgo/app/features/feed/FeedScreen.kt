@@ -22,8 +22,9 @@ import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.FeedSearchBar
 import com.turistgo.app.features.feed.components.SearchContent
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.turistgo.app.core.locale.AppStrings
 import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,9 +32,6 @@ fun FeedScreen(
     onNavigateToDetail: (String) -> Unit,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
-
     val userSession by viewModel.userSession.collectAsState(initial = null)
     
     // Search & Filter State from ViewModel
@@ -44,16 +42,15 @@ fun FeedScreen(
     // UI Local State
     var isSearchActive by remember { mutableStateOf(false) }
     var isMapView by remember { mutableStateOf(false) }
-
     // Categories depend on search mode
     val feedCategories = listOf(
-        s.catAll, s.catMountain, s.catBeach,
-        s.catGastronomy, s.catCulture, s.catAdventure
+        stringResource(R.string.cat_all), stringResource(R.string.cat_mountain), stringResource(R.string.cat_beach),
+        stringResource(R.string.cat_gastronomy), stringResource(R.string.cat_culture), stringResource(R.string.cat_adventure)
     )
     
     val searchFilters = listOf(
-        s.filterAll, s.filterEvents, s.filterPlaces,
-        s.filterConcerts, s.filterSports
+        stringResource(R.string.filter_all), stringResource(R.string.filter_events), stringResource(R.string.filter_places),
+        stringResource(R.string.filter_concerts), stringResource(R.string.filter_sports)
     )
 
     val displayedCategories = if (isSearchActive) searchFilters else feedCategories
@@ -68,12 +65,12 @@ fun FeedScreen(
             title = {
                 Column {
                     Text(
-                        text = s.welcomeMessage(userSession?.name ?: s.defaultUser),
+                        text = stringResource(R.string.welcome_msg, userSession?.name ?: stringResource(R.string.default_user)),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = s.exploreWorld,
+                        text = stringResource(R.string.explore_world),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -90,7 +87,7 @@ fun FeedScreen(
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = if (isMapView) Icons.AutoMirrored.Filled.List else Icons.Default.Map,
-                            contentDescription = s.changeView,
+                            contentDescription = stringResource(R.string.change_view),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp)
                         )
@@ -118,7 +115,7 @@ fun FeedScreen(
             onFocusChange = { active ->
                 isSearchActive = active || searchQuery.isNotEmpty()
                 if (!isSearchActive) {
-                    viewModel.updateSearchCategory(s.catAll)
+                    viewModel.updateSearchCategory(stringResource(R.string.cat_all))
                 }
             }
         )
@@ -162,7 +159,7 @@ fun FeedScreen(
                 ) {
                     item {
                         Text(
-                            text = s.popularDestinations,
+                            text = stringResource(R.string.popular_destinations),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(bottom = 8.dp)

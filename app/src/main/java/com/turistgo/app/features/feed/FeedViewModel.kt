@@ -36,8 +36,9 @@ class FeedViewModel @Inject constructor(
     ) { posts, query, category ->
         var list = posts
         
-        // Filter by category if not "All"
-        if (category != "All" && category != "Todo") {
+        // Filter by category if not "All" variant
+        val isAllCategory = category == "All" || category == "Todo" || category == "Todos"
+        if (!isAllCategory) {
             list = list.filter { it.categories.contains(category) }
         }
         

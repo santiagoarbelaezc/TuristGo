@@ -16,8 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turistgo.app.core.locale.AppLanguage
-import com.turistgo.app.core.locale.AppStrings
 import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 import com.turistgo.app.core.theme.ThemeState
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -29,7 +30,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val lang by LanguageState.current
-    val s = AppStrings.get(lang)
     val currentTheme by ThemeState.isDarkMode
     
     var showLanguagePicker by remember { mutableStateOf(false) }
@@ -40,21 +40,21 @@ fun SettingsScreen(
 
     // Reusable Info Dialog
     if (showPrivacyDialog) {
-        InfoDialog(s.privacy, s.privacyPolicyContent) { showPrivacyDialog = false }
+        InfoDialog(stringResource(R.string.privacy), stringResource(R.string.privacy_policy_content)) { showPrivacyDialog = false }
     }
     if (showTermsDialog) {
-        InfoDialog(s.usagePolicy, s.usageTermsContent) { showTermsDialog = false }
+        InfoDialog(stringResource(R.string.usage_policy), stringResource(R.string.usage_terms_content)) { showTermsDialog = false }
     }
     if (showSupportDialog) {
-        InfoDialog(s.helpSupport, s.helpSupportContent) { showSupportDialog = false }
+        InfoDialog(stringResource(R.string.help_support), stringResource(R.string.help_support_content)) { showSupportDialog = false }
     }
 
     // Delete confirmation
     if (showDeleteConfirm) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text(s.confirmDeleteTitle, fontWeight = FontWeight.Bold) },
-            text = { Text(s.confirmDeleteMsg) },
+            title = { Text(stringResource(R.string.confirm_delete_title), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.confirm_delete_msg)) },
             confirmButton = {
                 Button(
                     onClick = { 
@@ -63,12 +63,12 @@ fun SettingsScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text(s.accept)
+                    Text(stringResource(R.string.accept))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text(s.cancel)
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -78,7 +78,7 @@ fun SettingsScreen(
     if (showLanguagePicker) {
         AlertDialog(
             onDismissRequest = { showLanguagePicker = false },
-            title = { Text(s.selectLanguage, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.select_language), fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     AppLanguage.entries.forEach { language ->
@@ -103,7 +103,7 @@ fun SettingsScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showLanguagePicker = false }) {
-                    Text(s.cancel)
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -115,10 +115,10 @@ fun SettingsScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         TopAppBar(
-            title = { Text(text = s.settingsTitle, fontWeight = FontWeight.Bold) },
+            title = { Text(text = stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = s.cancel)
+                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.cancel))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -131,18 +131,18 @@ fun SettingsScreen(
             item {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SettingsSectionLabel(s.preferences)
+                SettingsSectionLabel(stringResource(R.string.preferences))
                 SettingsCard {
                     SettingsRow(
                         icon = Icons.Default.Language,
-                        title = s.language,
+                        title = stringResource(R.string.language),
                         subtitle = lang.displayName,
                         onClick = { showLanguagePicker = true }
                     )
                     SettingsDivider()
                     SettingsRowWithSwitch(
                         icon = Icons.Default.DarkMode,
-                        title = s.darkMode,
+                        title = stringResource(R.string.dark_mode),
                         checked = currentTheme == true,
                         onCheckedChange = { viewModel.setTheme(if (it) true else null) }
                     )
@@ -150,30 +150,30 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                SettingsSectionLabel(s.legalInfo)
+                SettingsSectionLabel(stringResource(R.string.legal_info))
                 SettingsCard {
                     SettingsRow(
                         icon = Icons.Default.Policy,
-                        title = s.usagePolicy,
+                        title = stringResource(R.string.usage_policy),
                         onClick = { showTermsDialog = true }
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.PrivacyTip,
-                        title = s.privacy,
+                        title = stringResource(R.string.privacy),
                         onClick = { showPrivacyDialog = true }
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.Help,
-                        title = s.helpSupport,
+                        title = stringResource(R.string.help_support),
                         onClick = { showSupportDialog = true }
                     )
                     SettingsDivider()
                     SettingsRow(
                         icon = Icons.Default.Info,
-                        title = s.aboutApp,
-                        subtitle = s.version,
+                        title = stringResource(R.string.about_app),
+                        subtitle = stringResource(R.string.version),
                         onClick = {}
                     )
                 }

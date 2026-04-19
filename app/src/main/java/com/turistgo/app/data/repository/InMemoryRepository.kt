@@ -71,6 +71,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             description = "El concierto más esperado del año. Ven a disfrutar de todo el perreo de Feid en su ciudad natal.",
             schedule = "8:00 PM",
             priceRange = "Desde $150.000 COP",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Eventos", "Conciertos")
         ),
         Post(
@@ -82,6 +83,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             description = "Maluma Baby vuelve a casa. Un espectáculo de clase mundial con todos sus éxitos.",
             schedule = "9:00 PM",
             priceRange = "Desde $120.000 COP",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Eventos", "Conciertos")
         ),
         Post(
@@ -91,6 +93,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565121/jardin-antioquia_tup3m2.jpg",
             description = "Colores, café y mucha tradición. Disfruta de la arquitectura colonial más conservada de Antioquia.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Cultura", "Montaña")
         ),
         Post(
@@ -100,6 +103,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.7",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565120/discoteca-dulcinea-medellin_tnzany.png",
             description = "La mejor vida nocturna y gastronomía en el corazón de Provenza. Experiencias únicas cada noche.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Gastronomía")
         ),
         Post(
@@ -109,6 +113,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.7",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565119/santa-fe-de-antioquia_fin516.jpg",
             description = "La ciudad madre. Recorre sus calles de piedra y cruza el majestuoso Puente de Occidente.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Cultura")
         ),
         Post(
@@ -118,6 +123,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.9",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565119/comuna13_znro30.jpg",
             description = "Resiliencia y arte urbano. Una historia de transformación contada a través de graffitis y baile.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Cultura")
         ),
         Post(
@@ -127,6 +133,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.6",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/guatape_fqirly.jpg",
             description = "Un viaje al pasado sobre las aguas del embalse. Historia y paisajes inolvidables.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza")
         ),
         Post(
@@ -136,6 +143,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "5.0",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/cartagena-de-indias_xpuz0f.jpg",
             description = "La ciudad amurallada. Un laberinto de balcones florecidos e historia colonial junto al mar.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Cultura", "Playa")
         ),
         Post(
@@ -145,6 +153,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/isla-gorgona_ihfdeq.jpg",
             description = "Ciencia y naturaleza. La isla prisión que se convirtió en refugio para ballenas y selva virgen.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza")
         ),
         Post(
@@ -154,6 +163,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.7",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/atanasio-girardot_yf1m15.jpg",
             description = "El epicentro del fútbol antioqueño. Vive la pasión de un clásico con las mejores hinchadas.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Eventos", "Deportes")
         ),
         Post(
@@ -163,6 +173,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/filandia-quindio_xoexbk.jpg",
             description = "Artesanías y balcones. Un remanso de paz en el Eje Cafetero con vistas que quitan el aliento.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Montaña", "Cultura")
         ),
         Post(
@@ -172,6 +183,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.9",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565118/isla-del-rosario_kyr3vr.jpg",
             description = "Paraíso cristalino. Aguas turquesas y arrecifes de coral perfectos para el careteo.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza", "Playa")
         ),
         Post(
@@ -181,6 +193,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.7",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565117/rioclaro-antioquia_vmmqo6.jpg",
             description = "Aventura en el mármol. Rafting, canopy y espeleología en uno de los ríos más hermosos.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza", "Aventura")
         ),
         Post(
@@ -190,6 +203,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "5.0",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565117/hotel-sofitel-legend_alimox.jpg",
             description = "Lujo en el Santa Clara. Un antiguo convento transformado en el hotel más exclusivo de la ciudad.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Gastronomía")
         ),
         Post(
@@ -199,6 +213,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.6",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565117/san-fernando-plaza-medellin_dykccx.jpg",
             description = "El corazón de los negocios. Arquitectura moderna y gastronomía de alto nivel en la Milla de Oro.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares")
         ),
         Post(
@@ -208,6 +223,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.9",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565116/bastion-luxury-hotel_jzbxjr.jpg",
             description = "Elegancia republicana. Disfruta de la mejor terraza con vista al centro histórico.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares")
         ),
         Post(
@@ -217,6 +233,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565116/jw-marriot-bogota-hotel_zici8k.jpg",
             description = "Confort y sofisticación. La mejor opción para tu estadía en la capital colombiana.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares")
         ),
         Post(
@@ -226,6 +243,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.9",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565116/parquedelcafe_wvflxe.jpg",
             description = "Diversión con aroma a café. El parque temático más importante del Eje Cafetero.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Gastronomía")
         ),
         Post(
@@ -235,6 +253,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.7",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565116/parque-arvi-medellin_ybt6wk.jpg",
             description = "El pulmón verde de Medellín. Bosque de niebla y senderos prehispánicos a un teleférico de distancia.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza", "Montaña")
         ),
         Post(
@@ -244,6 +263,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565116/hotel-irotama-santa-marta_t0pqas.jpg",
             description = "Tradición frente al mar Caribe. Un lugar mágico para tus vacaciones familiares.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Playa")
         ),
         Post(
@@ -253,6 +273,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.8",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565115/panaca-quindio_bm4agw.jpg",
             description = "¡Sin campo no hay ciudad! El primer parque temático agropecuario del mundo.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza")
         ),
         Post(
@@ -262,6 +283,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             rating = "4.9",
             imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565115/hacienda-bambusa-quindio_ll6vo9.jpg",
             description = "Exclusividad entre cafetales. Una oasis de paz rodeado de naturaleza exuberante.",
+            status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza")
         )
     ))

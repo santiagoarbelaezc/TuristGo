@@ -43,6 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 
 // Importaciones del proyecto
+import com.turistgo.app.R
 import com.turistgo.app.core.navigation.MainRoutes
 import coil.compose.AsyncImage
 import com.turistgo.app.core.components.LoadingOverlay
@@ -122,7 +123,7 @@ fun RegisterScreen(
                 )
             }
 
-            LoadingOverlay(isLoading = isLoading, text = "Creando cuenta...")
+            LoadingOverlay(isLoading = isLoading, text = stringResource(R.string.creating_account_loading))
         }
     }
 }
@@ -134,7 +135,7 @@ private fun RegisterHeader() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         AsyncImage(
             model = imageUrl,
-            contentDescription = "Logo de TuristGo",
+            contentDescription = stringResource(R.string.logo_description),
             modifier = Modifier.size(100.dp),
             contentScale = ContentScale.Fit
         )
@@ -142,13 +143,13 @@ private fun RegisterHeader() {
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "Crear Cuenta",
+            text = stringResource(R.string.create_account_title),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Únete a la comunidad TuristGo",
+            text = stringResource(R.string.join_community),
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.secondary
         )
@@ -163,7 +164,7 @@ private fun PersonalDataSection(viewModel: RegisterViewModel, isLoading: Boolean
     OutlinedTextField(
         value = name,
         onValueChange = { viewModel.onNameChange(it) },
-        label = { Text("Nombre") },
+        label = { Text(stringResource(R.string.name_label)) },
         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -176,7 +177,7 @@ private fun PersonalDataSection(viewModel: RegisterViewModel, isLoading: Boolean
     OutlinedTextField(
         value = lastName,
         onValueChange = { viewModel.onLastNameChange(it) },
-        label = { Text("Apellidos") },
+        label = { Text(stringResource(R.string.lastname_label)) },
         leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -208,7 +209,7 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         OutlinedTextField(
             value = age,
             onValueChange = { viewModel.onAgeChange(it) },
-            label = { Text("Edad") },
+            label = { Text(stringResource(R.string.age_label)) },
             leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             modifier = Modifier.weight(0.4f),
             shape = MaterialTheme.shapes.medium,
@@ -226,7 +227,7 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
                 value = country,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("País") },
+                label = { Text(stringResource(R.string.country_label)) },
                 leadingIcon = { Icon(Icons.Default.Public, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = countryExpanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -263,14 +264,14 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
                 value = department,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Departamento") },
+                label = { Text(stringResource(R.string.department_label)) },
                 leadingIcon = { Icon(Icons.Default.Map, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = departmentExpanded) },
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 enabled = !isLoading,
                 colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                placeholder = { Text("Selecciona un departamento") }
+                placeholder = { Text(stringResource(R.string.select_department)) }
             )
             ExposedDropdownMenu(
                 expanded = departmentExpanded,
@@ -304,7 +305,7 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
             value = city,
             onValueChange = {},
             readOnly = true,
-            label = { Text("Ciudad") },
+            label = { Text(stringResource(R.string.city_label)) },
             leadingIcon = { Icon(Icons.Default.LocationCity, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
             modifier = Modifier.menuAnchor().fillMaxWidth(),
@@ -313,9 +314,9 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             placeholder = { 
                 when {
-                    country.isEmpty() -> Text("Selecciona primero un país")
-                    country == "Colombia" && department.isEmpty() -> Text("Selecciona un departamento")
-                    else -> Text("Selecciona una ciudad")
+                    country.isEmpty() -> Text(stringResource(R.string.select_country_first))
+                    country == "Colombia" && department.isEmpty() -> Text(stringResource(R.string.select_department_first))
+                    else -> Text(stringResource(R.string.select_city))
                 }
             }
         )
@@ -343,12 +344,12 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     OutlinedTextField(
         value = address,
         onValueChange = { viewModel.onAddressChange(it) },
-        label = { Text("Dirección") },
+        label = { Text(stringResource(R.string.address_label)) },
         leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         singleLine = true,
-        placeholder = { Text("Ej: Calle 123 #45-67") },
+        placeholder = { Text(stringResource(R.string.address_placeholder)) },
         enabled = !isLoading
     )
 }
@@ -401,7 +402,7 @@ private fun ContactSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         OutlinedTextField(
             value = phone,
             onValueChange = { viewModel.onPhoneChange(it) },
-            label = { Text("Teléfono") },
+            label = { Text(stringResource(R.string.phone_label)) },
             leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
             modifier = Modifier.weight(1f),
             shape = MaterialTheme.shapes.medium,
@@ -416,7 +417,7 @@ private fun ContactSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     OutlinedTextField(
         value = email,
         onValueChange = { viewModel.onEmailChange(it) },
-        label = { Text("Correo electrónico") },
+        label = { Text(stringResource(R.string.email_label)) },
         leadingIcon = { Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
@@ -437,7 +438,7 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     OutlinedTextField(
         value = password,
         onValueChange = { viewModel.onPasswordChange(it) },
-        label = { Text("Contraseña") },
+        label = { Text(stringResource(R.string.password_label)) },
         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         trailingIcon = {
             val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -457,7 +458,7 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     OutlinedTextField(
         value = confirmPassword,
         onValueChange = { viewModel.onConfirmPasswordChange(it) },
-        label = { Text("Confirmar contraseña") },
+        label = { Text(stringResource(R.string.confirm_password_label)) },
         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         trailingIcon = {
             val image = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff

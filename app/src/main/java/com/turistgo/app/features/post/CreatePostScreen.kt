@@ -26,6 +26,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.data.GeminiService
 import com.turistgo.app.core.navigation.MainRoutes
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -130,24 +132,16 @@ fun CreatePostScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "Nueva Publicación",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            },
+        CenterAlignedTopAppBar(
+            title = { Text(stringResource(R.string.new_post), fontWeight = FontWeight.Bold) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onBackground)
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
-            ),
-            windowInsets = WindowInsets(0, 0, 0, 0)
+            )
         )
 
         Column(
@@ -159,7 +153,7 @@ fun CreatePostScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Comparte algo con la comunidad",
+                text = stringResource(R.string.share_with_community),
                 fontSize = 14.sp,
                 color = Color(0xFF888888),
                 modifier = Modifier.padding(bottom = 20.dp)
@@ -256,7 +250,7 @@ fun CreatePostScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             ) {
                 Text(
-                    text = "Descripción",
+                    text = stringResource(R.string.description),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
                     color = Color(0xFF1A1A1A),

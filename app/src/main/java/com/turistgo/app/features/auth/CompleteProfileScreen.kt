@@ -27,8 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.turistgo.app.core.locale.AppStrings
 import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 import com.turistgo.app.core.locale.AppLanguage
 import com.turistgo.app.core.components.LoadingOverlay
 
@@ -39,9 +40,6 @@ fun CompleteProfileScreen(
     onNavigateToFeed: () -> Unit,
     viewModel: CompleteProfileViewModel = hiltViewModel()
 ) {
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
-
     val username by viewModel.username
     val photoUri by viewModel.photoUri
     val interests by viewModel.interests
@@ -66,15 +64,15 @@ fun CompleteProfileScreen(
     }
 
     val availableInterests = listOf(
-        s.interestTourism,
-        s.interestEvents,
-        s.interestGastronomy,
-        s.interestAdventure,
-        s.interestCulture,
-        s.interestNature,
-        s.interestBeach,
-        s.interestConcerts,
-        s.interestRelax,
+        stringResource(R.string.interest_tourism),
+        stringResource(R.string.interest_events),
+        stringResource(R.string.interest_gastronomy),
+        stringResource(R.string.interest_adventure),
+        stringResource(R.string.interest_culture),
+        stringResource(R.string.interest_nature),
+        stringResource(R.string.interest_beach),
+        stringResource(R.string.interest_concerts),
+        stringResource(R.string.interest_relax),
     )
 
     Scaffold(
@@ -98,7 +96,7 @@ fun CompleteProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = s.completeProfile,
+                    text = stringResource(R.string.complete_profile),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -106,7 +104,7 @@ fun CompleteProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = s.completeProfileDesc,
+                    text = stringResource(R.string.complete_profile_desc),
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
@@ -138,13 +136,13 @@ fun CompleteProfileScreen(
                         )
                     }
                 }
-                Text(text = s.profilePhoto, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(top = 8.dp))
+                Text(text = stringResource(R.string.profile_photo), fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(top = 8.dp))
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // 2. Language Selection
                 Text(
-                    text = s.selectYourLanguage,
+                    text = stringResource(R.string.select_your_language),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth(),
@@ -186,7 +184,7 @@ fun CompleteProfileScreen(
                 OutlinedTextField(
                     value = username,
                     onValueChange = { viewModel.onUsernameChange(it) },
-                    placeholder = { Text(s.usernameLabel) },
+                    placeholder = { Text(stringResource(R.string.username_label)) },
                     leadingIcon = { Icon(Icons.Default.AlternateEmail, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -198,7 +196,7 @@ fun CompleteProfileScreen(
 
                 // 4. Interests
                 Text(
-                    text = s.whatInterestsYou,
+                    text = stringResource(R.string.what_interests_you),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth(),

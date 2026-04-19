@@ -32,8 +32,8 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.compose.runtime.*
-import com.turistgo.app.core.locale.AppStrings
-import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,8 +48,6 @@ fun ProfileScreen(
 ) {
     val userSession by viewModel.userSession.collectAsState(initial = null)
     val userProfile by viewModel.userProfile.collectAsState(initial = null)
-    val lang by LanguageState.current
-    val s = AppStrings.get(lang)
 
     // Prioritize user profile photo, then session photo, then default placeholder
     val profileImageUrl = userProfile?.profilePhotoUrl 
@@ -63,10 +61,10 @@ fun ProfileScreen(
     ) {
         // Custom TopBar Area
         CenterAlignedTopAppBar(
-                title = { Text(s.myProfile, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.my_profile), fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = onNavigateToSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = s.settings)
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.settings))
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -155,9 +153,9 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = s.active,   value = "5")
-                    StatItem(label = s.resolved, value = "8")
-                    StatItem(label = s.pending,  value = "2")
+                    StatItem(label = stringResource(R.string.active_posts),   value = "5")
+                    StatItem(label = stringResource(R.string.resolved_posts), value = "8")
+                    StatItem(label = stringResource(R.string.pending_posts),  value = "2")
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -169,7 +167,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp)
                 ) {
                     Text(
-                        text = s.reputation,
+                        text = stringResource(R.string.reputation),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -186,7 +184,7 @@ fun ProfileScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(s.level, fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.level), fontWeight = FontWeight.SemiBold)
                                 Text("1,250 pts", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -201,7 +199,7 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                s.pointsToNext,
+                                stringResource(R.string.points_to_next),
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -211,7 +209,7 @@ fun ProfileScreen(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Text(
-                        text = s.myBadges,
+                        text = stringResource(R.string.my_badges),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)
@@ -235,18 +233,18 @@ fun ProfileScreen(
             item {
                 ProfileMenuItem(
                     icon = Icons.Default.Person, 
-                    title = s.editProfile,
+                    title = stringResource(R.string.edit_profile),
                     onClick = onNavigateToEditProfile
                 )
-                ProfileMenuItem(icon = Icons.Default.Bookmark, title = s.favorites)
+                ProfileMenuItem(icon = Icons.Default.Bookmark, title = stringResource(R.string.favorites))
                 ProfileMenuItem(
                     icon = Icons.Default.BarChart, 
-                    title = s.detailedStats,
+                    title = stringResource(R.string.detailed_stats),
                     onClick = onNavigateToStats
                 )
                 ProfileMenuItem(
                     icon = Icons.Default.MilitaryTech,
-                    title = s.myBadges,
+                    title = stringResource(R.string.my_badges),
                     onClick = onNavigateToBadges
                 )
                 
@@ -263,7 +261,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp, vertical = 8.dp),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Text(s.logout, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.logout), fontWeight = FontWeight.Bold)
                 }
 
                 // Eliminamos el botón de aquí ya que se movió a ajustes
@@ -276,7 +274,7 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp)
                 ) {
                     Text(
-                        text = s.myPosts,
+                        text = stringResource(R.string.my_posts),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         modifier = Modifier.padding(bottom = 12.dp)

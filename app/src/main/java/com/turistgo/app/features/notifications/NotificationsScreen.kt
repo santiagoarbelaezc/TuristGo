@@ -17,8 +17,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.turistgo.app.core.locale.AppStrings
-import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.res.stringResource
+import com.turistgo.app.R
 
 data class Notification(
     val id: Int,
@@ -110,7 +110,6 @@ fun NotificationsScreen() {
                             }
                         }
                     )
-                    // Separator line between items (only between, not after last)
                     if (notification.id != notifications.last().id) {
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 20.dp),

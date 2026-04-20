@@ -147,10 +147,10 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    private val _moderationAlert = mutableStateOf<String?>(null)
-    val moderationAlert: State<String?> = _moderationAlert
+    private val _moderationAlert = mutableStateOf(com.turistgo.app.core.models.AlertState())
+    val moderationAlert: State<com.turistgo.app.core.models.AlertState> = _moderationAlert
 
-    fun dismissModerationAlert() { _moderationAlert.value = null }
+    fun dismissModerationAlert() { _moderationAlert.value = _moderationAlert.value.copy(isVisible = false) }
 
     fun savePost(onSuccess: () -> Unit) {
         viewModelScope.launch {
@@ -160,7 +160,12 @@ class CreatePostViewModel @Inject constructor(
                 _selectedImageUri.value?.let { uri ->
                     val safetyResult = com.turistgo.app.data.GeminiService.isImageSafe(uri)
                     if (!safetyResult.isSafe) {
-                        _moderationAlert.value = safetyResult.reason
+                        _moderationAlert.value = com.turistgo.app.core.models.AlertState(
+                            title = "Imagen Bloqueada",
+                            message = safetyResult.reason ?: "Esta imagen no cumple con nuestras normas de seguridad.",
+                            type = com.turistgo.app.core.models.AlertType.WARNING,
+                            isVisible = true
+                        )
                         _isUploading.value = false
                         return@launch
                     }

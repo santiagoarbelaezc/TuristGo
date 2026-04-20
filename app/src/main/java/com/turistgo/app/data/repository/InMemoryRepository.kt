@@ -471,6 +471,15 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     }
 
     override suspend fun sendFollowRequest(senderId: String, senderName: String, targetUserId: String) {
+        // Track the pending request for the sender
+        users.value = users.value.map { user ->
+            if (user.id == senderId) {
+                if (!user.pendingFollowRequestIds.contains(targetUserId)) {
+                    user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds + targetUserId)
+                } else user
+            } else user
+        }
+
         val notification = Notification(
             id = java.util.UUID.randomUUID().toString(),
             userId = targetUserId,
@@ -488,6 +497,13 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         val senderId = notification.senderId ?: return
         val targetId = notification.userId // The person who received it
         
+        // Remove from sender's pending list regardless of result
+        users.value = users.value.map { user ->
+            if (user.id == senderId) {
+                user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds - targetId)
+            } else user
+        }
+
         if (accepted) {
             toggleFollow(senderId, targetId)
             

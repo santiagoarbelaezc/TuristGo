@@ -41,14 +41,18 @@ object GeminiService {
     suspend fun isTextSafe(text: String): SafetyResult = withContext(Dispatchers.IO) {
         delay(1000) // Simular análisis
         
-        // Simulación: Palabras prohibidas
-        val forbidden = listOf("tonto", "estúpido", "idiota", "spam", "basura", "fuck", "shit")
+        // Simulación: Lista ampliada de palabras inapropiadas (Incluyendo locales)
+        val forbidden = listOf(
+            "tonto", "estúpido", "idiota", "spam", "basura", "fuck", "shit", 
+            "hpta", "gonorrea", "malparido", "hijueputa", "h p", "puta", "perra",
+            "mierda", "malparida", "caremonda", "pirobo"
+        )
         val found = forbidden.filter { text.lowercase().contains(it) }
         
         if (found.isNotEmpty()) {
             SafetyResult(
                 isSafe = false,
-                reason = "Tu mensaje contiene lenguaje inapropiado (${found.joinToString(", ")}). Por favor, mantén el respeto en la comunidad."
+                reason = "Se ha detectado lenguaje inapropiado en tu mensaje. Por favor, mantén el respeto en la comunidad."
             )
         } else {
             SafetyResult(isSafe = true)

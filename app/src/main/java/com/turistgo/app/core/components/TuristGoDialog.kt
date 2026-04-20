@@ -44,49 +44,55 @@ fun TuristGoDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f)),
+                    .background(Color.Black.copy(alpha = 0.5f)),
                 contentAlignment = Alignment.Center
             ) {
-                Card(
+                Surface(
                     modifier = Modifier
-                        .fillMaxWidth(0.85f)
-                        .padding(bottom = 64.dp),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                        .fillMaxWidth(0.88f)
+                        .padding(horizontal = 24.dp),
+                    shape = RoundedCornerShape(32.dp),
+                    color = Color.White.copy(alpha = 0.98f),
+                    tonalElevation = 8.dp,
+                    shadowElevation = 16.dp
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
+                            .padding(28.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Icon header with dynamic colors
+                        // Icon header with gradient background
                         val (icon, color) = getAlertDetails(state.type)
                         
                         Box(
                             modifier = Modifier
-                                .size(72.dp)
+                                .size(84.dp)
                                 .clip(CircleShape)
-                                .background(color.copy(alpha = 0.12f)),
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(color.copy(alpha = 0.15f), color.copy(alpha = 0.05f))
+                                    )
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = color,
-                                modifier = Modifier.size(40.dp)
+                                modifier = Modifier.size(44.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
                             text = state.title,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 22.sp,
+                                letterSpacing = (-0.5).sp
+                            ),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
@@ -95,13 +101,15 @@ fun TuristGoDialog(
 
                         Text(
                             text = state.message,
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp
+                            ),
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center,
-                            lineHeight = 22.sp
+                            textAlign = TextAlign.Center
                         )
 
-                        Spacer(modifier = Modifier.height(28.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
 
                         Button(
                             onClick = {
@@ -110,16 +118,22 @@ fun TuristGoDialog(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(50.dp),
-                            shape = RoundedCornerShape(16.dp),
+                                .height(56.dp),
+                            shape = RoundedCornerShape(18.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = color
+                            ),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 4.dp,
+                                pressedElevation = 0.dp
                             )
                         ) {
                             Text(
                                 text = "Continuar",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
                             )
                         }
                     }

@@ -452,6 +452,9 @@ fun AppNavigation(
                     innerPadding = innerPadding,
                     onNavigateToPostDetail = { postId ->
                         navController.navigate(MainRoutes.PostDetail(postId))
+                    },
+                    onNavigateToUserProfile = { userId ->
+                        navController.navigate(MainRoutes.PublicProfile(userId))
                     }
                 ) 
             }

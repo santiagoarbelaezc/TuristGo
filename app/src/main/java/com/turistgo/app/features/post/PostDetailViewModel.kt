@@ -72,10 +72,12 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
-    private val _moderationAlert = MutableStateFlow<String?>(null)
-    val moderationAlert: StateFlow<String?> = _moderationAlert.asStateFlow()
+    private val _moderationAlert = MutableStateFlow(com.turistgo.app.core.models.AlertState())
+    val moderationAlert: StateFlow<com.turistgo.app.core.models.AlertState> = _moderationAlert.asStateFlow()
 
-    fun dismissModerationAlert() { _moderationAlert.value = null }
+    fun dismissModerationAlert() {
+        _moderationAlert.value = _moderationAlert.value.copy(isVisible = false)
+    }
 
     fun addComment(content: String) {
         val post = _post.value ?: return
@@ -83,7 +85,12 @@ class PostDetailViewModel @Inject constructor(
             // --- MODERACIÓN POR IA ---
             val safetyResult = com.turistgo.app.data.GeminiService.isTextSafe(content)
             if (!safetyResult.isSafe) {
-                _moderationAlert.value = safetyResult.reason
+                _moderationAlert.value = com.turistgo.app.core.models.AlertState(
+                    title = "Contenido Bloqueado",
+                    message = safetyResult.reason ?: "Este comentario no cumple con nuestras normas.",
+                    type = com.turistgo.app.core.models.AlertType.WARNING,
+                    isVisible = true
+                )
                 return@launch
             }
 

@@ -1,6 +1,7 @@
 package com.turistgo.app.features.notifications
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,31 +21,39 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.turistgo.app.R
 import com.turistgo.app.domain.model.Notification
 import com.turistgo.app.domain.model.NotificationType
 import kotlinx.coroutines.flow.collectLatest
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
     innerPadding: PaddingValues = PaddingValues(0.dp),
     onNavigateToPostDetail: (String) -> Unit = {},
+    onNavigateToUserProfile: (String) -> Unit = {},
     viewModel: NotificationsViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     val notifications by viewModel.notifications.collectAsState()
 
-    // Manejo de Navegación desde Notificaciones
+    // Manejo de Navegación
     LaunchedEffect(viewModel.navigationEvent) {
         viewModel.navigationEvent.collectLatest { event ->
             when (event) {
-                is NotificationNavigationEvent.ToPostDetail -> {
-                    onNavigateToPostDetail(event.postId)
-                }
+                is NotificationNavigationEvent.ToPostDetail -> onNavigateToPostDetail(event.postId)
+                is NotificationNavigationEvent.ToUserProfile -> onNavigateToUserProfile(event.userId)
             }
         }
+    }
+
+    val groupedNotifications = remember(notifications) {
+        groupNotificationsByDate(notifications)
     }
 
     Column(
@@ -54,11 +63,11 @@ fun NotificationsScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        // --- HEADER PREMIUM ---
+        // --- HEADER PREMIUM (GLASS EFFECT) ---
         Surface(
-            modifier = Modifier.fillMaxWidth().shadow(4.dp),
+            modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.background,
-            tonalElevation = 2.dp
+            tonalElevation = 0.dp
         ) {
             Column(
                 modifier = Modifier
@@ -73,34 +82,28 @@ fun NotificationsScreen(
                     Text(
                         text = stringResource(R.string.notifications_title),
                         style = MaterialTheme.typography.displaySmall.copy(
-                            fontSize = 28.sp,
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            letterSpacing = (-0.5).sp
+                            letterSpacing = (-1).sp
                         ),
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     
                     if (notifications.any { !it.isRead }) {
-                        IconButton(
+                        Surface(
                             onClick = { viewModel.markAllAsRead() },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            contentColor = MaterialTheme.colorScheme.primary
                         ) {
-                            Icon(Icons.Default.DoneAll, "Marcar todas como leídas", modifier = Modifier.size(20.dp))
+                            Icon(
+                                Icons.Default.DoneAll, 
+                                "Leídas", 
+                                modifier = Modifier.padding(10.dp).size(20.dp)
+                            )
                         }
                     }
                 }
-                
-                Text(
-                    text = if (notifications.count { !it.isRead } > 0) 
-                        "Tienes ${notifications.count { !it.isRead }} notificaciones nuevas" 
-                    else "Todas tus notificaciones están al día",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
         }
 
@@ -108,20 +111,33 @@ fun NotificationsScreen(
             EmptyNotificationsState()
         } else {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(notifications, key = { it.id }) { notification ->
-                    NotificationCard(
-                        notification = notification,
-                        onClick = { viewModel.onNotificationClick(notification) },
-                        onAcceptFollow = { viewModel.acceptFollowRequest(notification.id) },
-                        onRejectFollow = { viewModel.rejectFollowRequest(notification.id) }
-                    )
+                groupedNotifications.forEach { (dateHeader, items) ->
+                    item {
+                        Text(
+                            text = dateHeader,
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                letterSpacing = 1.sp
+                            ),
+                            modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                        )
+                    }
+                    items(items, key = { it.id }) { notification ->
+                        NotificationCard(
+                            notification = notification,
+                            onClick = { viewModel.onNotificationClick(notification) },
+                            onAcceptFollow = { viewModel.acceptFollowRequest(notification.id) },
+                            onRejectFollow = { viewModel.rejectFollowRequest(notification.id) }
+                        )
+                    }
                 }
+                
+                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }
@@ -135,47 +151,50 @@ fun NotificationCard(
     onRejectFollow: () -> Unit
 ) {
     val (iconVec, iconColor) = when (notification.type) {
-        NotificationType.NEW_POST     -> Icons.Default.Explore to Color(0xFF673AB7)
-        NotificationType.VERIFICATION -> Icons.Default.VerifiedUser to Color(0xFF4CAF50)
-        NotificationType.REPUTATION   -> Icons.Default.LocalFireDepartment to Color(0xFFFF9800)
-        NotificationType.COMMENT      -> Icons.Default.Comment to Color(0xFFE91E63)
-        NotificationType.FOLLOW_REQUEST -> Icons.Default.PersonSearch to Color(0xFF2196F3)
-        NotificationType.FOLLOW_ACCEPTED -> Icons.Default.GroupAdd to Color(0xFF009688)
+        NotificationType.NEW_POST     -> Icons.Default.Map to Color(0xFF9C27B0)
+        NotificationType.VERIFICATION -> Icons.Default.Verified to Color(0xFF2E7D32)
+        NotificationType.REPUTATION   -> Icons.Default.Star to Color(0xFFFFA000)
+        NotificationType.COMMENT      -> Icons.Default.ChatBubbleOutline to Color(0xFFE91E63)
+        NotificationType.FOLLOW_REQUEST -> Icons.Default.PersonAddAlt1 to Color(0xFF1976D2)
+        NotificationType.FOLLOW_ACCEPTED -> Icons.Default.PersonOutline to Color(0xFF00BFA5)
         else -> Icons.Default.Notifications to MaterialTheme.colorScheme.primary
     }
 
     val isUnread = !notification.isRead
 
-    ElevatedCard(
+    Surface(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
-                elevation = if (isUnread) 4.dp else 0.dp,
-                shape = RoundedCornerShape(20.dp),
+                elevation = if (isUnread) 8.dp else 2.dp,
+                shape = RoundedCornerShape(28.dp),
                 spotColor = iconColor.copy(alpha = 0.5f)
             ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = if (isUnread) Color.White else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        shape = RoundedCornerShape(28.dp),
+        color = if (isUnread) MaterialTheme.colorScheme.surface.copy(alpha = 0.85f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
+        border = BorderStroke(
+            1.dp, 
+            if (isUnread) iconColor.copy(alpha = 0.3f) else Color.LightGray.copy(alpha = 0.2f)
         )
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .background(
+                    if (isUnread) Brush.horizontalGradient(
+                        colors = listOf(iconColor.copy(alpha = 0.05f), Color.Transparent)
+                    ) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+                )
+                .padding(18.dp)
         ) {
             Row(verticalAlignment = Alignment.Top) {
-                // Icono decorativo con gradiente suave de fondo
+                // Circle Icon with Soft Glow
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(iconColor.copy(alpha = 0.1f), iconColor.copy(alpha = 0.2f))
-                            )
-                        ),
+                        .background(iconColor.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -191,49 +210,42 @@ fun NotificationCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = notification.title,
-                        fontWeight = if (isUnread) FontWeight.ExtraBold else FontWeight.Bold,
-                        fontSize = 16.sp,
-                        color = if (isUnread) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = if (isUnread) FontWeight.ExtraBold else FontWeight.Bold,
+                            fontSize = 15.sp
+                        ),
+                        color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = notification.message,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 18.sp
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Hace un momento", 
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.outline,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    // Acciones especiales para Solicitud de Seguimiento
                     if (notification.type == NotificationType.FOLLOW_REQUEST && !notification.isRead) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Button(
                                 onClick = onAcceptFollow,
-                                modifier = Modifier.weight(1f).height(38.dp),
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp)
+                                modifier = Modifier.weight(1f).height(40.dp),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Aceptar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("Aceptar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                             
                             OutlinedButton(
                                 onClick = onRejectFollow,
-                                modifier = Modifier.weight(1f).height(38.dp),
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 8.dp)
+                                modifier = Modifier.weight(1f).height(40.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                             ) {
-                                Text("Rechazar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text("Rechazar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -242,9 +254,11 @@ fun NotificationCard(
                 if (isUnread) {
                     Box(
                         modifier = Modifier
+                            .padding(top = 4.dp)
                             .size(10.dp)
                             .clip(CircleShape)
                             .background(iconColor)
+                            .align(Alignment.Top)
                     )
                 }
             }
@@ -254,28 +268,54 @@ fun NotificationCard(
 
 @Composable
 fun EmptyNotificationsState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
             Icon(
                 Icons.Default.NotificationsNone,
                 null,
-                Modifier.size(80.dp),
-                MaterialTheme.colorScheme.outlineVariant
+                Modifier.size(100.dp).alpha(0.15f),
+                MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
-                "No hay notificaciones", 
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                "Silencio total", 
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
             Text(
-                "Te avisaremos cuando pase algo interesante",
+                "Te avisaremos cuando haya novedades en tu comunidad aventurera.",
+                textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.secondary,
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
+}
+
+private fun groupNotificationsByDate(notifications: List<Notification>): Map<String, List<Notification>> {
+    val groups = LinkedHashMap<String, MutableList<Notification>>()
+    val now = Calendar.getInstance()
+    val today = now.get(Calendar.DAY_OF_YEAR)
+    val year = now.get(Calendar.YEAR)
+    
+    val sdf = SimpleDateFormat("dd MMMM", Locale("es", "CO"))
+
+    notifications.forEach { notification ->
+        val cal = Calendar.getInstance()
+        cal.timeInMillis = notification.timestamp
+        
+        val header = when {
+            cal.get(Calendar.YEAR) == year && cal.get(Calendar.DAY_OF_YEAR) == today -> "HOY"
+            cal.get(Calendar.YEAR) == year && cal.get(Calendar.DAY_OF_YEAR) == today - 1 -> "AYER"
+            else -> sdf.format(cal.time).uppercase()
+        }
+        
+        groups.getOrPut(header) { mutableListOf() }.add(notification)
+    }
+    return groups
 }

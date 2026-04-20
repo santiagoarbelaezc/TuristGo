@@ -63,27 +63,11 @@ fun CreatePostScreen(
     val longitude          by viewModel.longitude
     val moderationAlert    by viewModel.moderationAlert
     
-    // --- DIÁLOGO DE MODERACIÓN POR IA ---
-    if (moderationAlert != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissModerationAlert() },
-            title = { 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Block, null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Imagen No Permitida")
-                }
-            },
-            text = { Text(moderationAlert ?: "") },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissModerationAlert() }) {
-                    Text("Cerrar")
-                }
-            },
-            shape = RoundedCornerShape(24.dp),
-            containerColor = Color.White
-        )
-    }
+    // --- DIÁLOGO DE MODERACIÓN POR IA (PREMIUM) ---
+    com.turistgo.app.core.components.TuristGoDialog(
+        state = moderationAlert,
+        onDismiss = { viewModel.dismissModerationAlert() }
+    )
     
     val department           by viewModel.department
     val city                 by viewModel.city

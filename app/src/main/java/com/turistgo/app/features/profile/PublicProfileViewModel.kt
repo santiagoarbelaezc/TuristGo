@@ -46,6 +46,15 @@ class PublicProfileViewModel @Inject constructor(
         current != null && target != null && current.id == target.id
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isPendingRequest: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
+        current != null && target != null && current.pendingFollowRequestIds.contains(target.id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val isMutualFollow: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
+        current != null && target != null && 
+        current.followingIds.contains(target.id) && target.followingIds.contains(current.id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val userPosts: StateFlow<List<Post>> = _userId.flatMapLatest { id ->
         if (id != null) repository.getPostsByAuthor(id)

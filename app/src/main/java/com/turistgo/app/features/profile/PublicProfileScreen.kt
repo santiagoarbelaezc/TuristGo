@@ -128,28 +128,51 @@ fun PublicProfileScreen(
                 }
 
                 val isFollowing by viewModel.isFollowing.collectAsState()
+                val isMutual by viewModel.isMutualFollow.collectAsState()
+                val isPending by viewModel.isPendingRequest.collectAsState()
                 val isMe by viewModel.isMe.collectAsState()
 
                 if (!isMe) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { viewModel.requestFollow() },
+                        onClick = { if (!isFollowing && !isPending) viewModel.requestFollow() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                             .height(48.dp),
+                        enabled = !isFollowing && !isPending,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isFollowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
-                            contentColor = if (isFollowing) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
+                            containerColor = when {
+                                isMutual -> Color(0xFF00BFA5).copy(alpha = 0.2f)
+                                isFollowing -> MaterialTheme.colorScheme.surfaceVariant
+                                isPending -> Color.LightGray.copy(alpha = 0.5f)
+                                else -> MaterialTheme.colorScheme.primary
+                            },
+                            contentColor = when {
+                                isMutual -> Color(0xFF00BFA5)
+                                isFollowing -> MaterialTheme.colorScheme.onSurfaceVariant
+                                isPending -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                else -> Color.White
+                            }
                         )
                     ) {
-                        Icon(
-                            imageVector = if (isFollowing) Icons.Default.Check else Icons.Default.PersonAdd,
-                            contentDescription = null
-                        )
+                        val icon = when {
+                            isMutual -> Icons.Default.Group
+                            isFollowing -> Icons.Default.Check
+                            isPending -> Icons.Default.HourglassEmpty
+                            else -> Icons.Default.PersonAdd
+                        }
+                        val text = when {
+                            isMutual -> "Amigos"
+                            isFollowing -> "Siguiendo"
+                            isPending -> "Solicitado"
+                            else -> "Seguir"
+                        }
+                        
+                        Icon(imageVector = icon, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = if (isFollowing) "Siguiendo" else "Seguir", fontWeight = FontWeight.Bold)
+                        Text(text = text, fontWeight = FontWeight.Bold)
                     }
                 }
 

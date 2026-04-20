@@ -45,6 +45,11 @@ class NotificationsViewModel @Inject constructor(
                         _navigationEvent.emit(NotificationNavigationEvent.ToPostDetail(it))
                     }
                 }
+                com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST -> {
+                    notification.senderId?.let {
+                        _navigationEvent.emit(NotificationNavigationEvent.ToUserProfile(it))
+                    }
+                }
                 else -> { /* Other types may not have specific navigation */ }
             }
         }
@@ -80,4 +85,5 @@ class NotificationsViewModel @Inject constructor(
 
 sealed class NotificationNavigationEvent {
     data class ToPostDetail(val postId: String) : NotificationNavigationEvent()
+    data class ToUserProfile(val userId: String) : NotificationNavigationEvent()
 }

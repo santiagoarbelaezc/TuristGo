@@ -48,27 +48,11 @@ fun PostDetailScreen(
         destinationId?.let { viewModel.loadPost(it) }
     }
 
-    // --- DIÁLOGO DE MODERACIÓN POR IA ---
-    if (moderationAlert != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissModerationAlert() },
-            title = { 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Contenido Bloqueado")
-                }
-            },
-            text = { Text(moderationAlert ?: "") },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissModerationAlert() }) {
-                    Text("Entendido")
-                }
-            },
-            shape = RoundedCornerShape(24.dp),
-            containerColor = Color.White
-        )
-    }
+    // --- DIÁLOGO DE MODERACIÓN POR IA (PREMIUM) ---
+    com.turistgo.app.core.components.TuristGoDialog(
+        state = moderationAlert,
+        onDismiss = { viewModel.dismissModerationAlert() }
+    )
 
     // Data from the fetched post or defaults
     val title = post?.name ?: "Cargando..."
@@ -301,7 +285,8 @@ fun PostDetailScreen(
                                 author = comment.authorName, 
                                 content = comment.content, 
                                 time = "Justo ahora",
-                                authorPhoto = comment.authorPhotoUrl
+                                authorPhoto = comment.authorPhotoUrl,
+                                onProfileClick = { onNavigateToUserProfile(comment.authorId) }
                             )
                         }
                     }
@@ -367,18 +352,33 @@ fun DetailRow(icon: androidx.compose.ui.graphics.vector.ImageVector, label: Stri
 
 
 @Composable
-fun CommentItem(author: String, content: String, time: String, authorPhoto: String? = null) {
+fun CommentItem(
+    author: String, 
+    content: String, 
+    time: String, 
+    authorPhoto: String? = null,
+    onProfileClick: () -> Unit = {}
+) {
     Row(modifier = Modifier.padding(vertical = 8.dp)) {
         AsyncImage(
             model = authorPhoto ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
             contentDescription = null,
-            modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .clickable { onProfileClick() },
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = author, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(
+                    text = author, 
+                    fontWeight = FontWeight.Bold, 
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { onProfileClick() }
+                )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = time, color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
             }

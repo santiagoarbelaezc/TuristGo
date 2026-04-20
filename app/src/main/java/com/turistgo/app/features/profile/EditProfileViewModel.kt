@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import com.turistgo.app.core.models.AlertState
+import com.turistgo.app.core.models.AlertType
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,6 +43,9 @@ class EditProfileViewModel @Inject constructor(
 
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
+
+    private val _alertState = MutableStateFlow(AlertState())
+    val alertState: StateFlow<AlertState> = _alertState.asStateFlow()
 
     private var currentUser: User? = null
 
@@ -83,6 +88,26 @@ class EditProfileViewModel @Inject constructor(
     fun saveChanges(onSuccess: () -> Unit) {
         val user = currentUser ?: return
         
+        if (_name.value.length < 2) {
+            _alertState.value = AlertState(
+                title = "Nombre Inválido",
+                message = "Tu nombre debe tener al menos 2 caracteres.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        if (_phone.value.isNotEmpty() && !(_phone.value.all { it.isDigit() || it == ' ' || it == '+' })) {
+            _alertState.value = AlertState(
+                title = "Teléfono Inválido",
+                message = "El número telefónico solo debe contener números, espacios o el símbolo +",
+                type = AlertType.ERROR,
+                isVisible = true
+            )
+            return
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             
@@ -97,12 +122,20 @@ class EditProfileViewModel @Inject constructor(
             repository.updateUser(updatedUser)
             sessionManager.saveSession(updatedUser.id, updatedUser.name, updatedUser.email)
             
-            _snackbarMessage.value = "Perfil actualizado correctamente"
-            kotlinx.coroutines.delay(500)
-            onSuccess()
+            _alertState.value = AlertState(
+                title = "¡Éxito!",
+                message = "Tu perfil ha sido actualizado correctamente.",
+                type = AlertType.SUCCESS,
+                isVisible = true,
+                onConfirm = { onSuccess() }
+            )
             
             _isLoading.value = false
         }
+    }
+
+    fun dismissAlert() {
+        _alertState.value = _alertState.value.copy(isVisible = false)
     }
 
     fun clearSnackbarMessage() { _snackbarMessage.value = null }

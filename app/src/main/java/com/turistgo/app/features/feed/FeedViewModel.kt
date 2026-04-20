@@ -43,6 +43,15 @@ class FeedViewModel @Inject constructor(
 
     val likedPostIds = currentUser.map { it?.likedPostIds ?: emptyList() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Suggested users (exclude current user)
+    val suggestedUsers = combine(
+        repository.getUsers(),
+        userSession
+    ) { users, session ->
+        val currentId = session.userId
+        users.filter { it.id != currentId }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
     // Reactive filtered results
     val filteredPosts: StateFlow<List<Post>> = combine(

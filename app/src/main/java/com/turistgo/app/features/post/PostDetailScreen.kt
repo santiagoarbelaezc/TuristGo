@@ -28,8 +28,6 @@ import coil.compose.AsyncImage
 import com.turistgo.app.R
 import com.turistgo.app.core.components.Destination
 import com.turistgo.app.core.components.DestinationCard
-import com.turistgo.app.features.feed.components.Person
-import com.turistgo.app.features.feed.components.PersonItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

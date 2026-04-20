@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.R
+import com.turistgo.app.core.components.TuristGoDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +31,7 @@ fun EditProfileScreen(
     val city by viewModel.city
     val isLoading by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val alertState by viewModel.alertState.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -39,6 +41,11 @@ fun EditProfileScreen(
             viewModel.clearSnackbarMessage()
         }
     }
+
+    TuristGoDialog(
+        state = alertState,
+        onDismiss = { viewModel.dismissAlert() }
+    )
 
     Scaffold(
         topBar = {

@@ -46,6 +46,7 @@ fun ProfileScreen(
     onNavigateToProgressGuide: () -> Unit,
     onNavigateToStats: () -> Unit,
     onNavigateToEditPost: (String) -> Unit,
+    onNavigateToPostDetail: (String) -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val userSession by viewModel.userSession.collectAsState(initial = null)
@@ -159,9 +160,9 @@ fun ProfileScreen(
                         .padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    StatItem(label = stringResource(R.string.stat_posts),   value = stats.postsCount.toString())
-                    StatItem(label = stringResource(R.string.stat_favorites), value = stats.savedCount.toString())
-                    StatItem(label = stringResource(R.string.stat_likes),  value = stats.likedCount.toString())
+                    StatItem(label = stringResource(R.string.stat_posts), value = stats.postsCount.toString())
+                    StatItem(label = stringResource(R.string.stat_followers), value = stats.followersCount.toString())
+                    StatItem(label = stringResource(R.string.stat_following), value = stats.followingCount.toString())
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -259,7 +260,7 @@ fun ProfileScreen(
                     indicator = { 
                         TabRowDefaults.PrimaryIndicator(
                             modifier = Modifier.tabIndicatorOffset(selectedTab),
-                            width = 64.dp,
+                            width = 64.dp, // Volvemos al ancho original
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -269,32 +270,20 @@ fun ProfileScreen(
                             selected = selectedTab == index,
                             onClick = { selectedTab = index },
                             text = { 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(vertical = 12.dp)
+                                ) {
                                     Text(
                                         title.first, 
                                         fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal,
-                                        fontSize = 14.sp
+                                        fontSize = 14.sp,
+                                        maxLines = 1
                                     )
-                                    if (title.second > 0) {
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Surface(
-                                            color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                            shape = CircleShape,
-                                            modifier = Modifier.size(20.dp)
-                                        ) {
-                                            Box(contentAlignment = Alignment.Center) {
-                                                Text(
-                                                    text = title.second.toString(),
-                                                    color = if (selectedTab == index) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                            }
-                                        }
-                                    }
                                 }
                             },
-                            unselectedContentColor = MaterialTheme.colorScheme.secondary
+                            unselectedContentColor = MaterialTheme.colorScheme.secondary,
+                            selectedContentColor = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -316,7 +305,7 @@ fun ProfileScreen(
                             ) {
                                 items(myPosts) { post ->
                                     MyPostItem(post) {
-                                        onNavigateToEditPost(post.id)
+                                        onNavigateToPostDetail(post.id)
                                     }
                                 }
                             }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -122,8 +123,34 @@ fun PublicProfileScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(label = stringResource(R.string.stat_posts), value = stats.postsCount.toString())
-                    StatItem(label = stringResource(R.string.stat_followers), value = "0")
-                    StatItem(label = stringResource(R.string.stat_following), value = "0")
+                    StatItem(label = stringResource(R.string.stat_followers), value = stats.followersCount.toString())
+                    StatItem(label = stringResource(R.string.stat_following), value = stats.followingCount.toString())
+                }
+
+                val isFollowing by viewModel.isFollowing.collectAsState()
+                val isMe by viewModel.isMe.collectAsState()
+
+                if (!isMe) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = { viewModel.toggleFollow() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isFollowing) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                            contentColor = if (isFollowing) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (isFollowing) Icons.Default.Check else Icons.Default.PersonAdd,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = if (isFollowing) "Siguiendo" else "Seguir", fontWeight = FontWeight.Bold)
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))

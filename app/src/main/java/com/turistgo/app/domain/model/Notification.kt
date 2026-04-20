@@ -15,5 +15,7 @@ enum class NotificationType {
     VERIFICATION, 
     REPUTATION, 
     SYSTEM,
-    COMMENT // New type for social interaction
+    COMMENT,
+    POST_APPROVED,
+    POST_REJECTED
 }

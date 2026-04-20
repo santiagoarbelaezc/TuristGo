@@ -32,9 +32,11 @@ import com.turistgo.app.R
 fun FeedScreen(
     innerPadding: PaddingValues,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToUserProfile: (String) -> Unit,
     viewModel: FeedViewModel = hiltViewModel()
 ) {
     val userSession by viewModel.userSession.collectAsState(initial = null)
+    val suggestedUsers by viewModel.suggestedUsers.collectAsState()
     
     // Search & Filter State from ViewModel
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -64,7 +66,7 @@ fun FeedScreen(
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        // Top Bar
+        // ... (TopAppBar content remains the same)
         TopAppBar(
             title = {
                 Column {
@@ -169,7 +171,9 @@ fun FeedScreen(
             if (isSearchActive) {
                 SearchContent(
                     results = filteredPosts,
-                    onNavigateToDetail = onNavigateToDetail
+                    suggestedUsers = suggestedUsers,
+                    onNavigateToDetail = onNavigateToDetail,
+                    onNavigateToProfile = onNavigateToUserProfile
                 )
             } else if (isMapView) {
                 val destinations = filteredPosts.map { 

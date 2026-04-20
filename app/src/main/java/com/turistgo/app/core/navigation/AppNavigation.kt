@@ -329,6 +329,9 @@ fun AppNavigation(
                     innerPadding = innerPadding,
                     onNavigateToDetail = { postId ->
                         navController.navigate(MainRoutes.PostDetail(postId))
+                    },
+                    onNavigateToUserProfile = { userId ->
+                        navController.navigate(MainRoutes.PublicProfile(userId))
                     }
                 )
             }
@@ -400,7 +403,8 @@ fun AppNavigation(
                     onNavigateToBadges = { navController.navigate(MainRoutes.Badges) },
                     onNavigateToProgressGuide = { navController.navigate(MainRoutes.ProgressGuide) },
                     onNavigateToStats = { navController.navigate(MainRoutes.Stats) },
-                    onNavigateToEditPost = { postId -> navController.navigate(MainRoutes.EditPost(postId)) }
+                    onNavigateToEditPost = { postId -> navController.navigate(MainRoutes.EditPost(postId)) },
+                    onNavigateToPostDetail = { postId -> navController.navigate(MainRoutes.PostDetail(postId)) }
                 )
             }
 

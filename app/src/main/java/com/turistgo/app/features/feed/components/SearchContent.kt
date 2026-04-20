@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.LocationOn
@@ -28,13 +29,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.turistgo.app.domain.model.Post
+import com.turistgo.app.domain.model.User
 
 @Composable
 fun SearchContent(
     results: List<Post>,
-    onNavigateToDetail: (String) -> Unit
+    suggestedUsers: List<User>,
+    onNavigateToDetail: (String) -> Unit,
+    onNavigateToProfile: (String) -> Unit
 ) {
-    if (results.isEmpty()) {
+    if (results.isEmpty() && suggestedUsers.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Default.LocationOn, null, Modifier.size(64.dp), Color.LightGray)
@@ -49,41 +53,74 @@ fun SearchContent(
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Personas por descubrir (Always show as recommendation if search is just starting)
-        item {
-            Column {
-                SectionHeader("Suguerencias para ti")
-                Spacer(modifier = Modifier.height(16.dp))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    val people = listOf(
-                        Person("Ana María", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039020/engin_akyurt-woman-4605248_640_ehaplz.jpg"),
-                        Person("Carlos Ruiz", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039016/istockphoto-1550589735-612x612_lgfnwy.jpg"),
-                        Person("Juan Pérez", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039018/photo-1599566150163-29194dcaad36_ql1jmh.avif"),
-                        Person("Laura G.", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772039017/818376-woman-657753_640_wv958x.jpg"),
-                        Person("Sofia Castro", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776531326310.jpg"),
-                        Person("Andrés M.", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776531017303.jpg"),
-                        Person("Valentina V.", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80"),
-                        Person("Diego F.", "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80"),
-                        Person("Camila R.", "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80"),
-                        Person("Mateo T.", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80"),
-                        Person("Isabella G.", "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=256&q=80"),
-                        Person("Sebastián L.", "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80")
-                    )
-                    items(people) { person ->
-                        PersonItem(person)
+        // Personas por descubrir (Dynamic Suggestions)
+        if (suggestedUsers.isNotEmpty()) {
+            item {
+                Column {
+                    SectionHeader("Sugerencias para ti")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(suggestedUsers) { user ->
+                            UserSuggestionItem(user) {
+                                onNavigateToProfile(user.id)
+                            }
+                        }
                     }
                 }
             }
         }
 
         // Search Results
-        item {
-            SectionHeader("Resultados encontrados (${results.size})")
-        }
+        if (results.isNotEmpty()) {
+            item {
+                SectionHeader("Resultados encontrados (${results.size})")
+            }
 
-        items(results) { post ->
-            SearchResultItem(post) { onNavigateToDetail(post.id) }
+            items(results) { post ->
+                SearchResultItem(post) { onNavigateToDetail(post.id) }
+            }
         }
+    }
+}
+
+@Composable
+fun UserSuggestionItem(user: User, onClick: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            AsyncImage(
+                model = user.profilePhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentScale = ContentScale.Crop
+            )
+            if (user.isVerified) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(18.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary,
+                    border = BorderStroke(1.dp, Color.White)
+                ) {
+                    Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.padding(3.dp))
+                }
+            }
+        }
+        Text(
+            text = user.name.split(" ").firstOrNull() ?: user.name, 
+            fontSize = 12.sp, 
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(top = 6.dp)
+        )
     }
 }
 
@@ -148,34 +185,5 @@ fun SectionHeader(title: String) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = title, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-    }
-}
-
-data class Person(val name: String, val avatar: String)
-
-@Composable
-fun PersonItem(person: Person) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(contentAlignment = Alignment.Center) {
-            AsyncImage(
-                model = person.avatar,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(20.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary,
-                border = BorderStroke(1.dp, Color.White)
-            ) {
-                Icon(Icons.Default.Add, null, tint = Color.White, modifier = Modifier.padding(3.dp))
-            }
-        }
-        Text(text = person.name, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
     }
 }

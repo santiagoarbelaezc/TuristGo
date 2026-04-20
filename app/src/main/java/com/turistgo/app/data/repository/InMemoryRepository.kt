@@ -450,6 +450,26 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         }
     }
 
+    override suspend fun toggleFollow(currentUserId: String, targetUserId: String) {
+        if (currentUserId == targetUserId) return
+        
+        users.value = users.value.map { user ->
+            when (user.id) {
+                currentUserId -> {
+                    val isFollowing = user.followingIds.contains(targetUserId)
+                    val newFollowing = if (isFollowing) user.followingIds - targetUserId else user.followingIds + targetUserId
+                    user.copy(followingIds = newFollowing)
+                }
+                targetUserId -> {
+                    val isFollowed = user.followerIds.contains(currentUserId)
+                    val newFollowers = if (isFollowed) user.followerIds - currentUserId else user.followerIds + currentUserId
+                    user.copy(followerIds = newFollowers)
+                }
+                else -> user
+            }
+        }
+    }
+
     // Comments implementation
     override fun getComments(postId: String): Flow<List<Comment>> {
         return comments.map { list -> list.filter { it.postId == postId } }

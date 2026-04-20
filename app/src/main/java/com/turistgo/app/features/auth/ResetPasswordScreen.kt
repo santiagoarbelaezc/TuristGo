@@ -21,7 +21,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.turistgo.app.core.components.TuristGoDialog
+import androidx.hilt.navigation.compose.hiltViewModel
 // NavController import omitted
 
 /**
@@ -43,7 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 fun ResetPasswordScreen(
     onNavigateToLogin: () -> Unit,
     onBack: () -> Unit,
-    viewModel: ResetPasswordViewModel = viewModel()
+    viewModel: ResetPasswordViewModel = hiltViewModel()
 ) {
     // ==================== ESTADO DEL VIEWMODEL ====================
     // Delegación para observar cambios en tiempo real
@@ -51,7 +52,8 @@ fun ResetPasswordScreen(
     val newPassword by viewModel.newPassword
     val confirmPassword by viewModel.confirmPassword
     val isLoading by viewModel.isLoading
-    val snackbarMessage by viewModel.snackbarMessage.collectAsState() // Flujo de mensajes UI
+    val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val alertState by viewModel.alertState.collectAsState()
     
     // ==================== ESTADO LOCAL DE UI ====================
     // Estados que solo afectan la UI, no la lógica de negocio
@@ -70,6 +72,12 @@ fun ResetPasswordScreen(
             viewModel.clearSnackbarMessage() // Limpiar mensaje después de mostrarlo
         }
     }
+
+    // Modal de Alertas Premium
+    TuristGoDialog(
+        state = alertState,
+        onDismiss = { viewModel.dismissAlert() }
+    )
 
     // ==================== ESTRUCTURA UI ====================
     // Scaffold proporciona la estructura base con soporte para Snackbar y TopBar

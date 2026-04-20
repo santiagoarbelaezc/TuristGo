@@ -29,6 +29,9 @@ interface AppDataRepository {
     suspend fun toggleLikedPost(userId: String, postId: String)
     fun getLikedPosts(userId: String): Flow<List<Post>>
 
+    // Following related
+    suspend fun toggleFollow(currentUserId: String, targetUserId: String)
+
     // Comments related
     fun getComments(postId: String): Flow<List<Comment>>
     suspend fun addComment(comment: Comment)

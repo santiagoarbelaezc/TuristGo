@@ -47,8 +47,9 @@ import androidx.media3.exoplayer.ExoPlayer             // Reproductor de video E
 
 // Importaciones de componentes personalizados
 import com.turistgo.app.R
-import com.turistgo.app.core.components.InPlaceVideoPlayer  // Componente de video local
-import com.turistgo.app.core.components.SocialLoginCard     // Tarjeta para login social
+import com.turistgo.app.core.components.InPlaceVideoPlayer
+import com.turistgo.app.core.components.SocialLoginCard
+import com.turistgo.app.core.components.TuristGoDialog
 
 // Importaciones de imágenes
 import coil.compose.AsyncImage                       // Carga asíncrona de imágenes (Coil)
@@ -57,6 +58,7 @@ import coil.compose.AsyncImage                       // Carga asíncrona de imá
 import androidx.compose.material.icons.Icons           // Set de íconos de Material
 import androidx.compose.material.icons.filled.Email    // Ícono de sobre/email
 import androidx.compose.material.icons.filled.Lock     // Ícono de candado
+import androidx.compose.material.icons.filled.Person   // Ícono de persona
 import androidx.compose.material.icons.filled.Visibility      // Ícono de ojo (mostrar)
 import androidx.compose.material.icons.filled.VisibilityOff   // Ícono de ojo tachado (ocultar)
 
@@ -85,6 +87,7 @@ fun LoginScreen(
     val isLoading by viewModel.isLoading
     // Mensaje para mostrar en Snackbar (notificación temporal)
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val alertState by viewModel.alertState.collectAsState()
     
     // --- ESTADOS LOCALES DEL COMPOSABLE ---
     // Controla si la contraseña es visible (true) u oculta con puntos (false)
@@ -106,6 +109,12 @@ fun LoginScreen(
             viewModel.clearSnackbarMessage()
         }
     }
+
+    // Modal de Alertas Premium
+    TuristGoDialog(
+        state = alertState,
+        onDismiss = { viewModel.dismissAlert() }
+    )
 
     // URLs de las imágenes (logo principal y logo de carga)
     val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
@@ -199,12 +208,12 @@ fun LoginScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // --- CAMPO DE TEXTO: EMAIL ---
+                // --- CAMPO DE TEXTO: CORREO O USUARIO ---
                 OutlinedTextField(
-                    value = email,  // Valor actual del campo
+                    value = email,  // Valor actual del campo (reutilizamos variable 'email' para identidad)
                     onValueChange = { viewModel.onEmailChange(it) },  // Callback cuando cambia el texto
-                    label = { Text(stringResource(R.string.email_label)) },  // Etiqueta flotante
-                    leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },  // Ícono al inicio
+                    label = { Text("Correo o Usuario") },  // Etiqueta dual
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },  // Ícono de usuario
                     modifier = Modifier.fillMaxWidth(),  // Ancho completo
                     shape = MaterialTheme.shapes.medium,  // Bordes medianamente redondeados
                     singleLine = true,  // Una sola línea

@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.turistgo.app.core.models.AlertState
+import com.turistgo.app.core.models.AlertType
 import java.util.UUID
 import javax.inject.Inject
 
@@ -80,6 +82,9 @@ class RegisterViewModel @Inject constructor(
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
+    private val _alertState = MutableStateFlow(AlertState())
+    val alertState: StateFlow<AlertState> = _alertState.asStateFlow()
+
     fun onNameChange(v: String)            { _name.value = v }
     fun onLastNameChange(v: String)        { _lastName.value = v }
     fun onAgeChange(v: String)             { _age.value = v }
@@ -126,17 +131,66 @@ class RegisterViewModel @Inject constructor(
     fun onConfirmPasswordChange(v: String) { _confirmPassword.value = v }
 
     fun register(onSuccess: (String) -> Unit) {
-        val fields = listOf(_name, _lastName, _age, _country, _city, _phone, _email, _password, _confirmPassword)
-        if (fields.any { it.value.isEmpty() }) {
-            _snackbarMessage.value = "Todos los campos obligatorios deben estar llenos"
+        val fields = listOf(
+            _name.value to "Nombre",
+            _lastName.value to "Apellido",
+            _age.value to "Edad",
+            _country.value to "País",
+            _city.value to "Ciudad",
+            _phone.value to "Teléfono",
+            _email.value to "Correo",
+            _password.value to "Contraseña",
+            _confirmPassword.value to "Confirmación"
+        )
+
+        val emptyField = fields.find { it.first.isEmpty() }
+        if (emptyField != null) {
+            _alertState.value = AlertState(
+                title = "Campo Requerido",
+                message = "El campo '${emptyField.second}' es obligatorio. Por favor complétalo.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
             return
         }
+
         if (_country.value == "Colombia" && _department.value.isEmpty()) {
-            _snackbarMessage.value = "Selecciona un departamento"
+            _alertState.value = AlertState(
+                title = "Departamento Faltante",
+                message = "Selecciona un departamento para continuar con tu registro en Colombia.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
             return
         }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()) {
+            _alertState.value = AlertState(
+                title = "Email Inválido",
+                message = "La dirección de correo electrónico no tiene un formato válido.",
+                type = AlertType.ERROR,
+                isVisible = true
+            )
+            return
+        }
+
+        if (_password.value.length < 8) {
+             _alertState.value = AlertState(
+                title = "Seguridad de Contraseña",
+                message = "Tu contraseña debe ser más fuerte. Usa al menos 8 caracteres.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
         if (_password.value != _confirmPassword.value) {
-            _snackbarMessage.value = "Las contraseñas no coinciden"
+            _alertState.value = AlertState(
+                title = "Contraseñas Diferentes",
+                message = "Las contraseñas no coinciden. Asegúrate de escribirlas idénticas en ambos campos.",
+                type = AlertType.ERROR,
+                isVisible = true
+            )
             return
         }
 
@@ -144,6 +198,8 @@ class RegisterViewModel @Inject constructor(
             _isLoading.value = true
             
             val userId = UUID.randomUUID().toString()
+            val generatedUsername = _email.value.substringBefore("@").lowercase().filter { it.isLetterOrDigit() }
+            
             val newUser = User(
                 id = userId,
                 name = _name.value,
@@ -155,7 +211,8 @@ class RegisterViewModel @Inject constructor(
                 address = _address.value.takeIf { it.isNotEmpty() },
                 phone = "${_phoneExtension.value} ${_phone.value}",
                 email = _email.value,
-                password = _password.value
+                password = _password.value,
+                username = generatedUsername
             )
             
             repository.saveUser(newUser)
@@ -205,5 +262,9 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun clearSnackbarMessage() { _snackbarMessage.value = null }
+    
+    fun dismissAlert() {
+        _alertState.value = _alertState.value.copy(isVisible = false)
+    }
 }
 

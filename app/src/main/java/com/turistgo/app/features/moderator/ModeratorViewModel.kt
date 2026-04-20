@@ -30,22 +30,53 @@ class ModeratorViewModel @Inject constructor(
     val isLoading: State<Boolean> = _isLoading
 
     fun approvePost(postId: String) {
+        val post = posts.value.find { it.id == postId } ?: return
         viewModelScope.launch {
             repository.updatePostStatus(postId, PostStatus.APPROVED)
+            
+            repository.addNotification(
+                com.turistgo.app.domain.model.Notification(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userId = post.authorId,
+                    title = "Publicación Aprobada",
+                    message = "¡Tu publicación '${post.name}' ha sido aprobada!",
+                    type = com.turistgo.app.domain.model.NotificationType.POST_APPROVED
+                )
+            )
         }
     }
 
     fun rejectPost(postId: String, reason: String) {
+        val post = posts.value.find { it.id == postId } ?: return
         viewModelScope.launch {
-            // Actualmente el modelo Post no guarda la razón, pero el repositorio lo actualiza a REJECTED
             repository.updatePostStatus(postId, PostStatus.REJECTED)
+            
+            repository.addNotification(
+                com.turistgo.app.domain.model.Notification(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userId = post.authorId,
+                    title = "Publicación Rechazada",
+                    message = "Tu publicación '${post.name}' ha sido rechazada. Motivo: $reason",
+                    type = com.turistgo.app.domain.model.NotificationType.POST_REJECTED
+                )
+            )
         }
     }
 
     fun resolvePost(postId: String) {
+        val post = posts.value.find { it.id == postId } ?: return
         viewModelScope.launch {
-            // Asumimos 'RESOLVED' es similar a APPROVED o una fase final de verificado
             repository.updatePostStatus(postId, PostStatus.APPROVED)
+            
+            repository.addNotification(
+                com.turistgo.app.domain.model.Notification(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userId = post.authorId,
+                    title = "Publicación Verificada",
+                    message = "Tu publicación '${post.name}' ha sido verificada con éxito.",
+                    type = com.turistgo.app.domain.model.NotificationType.POST_APPROVED
+                )
+            )
         }
     }
 

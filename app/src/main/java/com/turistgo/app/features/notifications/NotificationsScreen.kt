@@ -113,6 +113,8 @@ fun NotificationItem(
         NotificationType.REPUTATION   -> Triple(Icons.Default.EmojiEvents, Color(0xFFFFF3E0), Color(0xFFEF6C00))
         NotificationType.SYSTEM       -> Triple(Icons.Default.Info,        Color(0xFFE3F2FD), Color(0xFF1565C0))
         NotificationType.COMMENT      -> Triple(Icons.Default.ChatBubble,  Color(0xFFF3E5F5), Color(0xFF8E24AA))
+        NotificationType.POST_APPROVED -> Triple(Icons.Default.CheckCircle, Color(0xFFE8F5E9), Color(0xFF2E7D32))
+        NotificationType.POST_REJECTED -> Triple(Icons.Default.Cancel,      Color(0xFFFFEBEE), Color(0xFFC62828))
     }
 
     Row(

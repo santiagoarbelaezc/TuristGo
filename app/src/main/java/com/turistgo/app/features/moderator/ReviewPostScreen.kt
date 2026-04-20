@@ -35,6 +35,10 @@ fun ReviewPostScreen(
     viewModel: ReviewPostViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
+    val author by viewModel.author.collectAsState()
+    val aiAnalysis by viewModel.aiAnalysis.collectAsState()
+    val isAiAnalyzing by viewModel.isAiAnalyzing.collectAsState()
+    
     val warmBg = Color(0xFFFBFAF5)
     val scrollState = rememberScrollState()
 
@@ -58,7 +62,7 @@ fun ReviewPostScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.review_post_title), fontWeight = FontWeight.Bold) },
+                title = { Text("Revisión de Contenido", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null)
@@ -74,14 +78,19 @@ fun ReviewPostScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(scrollState)
-                .padding(24.dp)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Post Preview
+            
+            // --- 1. AUTHOR PROFILE CARD ---
+            AuthorCard(author)
+
+            // --- 2. POST PREVIEW IMAGE ---
             Surface(
-                modifier = Modifier.fillMaxWidth().height(260.dp),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().height(240.dp),
+                shape = RoundedCornerShape(28.dp),
                 color = Color.White,
-                shadowElevation = 4.dp
+                shadowElevation = 2.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     if (post?.imageUrl != null) {
@@ -93,77 +102,193 @@ fun ReviewPostScreen(
                         )
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                imageVector = Icons.Default.Image, 
-                                contentDescription = null, 
-                                modifier = Modifier.size(48.dp), 
-                                tint = Color.Gray
+                            Icon(Icons.Default.Image, null, Modifier.size(48.dp), Color.Gray)
+                            Text("Sin imagen", color = Color.Gray)
+                        }
+                    }
+                    
+                    // Category Badge
+                    val firstCategory = post?.categories?.firstOrNull()
+                    if (firstCategory != null) {
+                        Surface(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = firstCategory,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("Sin imagen disponible", color = Color.Gray)
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // --- 3. AI INSIGHTS PANEL ---
+            AiInsightsPanel(aiAnalysis, isAiAnalyzing)
 
-            Text("Detalles de la Propuesta", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            Text("Enviado por: ${post?.authorName ?: "Usuario"}", fontSize = 14.sp, color = Color.Gray)
-            
+            // --- 4. TEXT CONTENT ---
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = post?.name ?: "Sin título",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                
+                Text(
+                    text = post?.description ?: "Sin descripción",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    lineHeight = 24.sp
+                )
+            }
+
+            // --- 5. METADATA GRID ---
+            MetadataGrid(post)
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = post?.name ?: "",
-                onValueChange = {},
-                label = { Text("Título") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            OutlinedTextField(
-                value = post?.description ?: "",
-                onValueChange = {},
-                label = { Text("Descripción") },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                minLines = 4,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
+            // --- 6. ACTIONS ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
-                    onClick = { 
-                        viewModel.approvePost { 
-                            showApprovedModal = true
-                        } 
-                    },
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    onClick = { viewModel.approvePost { showApprovedModal = true } },
+                    modifier = Modifier.weight(1.1f).height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = null)
+                    Icon(Icons.Default.CheckCircle, null)
                     Spacer(Modifier.width(8.dp))
                     Text("Aprobar")
                 }
                 
-                Button(
+                OutlinedButton(
                     onClick = { viewModel.rejectPost { onBack() } },
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
+                    modifier = Modifier.weight(0.9f).height(56.dp),
+                    border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFC62828)),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Close, contentDescription = null)
+                    Icon(Icons.Default.Cancel, null, tint = Color(0xFFC62828))
                     Spacer(Modifier.width(8.dp))
                     Text("Rechazar")
                 }
             }
+            
+            Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+@Composable
+fun AuthorCard(author: com.turistgo.app.domain.model.User?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFFF0F0F0)
+            ) {
+                if (author?.profilePhotoUrl != null) {
+                    AsyncImage(
+                        model = author.profilePhotoUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(Icons.Default.Person, null, Modifier.padding(12.dp), Color.LightGray)
+                }
+            }
+            
+            Spacer(Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text("${author?.name ?: "Cargando..."} ${author?.lastName ?: ""}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(author?.email ?: "verificando cuenta...", fontSize = 12.sp, color = Color.Gray)
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = "${author?.followerIds?.size ?: 0}", 
+                    fontWeight = FontWeight.ExtraBold, 
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text("Seguidores", fontSize = 10.sp, color = Color.Gray)
+            }
+        }
+    }
+}
+
+@Composable
+fun AiInsightsPanel(analysis: String?, isLoading: Boolean) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD).copy(alpha = 0.5f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF90CAF9).copy(alpha = 0.3f))
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoAwesome, "IA", Modifier.size(18.dp), Color(0xFF1976D2))
+                Spacer(Modifier.width(8.dp))
+                Text("Análisis de IA (Gemini)", fontWeight = FontWeight.Bold, color = Color(0xFF1976D2), fontSize = 14.sp)
+            }
+            
+            Spacer(Modifier.height(12.dp))
+            
+            if (isLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp)),
+                    color = Color(0xFF1976D2),
+                    trackColor = Color.White
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("Analizando veracidad y contenido...", fontSize = 13.sp, color = Color.Gray)
+            } else {
+                Text(
+                    text = analysis ?: "Generando reporte de seguridad...",
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun MetadataGrid(post: com.turistgo.app.domain.model.Post?) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        MetadataItem(Icons.Default.LocationOn, "Ubicación", "${post?.latitude}, ${post?.longitude}")
+        MetadataItem(Icons.Default.Map, "Ciudad/Dpto", "${post?.city ?: "N/A"}")
+        MetadataItem(Icons.Default.DateRange, "Fecha", "Reciente")
+    }
+}
+
+@Composable
+fun MetadataItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, Modifier.size(16.dp), Color.Gray)
+        Spacer(Modifier.width(8.dp))
+        Text(label, fontSize = 13.sp, color = Color.Gray)
+        Spacer(Modifier.width(4.dp))
+        Text("•", color = Color.LightGray)
+        Spacer(Modifier.width(4.dp))
+        Text(value, fontSize = 13.sp, fontWeight = FontWeight.Medium)
     }
 }

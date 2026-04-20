@@ -32,10 +32,10 @@ fun ModeratorProfileScreen(
     innerPadding: PaddingValues = PaddingValues(),
     onLogout: () -> Unit
 ) {
-    // Datos "quemados" del Moderador
     val adminName = "Admin TuristGo"
     val adminEmail = "admin@turistgo.com"
-    val adminImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772044271/turistgo-logo_evi36h.png" // O una imagen de admin
+    val adminImageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1772044271/turistgo-logo_evi36h.png" 
+    val brandLogoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
 
     Column(
         modifier = Modifier
@@ -43,126 +43,157 @@ fun ModeratorProfileScreen(
             .padding(innerPadding)
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header matching app style
+        // --- 1. HEADER MODERNO CON LOGO ---
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Cuenta",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.secondary
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(
+                    model = brandLogoUrl,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Fit
                 )
-                Text(
-                    text = "Perfil Administrativo",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Panel de Control",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "Moderador",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             }
-            IconButton(onClick = onLogout) {
-                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.logout), tint = MaterialTheme.colorScheme.primary)
+            Surface(
+                onClick = onLogout,
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                modifier = Modifier.size(44.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp, 
+                        null, 
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 32.dp)
+            contentPadding = PaddingValues(bottom = 40.dp)
         ) {
             item {
-                Spacer(modifier = Modifier.height(32.dp))
-                // Foto de Perfil Admin
-                Box(contentAlignment = Alignment.BottomEnd) {
-                    AsyncImage(
-                        model = adminImageUrl,
-                        contentDescription = "Foto de administrador",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentScale = ContentScale.Fit
-                    )
-                    Surface(
-                        modifier = Modifier.size(32.dp),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primary,
-                        shadowElevation = 4.dp
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Security,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.padding(6.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = adminName,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = adminEmail,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Estadísticas de Moderación
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    ModeratorStat(label = stringResource(R.string.resolved_posts), value = "142")
-                    ModeratorStat(label = stringResource(R.string.pending_posts), value = "28")
-                    ModeratorStat(label = stringResource(R.string.nav_alerts), value = "12")
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Opciones de Administración
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Configuración de Seguridad", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
-                    
-                    AdminLargeButton(
-                        title = "Bitácora de Actividad",
-                        icon = Icons.Default.History,
-                        onClick = {}
-                    )
-                    AdminLargeButton(
-                        title = "Preferencias de Notificación",
-                        icon = Icons.Default.Notifications,
-                        onClick = {}
-                    )
-                    AdminLargeButton(
-                        title = "Cambiar Contraseña de Acceso",
-                        icon = Icons.Default.Lock,
-                        onClick = {}
-                    )
+                    // --- 2. AVATAR PREMIUM ---
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Surface(
+                            modifier = Modifier.size(120.dp),
+                            shape = CircleShape,
+                            border = androidx.compose.foundation.BorderStroke(4.dp, Color.White),
+                            shadowElevation = 8.dp
+                        ) {
+                            AsyncImage(
+                                model = adminImageUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().padding(12.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                        Surface(
+                            modifier = Modifier.size(32.dp).offset(x = (-2).dp, y = (-2).dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            border = androidx.compose.foundation.BorderStroke(2.dp, Color.White)
+                        ) {
+                            Icon(Icons.Default.Security, null, Modifier.padding(6.dp), Color.White)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(adminName, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                    Text(adminEmail, fontSize = 13.sp, color = Color.Gray)
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // --- 3. STATS GRID (GLASSMORPHIC) ---
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        color = Color.White.copy(alpha = 0.85f),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White),
+                        shadowElevation = 2.dp
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 24.dp)) {
+                            // Primera Fila
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ModeratorStat(label = "Aprobadas", value = "142", color = Color(0xFF2E7D32))
+                                VerticalDivider()
+                                ModeratorStat(label = "Rechazadas", value = "28", color = Color(0xFFC62828))
+                                VerticalDivider()
+                                ModeratorStat(label = "Reportes", value = "12", color = Color(0xFFF9A825))
+                            }
+                            
+                            Spacer(Modifier.height(20.dp))
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 32.dp),
+                                color = Color.LightGray.copy(alpha = 0.3f)
+                            )
+                            Spacer(Modifier.height(20.dp))
+                            
+                            // Segunda Fila
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ModeratorStat(label = "Baneados", value = "4", color = Color.Black)
+                                VerticalDivider()
+                                ModeratorStat(label = "Comentarios", value = "856", color = MaterialTheme.colorScheme.primary)
+                                VerticalDivider()
+                                ModeratorStat(label = "Precisión", value = "99%", color = Color(0xFF00ACC1))
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    // --- 4. SECCIONES DE CONFIGURACIÓN ---
+                    SettingsSection("Seguridad de Acceso") {
+                        AdminLargeButton("Bitácora de Actividad", Icons.Default.History)
+                        AdminLargeButton("Preferencias de Alertas", Icons.Default.NotificationsActive)
+                        AdminLargeButton("Cambiar Contraseña", Icons.Default.VpnKey)
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
-                    
-                    Text("Soporte Técnico", fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
-                    AdminLargeButton(
-                        title = "Reportar Bug del Sistema",
-                        icon = Icons.Default.BugReport,
-                        onClick = {}
-                    )
+
+                    SettingsSection("Asistencia") {
+                        AdminLargeButton("Reportar Bug del Sistema", Icons.Default.BugReport)
+                        AdminLargeButton("Guía de Moderación", Icons.Default.MenuBook)
+                    }
                 }
             }
         }
@@ -170,32 +201,65 @@ fun ModeratorProfileScreen(
 }
 
 @Composable
-fun ModeratorStat(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
-        Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.secondary)
+fun SettingsSection(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.width(4.dp).height(16.dp).background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp)))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = title.uppercase(),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.Gray,
+                letterSpacing = 0.5.sp
+            )
+        }
+        Spacer(Modifier.height(12.dp))
+        content()
     }
 }
 
 @Composable
-fun AdminLargeButton(title: String, icon: ImageVector, onClick: () -> Unit) {
+fun ModeratorStat(label: String, value: String, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Black, color = color)
+        Text(text = label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+    }
+}
+
+@Composable
+fun AdminLargeButton(title: String, icon: ImageVector) {
     Surface(
-        onClick = onClick,
+        onClick = {},
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            .padding(vertical = 6.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Color.White.copy(alpha = 0.6f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White),
+        shadowElevation = 1.dp
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, null, Modifier.size(20.dp), MaterialTheme.colorScheme.primary)
+                }
+            }
             Spacer(modifier = Modifier.width(16.dp))
-            Text(text = title, fontWeight = FontWeight.Medium)
+            Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+            Icon(Icons.Default.ChevronRight, null, Modifier.size(18.dp), Color.LightGray)
         }
     }
 }

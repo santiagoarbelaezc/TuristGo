@@ -9,5 +9,7 @@ data class ProfileStats(
     val badgesCount: Int = 0,
     val postsCount: Int = 0,
     val savedCount: Int = 0,
-    val likedCount: Int = 0
+    val likedCount: Int = 0,
+    val followersCount: Int = 0,
+    val followingCount: Int = 0
 )

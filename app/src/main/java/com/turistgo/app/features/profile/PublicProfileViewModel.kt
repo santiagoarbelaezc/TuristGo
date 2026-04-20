@@ -15,17 +15,36 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PublicProfileViewModel @Inject constructor(
+    private val sessionManager: UserSessionManager,
     private val repository: AppDataRepository
 ) : ViewModel() {
 
     private val _userId = MutableStateFlow<String?>(null)
 
+    private val userSession = sessionManager.userSession
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val currentUser = userSession.flatMapLatest { session ->
+        val userId = session.userId
+        if (userId != null) {
+            repository.getUsers().map { users -> users.find { it.id == userId } }
+        } else flowOf(null)
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val userProfile: StateFlow<User?> = _userId.flatMapLatest { id ->
         if (id != null) {
-            flow<User?> { emit(repository.getUserById(id)) }
+            repository.getUsers().map { users -> users.find { it.id == id } }
         } else flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    val isFollowing: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
+        current != null && target != null && current.followingIds.contains(target.id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val isMe: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
+        current != null && target != null && current.id == target.id
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val userPosts: StateFlow<List<Post>> = _userId.flatMapLatest { id ->
@@ -41,8 +60,18 @@ class PublicProfileViewModel @Inject constructor(
         _userId.value = userId
     }
 
+    fun toggleFollow() {
+        val targetId = _userId.value ?: return
+        viewModelScope.launch {
+            val currentUserId = sessionManager.userSession.first().userId ?: return@launch
+            repository.toggleFollow(currentUserId, targetId)
+        }
+    }
+
     private fun calculateStats(posts: List<Post>, user: User?): ProfileStats {
         val postsSize = posts.size
+        val followersList = user?.followerIds ?: emptyList()
+        val followingList = user?.followingIds ?: emptyList()
         
         val (levelName, levelNum, _) = when {
             postsSize >= 10 -> Triple("Guía Local", 3, 5000)
@@ -57,7 +86,9 @@ class PublicProfileViewModel @Inject constructor(
             postsCount = postsSize,
             savedCount = user?.savedPostIds?.size ?: 0,
             likedCount = user?.likedPostIds?.size ?: 0,
-            points = postsSize * 50,
+            followersCount = followersList.size,
+            followingCount = followingList.size,
+            points = postsSize * 50 + followersList.size * 20,
             levelProgress = 0.5f,
             badgesCount = if (postsSize >= 1) 1 else 0
         )

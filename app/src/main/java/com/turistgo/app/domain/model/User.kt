@@ -22,5 +22,7 @@ data class User(
     val isVerified: Boolean = false,
     val role: String = "USER",
     val savedPostIds: List<String> = emptyList(),
-    val likedPostIds: List<String> = emptyList()
+    val likedPostIds: List<String> = emptyList(),
+    val followingIds: List<String> = emptyList(),
+    val followerIds: List<String> = emptyList()
 )

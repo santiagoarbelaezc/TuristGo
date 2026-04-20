@@ -23,6 +23,8 @@ import com.turistgo.app.data.datastore.UserSessionManager
 import com.turistgo.app.core.auth.GoogleAuthHelper
 import com.turistgo.app.domain.repository.AppDataRepository
 import com.turistgo.app.domain.model.User
+import com.turistgo.app.core.models.AlertState
+import com.turistgo.app.core.models.AlertType
 
 /**
  * LoginViewModel - Maneja la lógica de negocio y el estado de la pantalla de inicio de sesión
@@ -109,6 +111,12 @@ class LoginViewModel @Inject constructor(
      */
     private val _isPrivacyAccepted = mutableStateOf(false)
     val isPrivacyAccepted: State<Boolean> = _isPrivacyAccepted
+
+    /**
+     * Estado para el modal de alerta premium
+     */
+    private val _alertState = MutableStateFlow(AlertState())
+    val alertState: StateFlow<AlertState> = _alertState.asStateFlow()
     
     // ==================== MÉTODOS PÚBLICOS (EVENTOS DEL UI) ====================
 
@@ -125,7 +133,8 @@ class LoginViewModel @Inject constructor(
      * Flujo: UI -> ViewModel -> Actualiza estado -> UI se recomponer
      */
     fun onEmailChange(newValue: String) { 
-        _email.value = newValue 
+        // Permitimos cualquier carácter válido para email o usuario (sin espacios al inicio/final)
+        _email.value = newValue.trim() 
     }
     
     /**
@@ -144,12 +153,32 @@ class LoginViewModel @Inject constructor(
      */
     fun login(onSuccess: (Boolean) -> Unit) {
         if (!_isPrivacyAccepted.value) {
-            _snackbarMessage.value = "Debes aceptar el uso de datos personales para continuar"
+            _alertState.value = AlertState(
+                title = "Políticas de Privacidad",
+                message = "Por favor, acepta los términos y condiciones para continuar.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
             return
         }
 
         if (_email.value.isEmpty() || _password.value.isEmpty()) {
-            _snackbarMessage.value = "Por favor, completa todos los campos"
+            _alertState.value = AlertState(
+                title = "Campos Incompletos",
+                message = "Asegúrate de ingresar tu correo y contraseña para poder entrar.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        if (!isValidIdentity(_email.value)) {
+            _alertState.value = AlertState(
+                title = "Identificación Inválida",
+                message = "El formato ingresado no parece ser un correo válido ni un nombre de usuario permitido (sin espacios).",
+                type = AlertType.ERROR,
+                isVisible = true
+            )
             return
         }
         
@@ -180,12 +209,34 @@ class LoginViewModel @Inject constructor(
                     )
                     onSuccess(false)
                 } else {
-                    _snackbarMessage.value = "Credenciales incorrectas"
+                    _alertState.value = AlertState(
+                        title = "Credenciales Incorrectas",
+                        message = "El correo/usuario o la contraseña no coinciden con nuestros registros. Inténtalo de nuevo.",
+                        type = AlertType.ERROR,
+                        isVisible = true
+                    )
                 }
             }
             
             _isLoading.value = false
         }
+    }
+
+    /**
+     * Valida si el input es un correo electrónico válido o un nombre de usuario (sin espacios)
+     */
+    private fun isValidIdentity(identity: String): Boolean {
+        // Si tiene un @, validamos como email
+        return if (identity.contains("@")) {
+            android.util.Patterns.EMAIL_ADDRESS.matcher(identity).matches()
+        } else {
+            // Si no tiene @, validamos como username (mínimo 3 caracteres, sin espacios internos)
+            identity.length >= 3 && !identity.contains(" ")
+        }
+    }
+
+    fun dismissAlert() {
+        _alertState.value = _alertState.value.copy(isVisible = false)
     }
 
     /**

@@ -8,7 +8,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.turistgo.app.core.models.AlertState
+import com.turistgo.app.core.models.AlertType
 
 /**
  * ViewModel para la pantalla de restablecimiento de contraseña.
@@ -68,6 +71,12 @@ class ResetPasswordViewModel : ViewModel() {
     private val _snackbarMessage = MutableStateFlow<String?>(null)
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
 
+    /**
+     * Estado para el modal de alerta premium
+     */
+    private val _alertState = MutableStateFlow(AlertState())
+    val alertState: StateFlow<AlertState> = _alertState.asStateFlow()
+
     // ==================== MÉTODOS PÚBLICOS ====================
     // Estos métodos son llamados desde la UI para actualizar el estado
 
@@ -108,30 +117,48 @@ class ResetPasswordViewModel : ViewModel() {
      */
     fun resetPassword(onSuccess: () -> Unit) {
         // ==================== VALIDACIONES ====================
-        // Las validaciones se hacen en el ViewModel, no en la UI
-        // Esto mantiene la lógica de negocio centralizada y testeable
         
         // Validación 1: Código de verificación
-        if (_code.value.isBlank()) {  // Usamos isBlank() en lugar de isEmpty() para considerar espacios
-            _snackbarMessage.value = "Ingresa el código de verificación"
+        if (_code.value.isBlank()) {
+            _alertState.value = AlertState(
+                title = "Código Requerido",
+                message = "Por favor, ingresa el código que enviamos a tu correo.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
             return
         }
         
         // Validación 2: Campos completos
         if (_newPassword.value.isBlank() || _confirmPassword.value.isBlank()) {
-            _snackbarMessage.value = "Por favor, completa todos los campos"
+            _alertState.value = AlertState(
+                title = "Campos Incompletos",
+                message = "Debes definir una nueva contraseña y confirmarla.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
             return
         }
         
-        // Validación 3: Contraseñas coincidentes
+        // Validación 3: Fortaleza de contraseña
+        if (_newPassword.value.length < 8) {
+            _alertState.value = AlertState(
+                title = "Contraseña Débil",
+                message = "Para tu seguridad, la contraseña debe tener al menos 8 caracteres.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        // Validación 4: Contraseñas coincidentes
         if (_newPassword.value != _confirmPassword.value) {
-            _snackbarMessage.value = "Las contraseñas no coinciden"
-            return
-        }
-        
-        // Validación adicional recomendada: Fortaleza de contraseña
-        if (_newPassword.value.length < 6) {
-            _snackbarMessage.value = "La contraseña debe tener al menos 6 caracteres"
+            _alertState.value = AlertState(
+                title = "No Coinciden",
+                message = "Las contraseñas ingresadas no son iguales. Por favor corrígelas.",
+                type = AlertType.ERROR,
+                isVisible = true
+            )
             return
         }
 
@@ -168,6 +195,10 @@ class ResetPasswordViewModel : ViewModel() {
      */
     fun clearSnackbarMessage() {
         _snackbarMessage.value = null
+    }
+
+    fun dismissAlert() {
+        _alertState.value = _alertState.value.copy(isVisible = false)
     }
     
     /**

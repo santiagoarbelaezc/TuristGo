@@ -62,14 +62,16 @@ class ProfileViewModel @Inject constructor(
     // --- Dynamic Gamification Logic ---
 
     val profileStats: StateFlow<ProfileStats> = combine(
-        myPosts, savedPosts, likedPosts
-    ) { posts, saved, liked ->
+        myPosts, savedPosts, likedPosts, userProfile
+    ) { posts, saved, liked, user ->
         val postsSize = posts.size
         val savedSize = saved.size
         val likedSize = liked.size
+        val followers = user?.followerIds?.size ?: 0
+        val following = user?.followingIds?.size ?: 0
         
-        // Rules: 100 pts per approved post, 10 pts per saved/liked item
-        val totalPoints = (postsSize * 100) + (savedSize * 10) + (likedSize * 10)
+        // Rules: 100 pts per approved post, 10 pts per saved/liked item, 50 pts per follower
+        val totalPoints = (postsSize * 100) + (savedSize * 10) + (likedSize * 10) + (followers * 50)
         
         val (levelName, levelNum, nextPts) = when {
             postsSize >= 10 -> Triple("Guía Local", 3, 5000)
@@ -97,7 +99,9 @@ class ProfileViewModel @Inject constructor(
             badgesCount = badges,
             postsCount = postsSize,
             savedCount = savedSize,
-            likedCount = likedSize
+            likedCount = likedSize,
+            followersCount = followers,
+            followingCount = following
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ProfileStats())
 

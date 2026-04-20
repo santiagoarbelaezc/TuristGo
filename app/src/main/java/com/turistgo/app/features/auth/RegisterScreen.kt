@@ -49,6 +49,7 @@ import com.turistgo.app.core.navigation.MainRoutes
 import coil.compose.AsyncImage
 import com.turistgo.app.core.components.LoadingOverlay
 import com.turistgo.app.core.components.SocialLoginCard
+import com.turistgo.app.core.components.TuristGoDialog
 
 /**
  * RegisterScreen - Pantalla de registro de nuevos usuarios
@@ -64,6 +65,7 @@ fun RegisterScreen(
     // Estados globales y UI del Scaffold
     val isLoading by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
+    val alertState by viewModel.alertState.collectAsState()
     
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
@@ -75,6 +77,12 @@ fun RegisterScreen(
             viewModel.clearSnackbarMessage()
         }
     }
+
+    // Modal de Alertas Premium
+    TuristGoDialog(
+        state = alertState,
+        onDismiss = { viewModel.dismissAlert() }
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }

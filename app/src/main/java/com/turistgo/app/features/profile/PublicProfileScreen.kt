@@ -1,5 +1,7 @@
+// Declara el paquete donde se encuentra esta pantalla dentro de la estructura de la app.
 package com.turistgo.app.features.profile
 
+// Importaciones de Jetpack Compose para la UI
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,72 +23,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import androidx.compose.runtime.collectAsState // Para observar flujos de datos
+import androidx.hilt.navigation.compose.hiltViewModel // Para inyectar ViewModel con Hilt
+import coil.compose.AsyncImage // Para cargar imágenes desde URL
 import com.turistgo.app.R
-import com.turistgo.app.core.components.SmallDestinationCard
-import com.turistgo.app.core.components.Destination
+import com.turistgo.app.core.components.SmallDestinationCard // Componente reutilizable de tarjeta
+import com.turistgo.app.core.components.Destination // Modelo de datos para destinos
 
+// Marca que se usan APIs experimentales de Material 3
 @OptIn(ExperimentalMaterial3Api::class)
+// Declara la función composable principal de la pantalla de perfil público
 @Composable
 fun PublicProfileScreen(
-    innerPadding: PaddingValues,
-    userId: String,
-    onBack: () -> Unit,
-    onNavigateToDetail: (String) -> Unit,
-    viewModel: PublicProfileViewModel = hiltViewModel()
+    innerPadding: PaddingValues, // Padding de la navegación superior (status bar, etc.)
+    userId: String, // ID del usuario cuyo perfil se está visualizando
+    onBack: () -> Unit, // Callback para volver a la pantalla anterior
+    onNavigateToDetail: (String) -> Unit, // Callback para navegar al detalle de un post (recibe ID)
+    viewModel: PublicProfileViewModel = hiltViewModel() // ViewModel inyectado por Hilt
 ) {
+    // Observa los estados del ViewModel (perfil del usuario, sus posts, estadísticas)
     val userProfile by viewModel.userProfile.collectAsState()
     val posts by viewModel.userPosts.collectAsState()
     val stats by viewModel.profileStats.collectAsState()
 
+    // Efecto que se ejecuta cuando cambia el userId para cargar los datos del usuario
     LaunchedEffect(userId) {
         viewModel.loadUser(userId)
     }
 
+    // URL de la foto de perfil (prioriza la del perfil, o usa una por defecto)
     val profileImageUrl = userProfile?.profilePhotoUrl 
         ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
+    // Columna principal que ocupa toda la pantalla
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding)
-            .background(MaterialTheme.colorScheme.background)
+            .padding(innerPadding) // Aplica el padding de navegación
+            .background(MaterialTheme.colorScheme.background) // Fondo del tema actual
     ) {
+        // Barra superior centrada con el nombre del usuario y botón de retroceso
         CenterAlignedTopAppBar(
-            title = { Text(userProfile?.name ?: "Perfil", fontWeight = FontWeight.Bold) },
+            title = { Text(userProfile?.name ?: "Perfil", fontWeight = FontWeight.Bold) }, // Nombre o "Perfil" por defecto
             navigationIcon = {
-                IconButton(onClick = onBack) {
+                IconButton(onClick = onBack) { // Botón de flecha hacia atrás
                     Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                 }
             },
             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = MaterialTheme.colorScheme.background // Mismo color que el fondo
             ),
-            windowInsets = WindowInsets(0, 0, 0, 0)
+            windowInsets = WindowInsets(0, 0, 0, 0) // Sin insets adicionales
         )
 
+        // LazyColumn para scroll vertical de todo el contenido
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(bottom = 24.dp)
+            horizontalAlignment = Alignment.CenterHorizontally, // Centra horizontalmente los items
+            contentPadding = PaddingValues(bottom = 24.dp) // Padding inferior
         ) {
+            // Primer item: cabecera del perfil público
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp)) // Espaciado superior
                 
+                // Foto de perfil del usuario visitado
                 AsyncImage(
                     model = profileImageUrl,
                     contentDescription = null,
                     modifier = Modifier
                         .size(120.dp)
-                        .clip(CircleShape)
+                        .clip(CircleShape) // Forma circular
                         .background(MaterialTheme.colorScheme.surfaceVariant),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop // Ajusta la imagen recortando
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Nombre del usuario
                 Text(
                     text = userProfile?.name ?: "Usuario",
                     fontSize = 24.sp,
@@ -94,6 +107,7 @@ fun PublicProfileScreen(
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 
+                // Username (si existe)
                 if (userProfile?.username?.isNotEmpty() == true) {
                     Text(
                         text = "@${userProfile?.username}",
@@ -102,6 +116,7 @@ fun PublicProfileScreen(
                     )
                 }
 
+                // Nivel del usuario (solo visual, sin interacción)
                 Surface(
                     shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -118,6 +133,7 @@ fun PublicProfileScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Fila de estadísticas: posts, seguidores, seguidos
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -127,42 +143,46 @@ fun PublicProfileScreen(
                     StatItem(label = stringResource(R.string.stat_following), value = stats.followingCount.toString())
                 }
 
-                val isFollowing by viewModel.isFollowing.collectAsState()
-                val isMutual by viewModel.isMutualFollow.collectAsState()
-                val isPending by viewModel.isPendingRequest.collectAsState()
-                val isMe by viewModel.isMe.collectAsState()
+                // Estados de la relación entre el usuario actual y el perfil visitado
+                val isFollowing by viewModel.isFollowing.collectAsState() // ¿Lo sigue?
+                val isMutual by viewModel.isMutualFollow.collectAsState() // ¿Es mutuo (amigos)?
+                val isPending by viewModel.isPendingRequest.collectAsState() // ¿Hay solicitud pendiente?
+                val isMe by viewModel.isMe.collectAsState() // ¿Es el propio usuario?
 
+                // Botón de seguimiento (solo si no es el propio usuario)
                 if (!isMe) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { if (!isFollowing && !isPending) viewModel.requestFollow() },
+                        onClick = { if (!isFollowing && !isPending) viewModel.requestFollow() }, // Solicita seguir solo si no sigue ni tiene solicitud pendiente
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                             .height(48.dp),
-                        enabled = !isFollowing && !isPending,
+                        enabled = !isFollowing && !isPending, // Deshabilitado si ya sigue o hay solicitud pendiente
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = when {
-                                isMutual -> Color(0xFF00BFA5).copy(alpha = 0.2f)
-                                isFollowing -> MaterialTheme.colorScheme.surfaceVariant
-                                isPending -> Color.LightGray.copy(alpha = 0.5f)
-                                else -> MaterialTheme.colorScheme.primary
+                                isMutual -> Color(0xFF00BFA5).copy(alpha = 0.2f) // Verde menta semitransparente para "Amigos"
+                                isFollowing -> MaterialTheme.colorScheme.surfaceVariant // Color de superficie para "Siguiendo"
+                                isPending -> Color.LightGray.copy(alpha = 0.5f) // Gris semitransparente para "Solicitado"
+                                else -> MaterialTheme.colorScheme.primary // Color primario para "Seguir"
                             },
                             contentColor = when {
-                                isMutual -> Color(0xFF00BFA5)
+                                isMutual -> Color(0xFF00BFA5) // Texto verde menta
                                 isFollowing -> MaterialTheme.colorScheme.onSurfaceVariant
                                 isPending -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                else -> Color.White
+                                else -> Color.White // Texto blanco para "Seguir"
                             }
                         )
                     ) {
+                        // Ícono según el estado de la relación
                         val icon = when {
-                            isMutual -> Icons.Default.Group
-                            isFollowing -> Icons.Default.Check
-                            isPending -> Icons.Default.HourglassEmpty
-                            else -> Icons.Default.PersonAdd
+                            isMutual -> Icons.Default.Group // Dos personas (amigos)
+                            isFollowing -> Icons.Default.Check // Check (siguiendo)
+                            isPending -> Icons.Default.HourglassEmpty // Reloj de arena (solicitado)
+                            else -> Icons.Default.PersonAdd // Persona con más (seguir)
                         }
+                        // Texto según el estado de la relación
                         val text = when {
                             isMutual -> "Amigos"
                             isFollowing -> "Siguiendo"
@@ -177,10 +197,12 @@ fun PublicProfileScreen(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
+                // Divisor horizontal antes de la sección de publicaciones
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.surfaceVariant)
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // Item: título de la sección de publicaciones
             item {
                 Text(
                     text = "Publicaciones",
@@ -191,6 +213,7 @@ fun PublicProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
+            // Si no hay publicaciones, muestra un mensaje
             if (posts.isEmpty()) {
                 item {
                     Text(
@@ -201,21 +224,24 @@ fun PublicProfileScreen(
                     )
                 }
             } else {
-                items(posts.chunked(2)) { rowPosts ->
+                // Muestra las publicaciones en un grid de 2 columnas (usando chunked)
+                items(posts.chunked(2)) { rowPosts -> // Divide la lista en grupos de 2
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp) // Espacio entre tarjetas
                     ) {
+                        // Por cada post en la fila, muestra una SmallDestinationCard
                         rowPosts.forEach { post ->
-                            Box(modifier = Modifier.weight(1f)) {
+                            Box(modifier = Modifier.weight(1f)) { // Cada tarjeta ocupa el mismo ancho
                                 SmallDestinationCard(
                                     destination = Destination(
                                         post.id, post.name, post.location, post.rating, post.imageUrl, post.commentCount
                                     ),
-                                    onClick = { onNavigateToDetail(post.id) }
+                                    onClick = { onNavigateToDetail(post.id) } // Navega al detalle del post
                                 )
                             }
                         }
+                        // Si la fila tiene solo 1 elemento, agrega un spacer para mantener el grid balanceado
                         if (rowPosts.size == 1) Spacer(modifier = Modifier.weight(1f))
                     }
                 }

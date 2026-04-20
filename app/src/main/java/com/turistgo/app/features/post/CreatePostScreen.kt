@@ -1,5 +1,7 @@
+// Declara el paquete donde se encuentra esta pantalla dentro de la estructura de la app.
 package com.turistgo.app.features.post
 
+// Importaciones de Jetpack Compose para animaciones y UI
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,14 +24,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.turistgo.app.data.GeminiService
+import androidx.hilt.navigation.compose.hiltViewModel // Para inyectar ViewModel con Hilt
+import com.turistgo.app.data.GeminiService // Servicio de IA para generar descripciones
 import com.turistgo.app.core.navigation.MainRoutes
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch // Para lanzar corrutinas
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
-import com.turistgo.app.core.components.SuccessModal
+import com.turistgo.app.core.components.SuccessModal // Modal de éxito
 
+// Importaciones para selector de imágenes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,25 +40,25 @@ import coil.compose.AsyncImage
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.ui.layout.ContentScale
 
+// Marca que se usan APIs experimentales de Material 3 y Layout
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+// Declara la función composable principal de la pantalla de creación de post
 @Composable
 fun CreatePostScreen(
-    innerPadding: PaddingValues,
-    viewModel: CreatePostViewModel = hiltViewModel(),
-    mapResult: String? = null,
-    onConsumeMapResult: () -> Unit = {},
-    onNavigateToMapPicker: () -> Unit = {},
-    onBack: () -> Unit = {}
+    innerPadding: PaddingValues, // Padding de la navegación superior
+    viewModel: CreatePostViewModel = hiltViewModel(), // ViewModel inyectado por Hilt
+    mapResult: String? = null, // Resultado del selector de mapa (coordenadas: "lat,lng")
+    onConsumeMapResult: () -> Unit = {}, // Callback para consumir el resultado del mapa
+    onNavigateToMapPicker: () -> Unit = {}, // Callback para abrir el selector de mapa
+    onBack: () -> Unit = {} // Callback para volver atrás
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-
-    // ... rest of state stays the same ...
+    // Estados del ViewModel observados
     val title              by viewModel.title
     val description        by viewModel.description
     val location           by viewModel.location
     val priceRange         by viewModel.priceRange
     val selectedCategories by viewModel.selectedCategories
-    val suggestedCategory  by viewModel.suggestedCategory
+    val suggestedCategory  by viewModel.suggestedCategory // Categoría sugerida por IA
     val isAnalyzing        by viewModel.isAnalyzing
     val selectedImageUri   by viewModel.selectedImageUri
     val isUploading        by viewModel.isUploading
@@ -63,52 +66,58 @@ fun CreatePostScreen(
     val endTime            by viewModel.endTime
     val latitude           by viewModel.latitude
     val longitude          by viewModel.longitude
-    val moderationAlert    by viewModel.moderationAlert
+    val moderationAlert    by viewModel.moderationAlert // Alerta de moderación por IA
     
     // --- DIÁLOGO DE MODERACIÓN POR IA (PREMIUM) ---
+    // Muestra un diálogo cuando la IA detecta contenido inapropiado
     com.turistgo.app.core.components.TuristGoDialog(
         state = moderationAlert,
         onDismiss = { viewModel.dismissModerationAlert() }
     )
     
+    // Estados para ubicación estructurada (departamento y ciudad)
     val department           by viewModel.department
     val city                 by viewModel.city
     val availableDepartments by viewModel.availableDepartments
     val availableCities      by viewModel.availableCities
     
+    // Estados para controlar la expansión de los menús desplegables
     var departmentExpanded by remember { mutableStateOf(false) }
     var cityExpanded       by remember { mutableStateOf(false) }
     
+    // Color de acento (primario del tema)
     val RedAccent          = MaterialTheme.colorScheme.primary 
 
+    // Lanzador para el selector de fotos (galería)
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri -> viewModel.onImageSelected(uri) }
     )
 
+    // Estados para controlar los diálogos de selector de hora
     var openStartPicker by remember { mutableStateOf(false) }
     var openEndPicker   by remember { mutableStateOf(false) }
 
-    // AI description generation
+    // Generación de descripción por IA
     val scope = rememberCoroutineScope()
     var isGeneratingDesc by remember { mutableStateOf(false) }
 
-    // Listen for map picker result
+    // Escucha el resultado del selector de mapa (cuando se selecciona una ubicación en el mapa)
     LaunchedEffect(mapResult) {
         mapResult?.let { result ->
-            val coords = result.split(",")
+            val coords = result.split(",") // Divide "lat,lng"
             if (coords.size == 2) {
                 val lat = coords[0].toDoubleOrNull()
                 val lng = coords[1].toDoubleOrNull()
                 if (lat != null && lng != null) {
-                    viewModel.onCoordinatesSelected(lat, lng)
+                    viewModel.onCoordinatesSelected(lat, lng) // Guarda coordenadas en ViewModel
                 }
             }
-            onConsumeMapResult()
+            onConsumeMapResult() // Marca el resultado como consumido
         }
     }
 
-    // Time Picker Dialogs
+    // Diálogo selector de hora de apertura
     if (openStartPicker) {
         val timePickerState = rememberTimePickerState(is24Hour = true)
         TimePickerDialog(
@@ -124,6 +133,7 @@ fun CreatePostScreen(
         }
     }
 
+    // Diálogo selector de hora de cierre
     if (openEndPicker) {
         val timePickerState = rememberTimePickerState(is24Hour = true)
         TimePickerDialog(
@@ -139,28 +149,32 @@ fun CreatePostScreen(
         }
     }
 
+    // Estado para mostrar el modal de éxito
     var showSuccessModal by remember { mutableStateOf(false) }
 
+    // Modal de éxito que se muestra después de enviar el post
     if (showSuccessModal) {
         SuccessModal(
             title = stringResource(R.string.post_submitted_title),
             message = stringResource(R.string.post_submitted_msg),
             onDismiss = {
                 showSuccessModal = false
-                onBack()
+                onBack() // Vuelve a la pantalla anterior
             }
         )
     }
 
+    // Columna principal que ocupa toda la pantalla
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = innerPadding.calculateBottomPadding())
+            .padding(bottom = innerPadding.calculateBottomPadding()) // Padding inferior del sistema
             .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
+            .statusBarsPadding() // Padding para la barra de estado
     ) {
+        // Barra superior centrada con título y botón de retroceso
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.new_post), fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+            title = { Text(stringResource(R.string.new_post), fontWeight = FontWeight.Bold, fontSize = 18.sp) }, // "Nuevo Post"
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Atrás", tint = MaterialTheme.colorScheme.onBackground)
@@ -172,14 +186,16 @@ fun CreatePostScreen(
             windowInsets = WindowInsets(0, 0, 0, 0)
         )
 
+        // Columna con scroll vertical para el formulario
         Column(
             modifier = Modifier
-                .weight(1f)
+                .weight(1f) // Ocupa el espacio restante
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
+            // Texto descriptivo
             Text(
                 text = stringResource(R.string.share_with_community),
                 fontSize = 14.sp,
@@ -187,7 +203,7 @@ fun CreatePostScreen(
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // --- Título ---
+            // --- Campo: Título ---
             OutlinedTextField(
                 value = title,
                 onValueChange = { viewModel.onTitleChange(it) },
@@ -205,7 +221,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Sugerencia IA ---
+            // --- Sugerencia de categoría por IA (animada) ---
             AnimatedVisibility(
                 visible = suggestedCategory != null,
                 enter = expandVertically() + fadeIn(),
@@ -216,7 +232,7 @@ fun CreatePostScreen(
                         .fillMaxWidth()
                         .padding(bottom = 12.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFFFFE0E0)
+                    color = Color(0xFFFFE0E0) // Fondo rojo claro
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -235,7 +251,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // --- Categorías (Selección Múltiple) ---
+            // --- Selección de categorías (múltiple) ---
             Text(
                 text = "Categorías (puedes elegir varias)",
                 fontWeight = FontWeight.SemiBold,
@@ -243,6 +259,7 @@ fun CreatePostScreen(
                 color = Color(0xFF1A1A1A),
                 modifier = Modifier.padding(bottom = 10.dp)
             )
+            // FlowRow para que los chips fluyan en múltiples líneas
             FlowRow(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -272,7 +289,7 @@ fun CreatePostScreen(
                 }
             }
 
-            // --- Descripción ---
+            // --- Descripción con generación por IA ---
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 8.dp)
@@ -284,6 +301,7 @@ fun CreatePostScreen(
                     color = Color(0xFF1A1A1A),
                     modifier = Modifier.weight(1f)
                 )
+                // Botón de generación IA o indicador de carga
                 if (isGeneratingDesc) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = RedAccent)
@@ -293,7 +311,7 @@ fun CreatePostScreen(
                 } else {
                     Surface(
                         onClick = {
-                            if (title.length > 3) {
+                            if (title.length > 3) { // Solo si el título tiene más de 3 caracteres
                                 scope.launch {
                                     isGeneratingDesc = true
                                     val cat = if (selectedCategories.isNotEmpty()) selectedCategories.first() else "Otros"
@@ -318,6 +336,7 @@ fun CreatePostScreen(
                 }
             }
 
+            // Campo de descripción (multilínea)
             OutlinedTextField(
                 value = description,
                 onValueChange = { viewModel.onDescriptionChange(it) },
@@ -337,7 +356,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Ubicación Estructurada ---
+            // --- Ubicación Estructurada (Colombia) ---
             Text(
                 text = "Ubicación (Colombia)",
                 fontWeight = FontWeight.SemiBold,
@@ -345,7 +364,7 @@ fun CreatePostScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Selector de Departamento
+            // Selector de Departamento (menú desplegable)
             ExposedDropdownMenuBox(
                 expanded = departmentExpanded,
                 onExpandedChange = { departmentExpanded = !departmentExpanded },
@@ -385,7 +404,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Selector de Ciudad
+            // Selector de Ciudad (depende del departamento seleccionado)
             ExposedDropdownMenuBox(
                 expanded = cityExpanded,
                 onExpandedChange = { 
@@ -402,7 +421,7 @@ fun CreatePostScreen(
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = cityExpanded) },
                     modifier = Modifier.menuAnchor().fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = department.isNotEmpty(),
+                    enabled = department.isNotEmpty(), // Solo habilita si hay departamento
                     colors = TextFieldDefaults.colors(
                         unfocusedContainerColor = Color.White,
                         focusedContainerColor = Color.White,
@@ -430,7 +449,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Dirección Manual y Mapa
+            // --- Dirección manual y botón de mapa ---
             OutlinedTextField(
                 value = location,
                 onValueChange = { viewModel.onLocationChange(it) },
@@ -442,11 +461,11 @@ fun CreatePostScreen(
                     Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFF555555))
                 },
                 trailingIcon = {
-                    IconButton(onClick = onNavigateToMapPicker) {
+                    IconButton(onClick = onNavigateToMapPicker) { // Abre el selector de mapa
                         Icon(
                             Icons.Default.MyLocation, 
                             contentDescription = "Fijar en Mapa", 
-                            tint = if (latitude != null) Color(0xFF4CAF50) else RedAccent
+                            tint = if (latitude != null) Color(0xFF4CAF50) else RedAccent // Verde si hay coordenadas
                         )
                     }
                 },
@@ -459,6 +478,7 @@ fun CreatePostScreen(
                 singleLine = true
             )
             
+            // Muestra las coordenadas si están seleccionadas
             if (latitude != null && longitude != null) {
                 Row(
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp),
@@ -484,6 +504,7 @@ fun CreatePostScreen(
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
+            // Fila con dos tarjetas: Apertura y Cierre
             Row(modifier = Modifier.fillMaxWidth()) {
                 OutlinedCard(
                     onClick = { openStartPicker = true },
@@ -516,7 +537,7 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- Precio ---
+            // --- Rango de precios ---
             OutlinedTextField(
                 value = priceRange,
                 onValueChange = { viewModel.onPriceRangeChange(it) },
@@ -537,13 +558,14 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- Agregar foto ---
+            // --- Subir imagen ---
             Text(
                 text = "Imagen del lugar",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
+            // Caja clickeable para seleccionar imagen
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -558,12 +580,14 @@ fun CreatePostScreen(
                 contentAlignment = Alignment.Center
             ) {
                 if (selectedImageUri != null) {
+                    // Muestra la imagen seleccionada
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
+                    // Botón de editar superpuesto
                     Surface(
                         modifier = Modifier.padding(8.dp).align(Alignment.TopEnd),
                         shape = CircleShape,
@@ -577,6 +601,7 @@ fun CreatePostScreen(
                         )
                     }
                 } else {
+                    // Estado sin imagen: muestra ícono y texto
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
@@ -595,11 +620,11 @@ fun CreatePostScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // --- Botón Publicar ---
+            // --- Botón Publicar / Enviar a Moderación ---
             Button(
                 onClick = { 
-                    viewModel.savePost(context) { 
-                        showSuccessModal = true
+                    viewModel.savePost { 
+                        showSuccessModal = true // Muestra modal de éxito al guardar
                     } 
                 },
                 modifier = Modifier
@@ -607,7 +632,7 @@ fun CreatePostScreen(
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = RedAccent),
-                enabled = !isUploading && title.isNotEmpty()
+                enabled = !isUploading && title.isNotEmpty() // Deshabilitado si está subiendo o sin título
             ) {
                 if (isUploading) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
@@ -616,6 +641,7 @@ fun CreatePostScreen(
                 }
             }
 
+            // Texto informativo sobre moderación
             Text(
                 text = "Tu publicación será revisada para asegurar la calidad de la comunidad.",
                 fontSize = 11.sp,
@@ -628,6 +654,7 @@ fun CreatePostScreen(
     }
 }
 
+// Componente para el diálogo selector de hora (reutilizable)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimePickerDialog(
@@ -650,7 +677,7 @@ fun TimePickerDialog(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                content()
+                content() // Aquí va el TimePicker
             }
         },
         confirmButton = {

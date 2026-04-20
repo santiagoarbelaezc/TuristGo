@@ -25,6 +25,10 @@ class NotificationsViewModel @Inject constructor(
             else flowOf(emptyList())
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    
+    val unreadCount: StateFlow<Int> = notifications
+        .map { list -> list.count { !it.isRead } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val _navigationEvent = MutableSharedFlow<NotificationNavigationEvent>()
     val navigationEvent = _navigationEvent.asSharedFlow()

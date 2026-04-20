@@ -79,7 +79,7 @@ class PostDetailViewModel @Inject constructor(
         _moderationAlert.value = _moderationAlert.value.copy(isVisible = false)
     }
 
-    fun addComment(content: String) {
+    fun addComment(content: String, imageUrl: String? = null) {
         val post = _post.value ?: return
         viewModelScope.launch {
             // --- MODERACIÓN POR IA ---
@@ -104,7 +104,8 @@ class PostDetailViewModel @Inject constructor(
                 authorId = userId,
                 authorName = userName,
                 authorPhotoUrl = session.photoUrl,
-                content = content
+                content = content,
+                imageUrl = imageUrl
             )
             repository.addComment(newComment)
 

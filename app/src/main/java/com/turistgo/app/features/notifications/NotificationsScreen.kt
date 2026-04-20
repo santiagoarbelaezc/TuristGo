@@ -3,6 +3,7 @@ package com.turistgo.app.features.notifications
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -162,105 +163,106 @@ fun NotificationCard(
 
     val isUnread = !notification.isRead
 
-    Surface(
-        onClick = onClick,
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .shadow(
-                elevation = if (isUnread) 8.dp else 2.dp,
-                shape = RoundedCornerShape(28.dp),
-                spotColor = iconColor.copy(alpha = 0.5f)
-            ),
-        shape = RoundedCornerShape(28.dp),
-        color = if (isUnread) MaterialTheme.colorScheme.surface.copy(alpha = 0.85f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
-        border = BorderStroke(
-            1.dp, 
-            if (isUnread) iconColor.copy(alpha = 0.3f) else Color.LightGray.copy(alpha = 0.2f)
-        )
+                elevation = if (isUnread) 6.dp else 1.dp,
+                shape = RoundedCornerShape(24.dp),
+                spotColor = if (isUnread) iconColor.copy(alpha = 0.3f) else Color.Black.copy(alpha = 0.05f)
+            )
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                color = MaterialTheme.colorScheme.surface
+            )
+            .clickable { onClick() }
+            // Apply the soft gradient on top of the surface
+            .background(
+                brush = if (isUnread) {
+                    Brush.horizontalGradient(
+                        colors = listOf(iconColor.copy(alpha = 0.08f), Color.Transparent)
+                    )
+                } else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+            )
+            .border(
+                width = 1.dp,
+                color = if (isUnread) iconColor.copy(alpha = 0.15f) else Color.LightGray.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(24.dp)
+            )
+            .padding(18.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    if (isUnread) Brush.horizontalGradient(
-                        colors = listOf(iconColor.copy(alpha = 0.05f), Color.Transparent)
-                    ) else Brush.linearGradient(listOf(Color.Transparent, Color.Transparent))
+        Row(verticalAlignment = Alignment.Top) {
+            // Circle Icon with Soft Glow
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(if (isUnread) iconColor.copy(alpha = 0.15f) else iconColor.copy(alpha = 0.05f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = iconVec,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(24.dp)
                 )
-                .padding(18.dp)
-        ) {
-            Row(verticalAlignment = Alignment.Top) {
-                // Circle Icon with Soft Glow
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(iconColor.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = iconVec,
-                        contentDescription = null,
-                        tint = iconColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+            }
 
-                Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = notification.title,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = if (isUnread) FontWeight.ExtraBold else FontWeight.Bold,
-                            fontSize = 15.sp
-                        ),
-                        color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = notification.message,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    if (notification.type == NotificationType.FOLLOW_REQUEST && !notification.isRead) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth()
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = notification.title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (isUnread) FontWeight.ExtraBold else FontWeight.Bold,
+                        fontSize = 15.sp
+                    ),
+                    color = if (isUnread) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = notification.message,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (notification.type == NotificationType.FOLLOW_REQUEST && !notification.isRead) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Button(
+                            onClick = onAcceptFollow,
+                            modifier = Modifier.weight(1f).height(40.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Button(
-                                onClick = onAcceptFollow,
-                                modifier = Modifier.weight(1f).height(40.dp),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Text("Aceptar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
-                            
-                            OutlinedButton(
-                                onClick = onRejectFollow,
-                                modifier = Modifier.weight(1f).height(40.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Text("Rechazar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            }
+                            Text("Aceptar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                        
+                        OutlinedButton(
+                            onClick = onRejectFollow,
+                            modifier = Modifier.weight(1f).height(40.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                        ) {
+                            Text("Rechazar", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
-                
-                if (isUnread) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(iconColor)
-                            .align(Alignment.Top)
-                    )
-                }
+            }
+            
+            if (isUnread) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 6.dp)
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(iconColor)
+                        .align(Alignment.Top)
+                )
             }
         }
     }

@@ -68,7 +68,8 @@ import com.turistgo.app.R
 
 @Composable
 fun AppNavigation(
-    sessionViewModel: SessionViewModel = hiltViewModel()
+    sessionViewModel: SessionViewModel = hiltViewModel(),
+    notificationsViewModel: com.turistgo.app.features.notifications.NotificationsViewModel = hiltViewModel()
 ) {
     val authState by sessionViewModel.authState.collectAsState()
     val navController = rememberNavController()
@@ -97,7 +98,7 @@ fun AppNavigation(
         BottomNavItem(stringResource(R.string.nav_home),    MainRoutes.Feed,          Icons.Default.Home),
         BottomNavItem(stringResource(R.string.nav_trips),   MainRoutes.Trips,         Icons.Default.Map),
         BottomNavItem(stringResource(R.string.nav_create),  MainRoutes.Create,        Icons.Default.Add),
-        BottomNavItem(stringResource(R.string.nav_alerts),  MainRoutes.Notifications, Icons.Default.Notifications),
+        BottomNavItem(stringResource(R.string.nav_alerts),  MainRoutes.Notifications, Icons.Default.Notifications, isNotification = true),
         BottomNavItem(stringResource(R.string.nav_profile), MainRoutes.Profile,       Icons.Default.Person)
     )
     
@@ -177,12 +178,24 @@ fun AppNavigation(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center
                                 ) {
-                                    Icon(
-                                        imageVector = item.icon,
-                                        contentDescription = item.label,
-                                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                                        modifier = Modifier.size(22.dp)
-                                    )
+                                    val unreadCount by notificationsViewModel.unreadCount.collectAsState()
+                                    
+                                    BadgedBox(
+                                        badge = {
+                                            if (item.isNotification && unreadCount > 0) {
+                                                Badge {
+                                                    Text(unreadCount.toString())
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = item.icon,
+                                            contentDescription = item.label,
+                                            tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = item.label,
@@ -496,5 +509,6 @@ fun AppNavigation(
 data class BottomNavItem(
     val label: String,
     val route: Any,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val isNotification: Boolean = false
 )

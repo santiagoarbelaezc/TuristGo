@@ -7,5 +7,6 @@ data class Comment(
     val authorName: String,
     val authorPhotoUrl: String? = null,
     val content: String,
+    val imageUrl: String? = null,
     val timestamp: Long = System.currentTimeMillis()
 )

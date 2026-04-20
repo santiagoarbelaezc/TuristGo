@@ -9,6 +9,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,6 +46,13 @@ fun PostDetailScreen(
     val isSaved by viewModel.isSaved.collectAsState()
     val comments by viewModel.comments.collectAsState()
     val moderationAlert by viewModel.moderationAlert.collectAsState()
+
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        selectedImageUri = uri
+    }
 
     LaunchedEffect(destinationId) {
         destinationId?.let { viewModel.loadPost(it) }
@@ -251,18 +261,45 @@ fun PostDetailScreen(
                 Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                     Text(text = stringResource(R.string.comments) + " (${realComments.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(16.dp))
-                    
                     // Input para nuevo comentario
+                    if (selectedImageUri != null) {
+                        Box(modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth().height(150.dp).clip(RoundedCornerShape(12.dp))) {
+                            AsyncImage(
+                                model = selectedImageUri,
+                                contentDescription = "Preview",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            IconButton(
+                                onClick = { selectedImageUri = null },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                                    .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                    .size(30.dp)
+                            ) {
+                                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                            }
+                        }
+                    }
                     OutlinedTextField(
                         value = commentText,
                         onValueChange = { commentText = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(stringResource(R.string.write_experience)) },
+                        leadingIcon = {
+                            IconButton(onClick = { 
+                                photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) 
+                            }) {
+                                Icon(Icons.Default.Image, "Adjuntar foto", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
                         trailingIcon = {
-                            if (commentText.isNotEmpty()) {
+                            if (commentText.isNotEmpty() || selectedImageUri != null) {
                                 IconButton(onClick = { 
-                                    viewModel.addComment(commentText)
+                                    viewModel.addComment(commentText, selectedImageUri?.toString())
                                     commentText = "" 
+                                    selectedImageUri = null
                                 }) {
                                     Icon(Icons.Default.Send, null, tint = MaterialTheme.colorScheme.primary)
                                 }
@@ -286,6 +323,7 @@ fun PostDetailScreen(
                                 content = comment.content, 
                                 time = "Justo ahora",
                                 authorPhoto = comment.authorPhotoUrl,
+                                imageUrl = comment.imageUrl,
                                 onProfileClick = { onNavigateToUserProfile(comment.authorId) }
                             )
                         }
@@ -357,6 +395,7 @@ fun CommentItem(
     content: String, 
     time: String, 
     authorPhoto: String? = null,
+    imageUrl: String? = null,
     onProfileClick: () -> Unit = {}
 ) {
     Row(modifier = Modifier.padding(vertical = 8.dp)) {
@@ -382,7 +421,22 @@ fun CommentItem(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = time, color = MaterialTheme.colorScheme.secondary, fontSize = 12.sp)
             }
-            Text(text = content, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (content.isNotEmpty()) {
+                Text(text = content, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (imageUrl != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Imagen adjunta",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
     }
 }

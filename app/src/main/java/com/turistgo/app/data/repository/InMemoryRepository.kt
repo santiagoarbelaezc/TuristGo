@@ -32,8 +32,8 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         ),
         User(
             id = "juanda_001",
-            name = "Juan",
-            lastName = "David",
+            name = "Juan David",
+            lastName = "Gutierrez",
             age = "22",
             country = "Colombia",
             city = "Medellín",
@@ -42,12 +42,12 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             username = "juanda",
             password = "juanda123",
             profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_1_l9dbve.jpg",
-            isVerified = true
+            isVerified = false
         ),
         User(
             id = "eli_001",
             name = "Eliana",
-            lastName = "Lopez",
+            lastName = "Hernandez",
             age = "24",
             country = "Colombia",
             city = "Bogotá",
@@ -55,7 +55,8 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             email = "eli@turistgo.com",
             username = "eli",
             password = "eli123",
-            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_xn4jqm.jpg"
+            profilePhotoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776632171/WhatsApp_Image_2026-04-19_at_3.55.25_PM_xn4jqm.jpg",
+            isVerified = false
         )
     ))
     private val comments = MutableStateFlow<List<Comment>>(emptyList())
@@ -319,7 +320,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             name = "PANACA",
             location = "Quimbaya, Quindío",
             rating = "4.8",
-            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776565115/panaca-quindio_bm4agw.jpg",
+            imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776652011/images_2_ueiwed.jpg",
             description = "¡Sin campo no hay ciudad! El primer parque temático agropecuario del mundo.",
             status = com.turistgo.app.domain.model.PostStatus.APPROVED,
             categories = listOf("Lugares", "Naturaleza")
@@ -505,7 +506,10 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         }
 
         if (accepted) {
+            // El remitente ahora sigue al destinatario
             toggleFollow(senderId, targetId)
+            // IMPORTANTE: El destinatario ahora sigue al remitente automáticamente para ser "Amigos"
+            toggleFollow(targetId, senderId)
             
             // Notify sender
             val senderProfile = users.value.find { it.id == targetId }
@@ -513,9 +517,10 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
                 Notification(
                     id = java.util.UUID.randomUUID().toString(),
                     userId = senderId,
-                    title = "Solicitud aceptada",
-                    message = "${senderProfile?.name ?: "Alguien"} ha aceptado tu solicitud de seguimiento.",
-                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED
+                    title = "¡Ahora son amigos!",
+                    message = "${senderProfile?.name ?: "Alguien"} ha aceptado tu solicitud. ¡Ya pueden ver sus publicaciones!",
+                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED,
+                    senderId = targetId
                 )
             )
         }

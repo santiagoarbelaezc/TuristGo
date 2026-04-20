@@ -146,53 +146,85 @@ fun PublicProfileScreen(
                 // Estados de la relación entre el usuario actual y el perfil visitado
                 val isFollowing by viewModel.isFollowing.collectAsState() // ¿Lo sigue?
                 val isMutual by viewModel.isMutualFollow.collectAsState() // ¿Es mutuo (amigos)?
-                val isPending by viewModel.isPendingRequest.collectAsState() // ¿Hay solicitud pendiente?
+                val isPending by viewModel.isPendingRequest.collectAsState() // ¿He recibido una solicitud de él?
+                val isSent by viewModel.isSentRequest.collectAsState() // ¿Le he enviado una solicitud?
                 val isMe by viewModel.isMe.collectAsState() // ¿Es el propio usuario?
 
-                // Botón de seguimiento (solo si no es el propio usuario)
+                // Botón de interacción (solo si no es el propio usuario)
                 if (!isMe) {
                     Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { if (!isFollowing && !isPending) viewModel.requestFollow() }, // Solicita seguir solo si no sigue ni tiene solicitud pendiente
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
-                            .height(48.dp),
-                        enabled = !isFollowing && !isPending, // Deshabilitado si ya sigue o hay solicitud pendiente
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = when {
-                                isMutual -> Color(0xFF00BFA5).copy(alpha = 0.2f) // Verde menta semitransparente para "Amigos"
-                                isFollowing -> MaterialTheme.colorScheme.surfaceVariant // Color de superficie para "Siguiendo"
-                                isPending -> Color.LightGray.copy(alpha = 0.5f) // Gris semitransparente para "Solicitado"
-                                else -> MaterialTheme.colorScheme.primary // Color primario para "Seguir"
-                            },
-                            contentColor = when {
-                                isMutual -> Color(0xFF00BFA5) // Texto verde menta
-                                isFollowing -> MaterialTheme.colorScheme.onSurfaceVariant
-                                isPending -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                                else -> Color.White // Texto blanco para "Seguir"
+                    
+                    if (isPending) {
+                        // CASO: Hemos recibido una solicitud de este usuario
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Button(
+                                onClick = { viewModel.acceptFollowRequest() },
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)) // Verde éxito
+                            ) {
+                                Icon(Icons.Default.Check, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Aceptar", fontWeight = FontWeight.Bold)
                             }
-                        )
-                    ) {
-                        // Ícono según el estado de la relación
-                        val icon = when {
-                            isMutual -> Icons.Default.Group // Dos personas (amigos)
-                            isFollowing -> Icons.Default.Check // Check (siguiendo)
-                            isPending -> Icons.Default.HourglassEmpty // Reloj de arena (solicitado)
-                            else -> Icons.Default.PersonAdd // Persona con más (seguir)
+                            
+                            OutlinedButton(
+                                onClick = { viewModel.declineFollowRequest() },
+                                modifier = Modifier.weight(1f).height(48.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                                border = ButtonDefaults.outlinedButtonBorder.copy(brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.error))
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Rechazar", fontWeight = FontWeight.Bold)
+                            }
                         }
-                        // Texto según el estado de la relación
-                        val text = when {
-                            isMutual -> "Amigos"
-                            isFollowing -> "Siguiendo"
-                            isPending -> "Solicitado"
-                            else -> "Seguir"
+                    } else {
+                        // CASO: Proceso normal (Seguir, Siguiendo, Amigos, Solicitado)
+                        Button(
+                            onClick = { if (!isFollowing && !isSent) viewModel.requestFollow() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp)
+                                .height(48.dp),
+                            enabled = !isFollowing && !isSent,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = when {
+                                    isMutual -> Color(0xFF00BFA5).copy(alpha = 0.2f)
+                                    isFollowing -> MaterialTheme.colorScheme.surfaceVariant
+                                    isSent -> Color.LightGray.copy(alpha = 0.5f)
+                                    else -> MaterialTheme.colorScheme.primary
+                                },
+                                contentColor = when {
+                                    isMutual -> Color(0xFF00BFA5)
+                                    isFollowing -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    isSent -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    else -> Color.White
+                                }
+                            )
+                        ) {
+                            val icon = when {
+                                isMutual -> Icons.Default.Group
+                                isFollowing -> Icons.Default.Check
+                                isSent -> Icons.Default.HourglassEmpty
+                                else -> Icons.Default.PersonAdd
+                            }
+                            val text = when {
+                                isMutual -> "Amigos"
+                                isFollowing -> "Siguiendo"
+                                isSent -> "Solicitado"
+                                else -> "Seguir"
+                            }
+                            
+                            Icon(imageVector = icon, contentDescription = null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = text, fontWeight = FontWeight.Bold)
                         }
-                        
-                        Icon(imageVector = icon, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = text, fontWeight = FontWeight.Bold)
                     }
                 }
 

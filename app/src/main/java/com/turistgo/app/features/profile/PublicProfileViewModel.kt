@@ -50,6 +50,10 @@ class PublicProfileViewModel @Inject constructor(
         current != null && target != null && current.pendingFollowRequestIds.contains(target.id)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isSentRequest: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
+        current != null && target != null && target.pendingFollowRequestIds.contains(current.id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val isMutualFollow: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
         current != null && target != null && 
         current.followingIds.contains(target.id) && target.followingIds.contains(current.id)
@@ -76,6 +80,22 @@ class PublicProfileViewModel @Inject constructor(
             val currentUserId = session.userId ?: return@launch
             val currentUserName = session.name ?: "Usuario"
             repository.sendFollowRequest(currentUserId, currentUserName, targetId)
+        }
+    }
+
+    fun acceptFollowRequest() {
+        val senderId = _userId.value ?: return
+        viewModelScope.launch {
+            val currentUserId = sessionManager.userSession.first().userId ?: return@launch
+            repository.handleFollowRequestByUserId(currentUserId, senderId, true)
+        }
+    }
+
+    fun declineFollowRequest() {
+        val senderId = _userId.value ?: return
+        viewModelScope.launch {
+            val currentUserId = sessionManager.userSession.first().userId ?: return@launch
+            repository.handleFollowRequestByUserId(currentUserId, senderId, false)
         }
     }
 

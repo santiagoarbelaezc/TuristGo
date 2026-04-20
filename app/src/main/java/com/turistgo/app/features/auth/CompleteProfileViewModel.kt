@@ -15,12 +15,14 @@ import android.net.Uri
 import com.turistgo.app.core.locale.AppLanguage
 import com.turistgo.app.core.locale.LanguageState
 import com.turistgo.app.core.network.CloudinaryManager
+import com.turistgo.app.data.datastore.UserSessionManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @HiltViewModel
 class CompleteProfileViewModel @Inject constructor(
     private val repository: AppDataRepository,
+    private val sessionManager: UserSessionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     private val _username = mutableStateOf("")
@@ -101,6 +103,15 @@ class CompleteProfileViewModel @Inject constructor(
                     notificationsEnabled = _notificationsEnabled.value
                 )
                 repository.updateUser(updatedUser)
+                
+                // --- SINCRONIZAR CON LA SESIÓN ACTIVA ---
+                sessionManager.saveSession(
+                    userId = userId,
+                    name = updatedUser.username ?: updatedUser.name,
+                    email = updatedUser.email,
+                    photoUrl = updatedUser.profilePhotoUrl
+                )
+                
                 onSuccess()
             } else {
                 _snackbarMessage.value = "Error: Usuario no encontrado"

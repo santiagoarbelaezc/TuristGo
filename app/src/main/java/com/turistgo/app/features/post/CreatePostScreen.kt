@@ -52,6 +52,8 @@ fun CreatePostScreen(
     onNavigateToMapPicker: () -> Unit = {}, // Callback para abrir el selector de mapa
     onBack: () -> Unit = {} // Callback para volver atrás
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // Estados del ViewModel observados
     val title              by viewModel.title
     val description        by viewModel.description
@@ -623,7 +625,7 @@ fun CreatePostScreen(
             // --- Botón Publicar / Enviar a Moderación ---
             Button(
                 onClick = { 
-                    viewModel.savePost { 
+                    viewModel.savePost(context) { 
                         showSuccessModal = true // Muestra modal de éxito al guardar
                     } 
                 },

@@ -496,8 +496,19 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     override suspend fun handleFollowRequest(notificationId: String, accepted: Boolean) {
         val notification = notifications.value.find { it.id == notificationId } ?: return
         val senderId = notification.senderId ?: return
-        val targetId = notification.userId // The person who received it
-        
+        val targetId = notification.userId
+        processFollowRequest(senderId, targetId, accepted, notificationId)
+    }
+
+    override suspend fun handleFollowRequestByUserId(currentUserId: String, senderId: String, accepted: Boolean) {
+        // Find existing notification to clean it up
+        val notification = notifications.value.find { 
+            it.userId == currentUserId && it.senderId == senderId && it.type == com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST 
+        }
+        processFollowRequest(senderId, currentUserId, accepted, notification?.id)
+    }
+
+    private suspend fun processFollowRequest(senderId: String, targetId: String, accepted: Boolean, notificationId: String?) {
         // Remove from sender's pending list regardless of result
         users.value = users.value.map { user ->
             if (user.id == senderId) {
@@ -512,24 +523,22 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             toggleFollow(targetId, senderId)
             
             // Notify sender
-            val senderProfile = users.value.find { it.id == targetId }
+            val targetName = users.value.find { it.id == targetId }?.username ?: "Alguien"
             addNotification(
                 Notification(
                     id = java.util.UUID.randomUUID().toString(),
                     userId = senderId,
                     title = "¡Ahora son amigos!",
-                    message = "${senderProfile?.name ?: "Alguien"} ha aceptado tu solicitud. ¡Ya pueden ver sus publicaciones!",
-                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED,
+                    message = "$targetName aceptó tu solicitud. ¡Ya pueden ver sus publicaciones!",
+                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST,
                     senderId = targetId
                 )
             )
         }
-        
-        // Remove the request notification or mark as read. 
-        // For simplicity, let's mark as read to prevent reappearing actions.
-        markNotificationAsRead(notificationId)
-    }
 
+        // Remove the entry notification if it exists (mark as processed)
+        notificationId?.let { markNotificationAsRead(it) }
+    }
     // Comments implementation
     override fun getComments(postId: String): Flow<List<Comment>> {
         return comments.map { list -> list.filter { it.postId == postId } }

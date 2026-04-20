@@ -33,6 +33,7 @@ interface AppDataRepository {
     suspend fun toggleFollow(currentUserId: String, targetUserId: String)
     suspend fun sendFollowRequest(senderId: String, senderName: String, targetUserId: String)
     suspend fun handleFollowRequest(notificationId: String, accepted: Boolean)
+    suspend fun handleFollowRequestByUserId(currentUserId: String, senderId: String, accepted: Boolean)
 
     // Comments related
     fun getComments(postId: String): Flow<List<Comment>>

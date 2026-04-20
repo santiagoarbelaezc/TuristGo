@@ -72,9 +72,21 @@ class PostDetailViewModel @Inject constructor(
         }
     }
 
+    private val _moderationAlert = MutableStateFlow<String?>(null)
+    val moderationAlert: StateFlow<String?> = _moderationAlert.asStateFlow()
+
+    fun dismissModerationAlert() { _moderationAlert.value = null }
+
     fun addComment(content: String) {
         val post = _post.value ?: return
         viewModelScope.launch {
+            // --- MODERACIÓN POR IA ---
+            val safetyResult = com.turistgo.app.data.GeminiService.isTextSafe(content)
+            if (!safetyResult.isSafe) {
+                _moderationAlert.value = safetyResult.reason
+                return@launch
+            }
+
             val session = sessionManager.userSession.firstOrNull() ?: return@launch
             val userId = session.userId ?: return@launch
             val userName = session.name ?: "Usuario"
@@ -97,7 +109,8 @@ class PostDetailViewModel @Inject constructor(
                         userId = post.authorId,
                         title = "Nuevo comentario",
                         message = "$userName ha comentado en tu publicación: ${post.name}",
-                        type = NotificationType.COMMENT
+                        type = NotificationType.COMMENT,
+                        postId = post.id
                     )
                 )
             }
@@ -109,7 +122,8 @@ class PostDetailViewModel @Inject constructor(
                     userId = userId,
                     title = "Comentario enviado",
                     message = "Has comentado en la publicación: ${post.name}",
-                    type = NotificationType.COMMENT
+                    type = NotificationType.COMMENT,
+                    postId = post.id
                 )
             )
         }

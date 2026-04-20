@@ -147,10 +147,25 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
+    private val _moderationAlert = mutableStateOf<String?>(null)
+    val moderationAlert: State<String?> = _moderationAlert
+
+    fun dismissModerationAlert() { _moderationAlert.value = null }
+
     fun savePost(onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isUploading.value = true
             try {
+                // --- MODERACIÓN DE IMAGEN POR IA ---
+                _selectedImageUri.value?.let { uri ->
+                    val safetyResult = com.turistgo.app.data.GeminiService.isImageSafe(uri)
+                    if (!safetyResult.isSafe) {
+                        _moderationAlert.value = safetyResult.reason
+                        _isUploading.value = false
+                        return@launch
+                    }
+                }
+
                 // Simulación de optimización de imagen (compresión/redimensión)
                 if (_selectedImageUri.value != null) {
                     delay(800) // Simular tiempo de procesamiento

@@ -39,9 +39,35 @@ fun PostDetailScreen(
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
+    val isLiked by viewModel.isLiked.collectAsState()
+    val isSaved by viewModel.isSaved.collectAsState()
+    val comments by viewModel.comments.collectAsState()
+    val moderationAlert by viewModel.moderationAlert.collectAsState()
 
     LaunchedEffect(destinationId) {
         destinationId?.let { viewModel.loadPost(it) }
+    }
+
+    // --- DIÁLOGO DE MODERACIÓN POR IA ---
+    if (moderationAlert != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissModerationAlert() },
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Contenido Bloqueado")
+                }
+            },
+            text = { Text(moderationAlert ?: "") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.dismissModerationAlert() }) {
+                    Text("Entendido")
+                }
+            },
+            shape = RoundedCornerShape(24.dp),
+            containerColor = Color.White
+        )
     }
 
     // Data from the fetched post or defaults
@@ -128,8 +154,6 @@ fun PostDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    val isSaved by viewModel.isSaved.collectAsState()
-                    val isLiked by viewModel.isLiked.collectAsState()
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -193,11 +217,11 @@ fun PostDetailScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // SECCIÓN DE AUTOR - NUEVO
-                    post?.let { p ->
+                    if (post != null) {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onNavigateToUserProfile(p.authorId) },
+                                .clickable { onNavigateToUserProfile(post!!.authorId) },
                             shape = RoundedCornerShape(16.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -207,14 +231,14 @@ fun PostDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AsyncImage(
-                                    model = p.authorPhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+                                    model = post!!.authorPhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
                                     contentDescription = null,
                                     modifier = Modifier.size(48.dp).clip(CircleShape),
                                     contentScale = ContentScale.Crop
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(text = p.authorName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                    Text(text = post!!.authorName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                                     Text(text = "Ver perfil", color = MaterialTheme.colorScheme.primary, fontSize = 12.sp)
                                 }
                                 Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.secondary)

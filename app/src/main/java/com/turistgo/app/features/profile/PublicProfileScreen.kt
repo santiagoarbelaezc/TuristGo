@@ -133,7 +133,7 @@ fun PublicProfileScreen(
                 if (!isMe) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { viewModel.toggleFollow() },
+                        onClick = { viewModel.requestFollow() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)

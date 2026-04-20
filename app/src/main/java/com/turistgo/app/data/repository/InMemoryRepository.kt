@@ -470,6 +470,45 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         }
     }
 
+    override suspend fun sendFollowRequest(senderId: String, senderName: String, targetUserId: String) {
+        val notification = Notification(
+            id = java.util.UUID.randomUUID().toString(),
+            userId = targetUserId,
+            title = "Solicitud de seguimiento",
+            message = "$senderName quiere seguirte en TuristGo.",
+            type = com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST,
+            senderId = senderId,
+            senderName = senderName
+        )
+        addNotification(notification)
+    }
+
+    override suspend fun handleFollowRequest(notificationId: String, accepted: Boolean) {
+        val notification = notifications.value.find { it.id == notificationId } ?: return
+        val senderId = notification.senderId ?: return
+        val targetId = notification.userId // The person who received it
+        
+        if (accepted) {
+            toggleFollow(senderId, targetId)
+            
+            // Notify sender
+            val senderProfile = users.value.find { it.id == targetId }
+            addNotification(
+                Notification(
+                    id = java.util.UUID.randomUUID().toString(),
+                    userId = senderId,
+                    title = "Solicitud aceptada",
+                    message = "${senderProfile?.name ?: "Alguien"} ha aceptado tu solicitud de seguimiento.",
+                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED
+                )
+            )
+        }
+        
+        // Remove the request notification or mark as read. 
+        // For simplicity, let's mark as read to prevent reappearing actions.
+        markNotificationAsRead(notificationId)
+    }
+
     // Comments implementation
     override fun getComments(postId: String): Flow<List<Comment>> {
         return comments.map { list -> list.filter { it.postId == postId } }

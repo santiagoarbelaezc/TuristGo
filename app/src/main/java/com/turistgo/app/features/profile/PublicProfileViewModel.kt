@@ -60,11 +60,13 @@ class PublicProfileViewModel @Inject constructor(
         _userId.value = userId
     }
 
-    fun toggleFollow() {
+    fun requestFollow() {
         val targetId = _userId.value ?: return
         viewModelScope.launch {
-            val currentUserId = sessionManager.userSession.first().userId ?: return@launch
-            repository.toggleFollow(currentUserId, targetId)
+            val session = sessionManager.userSession.first()
+            val currentUserId = session.userId ?: return@launch
+            val currentUserName = session.name ?: "Usuario"
+            repository.sendFollowRequest(currentUserId, currentUserName, targetId)
         }
     }
 

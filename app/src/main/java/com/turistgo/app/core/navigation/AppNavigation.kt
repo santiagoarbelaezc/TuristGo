@@ -447,7 +447,14 @@ fun AppNavigation(
                     }
                 )
             }
-            composable<MainRoutes.Notifications> { NotificationsScreen() }
+            composable<MainRoutes.Notifications> { 
+                NotificationsScreen(
+                    innerPadding = innerPadding,
+                    onNavigateToPostDetail = { postId ->
+                        navController.navigate(MainRoutes.PostDetail(postId))
+                    }
+                ) 
+            }
             composable<MainRoutes.ReviewPost> { backStackEntry -> 
                 val route = backStackEntry.toRoute<MainRoutes.ReviewPost>()
                 ReviewPostScreen(postId = route.postId, onBack = { navController.popBackStack() }) 

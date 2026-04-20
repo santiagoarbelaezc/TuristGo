@@ -26,6 +26,42 @@ class NotificationsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val _navigationEvent = MutableSharedFlow<NotificationNavigationEvent>()
+    val navigationEvent = _navigationEvent.asSharedFlow()
+
+    fun onNotificationClick(notification: Notification) {
+        viewModelScope.launch {
+            repository.markNotificationAsRead(notification.id)
+            
+            // Navigate based on type
+            when (notification.type) {
+                com.turistgo.app.domain.model.NotificationType.COMMENT -> {
+                    notification.postId?.let {
+                        _navigationEvent.emit(NotificationNavigationEvent.ToPostDetail(it))
+                    }
+                }
+                com.turistgo.app.domain.model.NotificationType.NEW_POST -> {
+                    notification.postId?.let {
+                        _navigationEvent.emit(NotificationNavigationEvent.ToPostDetail(it))
+                    }
+                }
+                else -> { /* Other types may not have specific navigation */ }
+            }
+        }
+    }
+
+    fun acceptFollowRequest(notificationId: String) {
+        viewModelScope.launch {
+            repository.handleFollowRequest(notificationId, accepted = true)
+        }
+    }
+
+    fun rejectFollowRequest(notificationId: String) {
+        viewModelScope.launch {
+            repository.handleFollowRequest(notificationId, accepted = false)
+        }
+    }
+
     fun markAsRead(notificationId: String) {
         viewModelScope.launch {
             repository.markNotificationAsRead(notificationId)
@@ -40,4 +76,8 @@ class NotificationsViewModel @Inject constructor(
             }
         }
     }
+}
+
+sealed class NotificationNavigationEvent {
+    data class ToPostDetail(val postId: String) : NotificationNavigationEvent()
 }

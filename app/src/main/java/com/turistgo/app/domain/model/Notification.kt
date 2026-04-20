@@ -7,7 +7,10 @@ data class Notification(
     val message: String,
     val type: NotificationType,
     val isRead: Boolean = false,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val postId: String? = null,
+    val senderId: String? = null,
+    val senderName: String? = null
 )
 
 enum class NotificationType { 
@@ -17,5 +20,7 @@ enum class NotificationType {
     SYSTEM,
     COMMENT,
     POST_APPROVED,
-    POST_REJECTED
+    POST_REJECTED,
+    FOLLOW_REQUEST,
+    FOLLOW_ACCEPTED
 }

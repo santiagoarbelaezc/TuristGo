@@ -353,7 +353,7 @@ fun AppNavigation(
                 ModeratorDashboard(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Home) {
+                        navController.navigate(MainRoutes.Login) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
@@ -376,7 +376,7 @@ fun AppNavigation(
                 ModeratorSettingsScreen(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Home) {
+                        navController.navigate(MainRoutes.Login) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -387,7 +387,7 @@ fun AppNavigation(
                 ModeratorProfileScreen(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Home) {
+                        navController.navigate(MainRoutes.Login) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -411,7 +411,7 @@ fun AppNavigation(
                     onNavigateToSettings = { navController.navigate(MainRoutes.Settings) },
                     onNavigateToEditProfile = { navController.navigate(MainRoutes.EditProfile) },
                     onLogout = {
-                        navController.navigate(MainRoutes.Home) { popUpTo(0) { inclusive = true } }
+                        navController.navigate(MainRoutes.Login) { popUpTo(0) { inclusive = true } }
                     },
                     onNavigateToBadges = { navController.navigate(MainRoutes.Badges) },
                     onNavigateToProgressGuide = { navController.navigate(MainRoutes.ProgressGuide) },

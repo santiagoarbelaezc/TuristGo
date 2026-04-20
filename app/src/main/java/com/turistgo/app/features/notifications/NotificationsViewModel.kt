@@ -49,7 +49,8 @@ class NotificationsViewModel @Inject constructor(
                         _navigationEvent.emit(NotificationNavigationEvent.ToPostDetail(it))
                     }
                 }
-                com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST -> {
+                com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST,
+                com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED -> {
                     notification.senderId?.let {
                         _navigationEvent.emit(NotificationNavigationEvent.ToUserProfile(it))
                     }

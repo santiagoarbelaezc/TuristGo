@@ -377,6 +377,12 @@ fun LoginScreen(
                     )
                 }
             }
+
+            // --- OVERLAY DE CARGA PREMIUM ---
+            com.turistgo.app.core.components.LoadingOverlay(
+                isLoading = isLoading,
+                text = "Iniciando sesión..."
+            )
         }
     }
 }

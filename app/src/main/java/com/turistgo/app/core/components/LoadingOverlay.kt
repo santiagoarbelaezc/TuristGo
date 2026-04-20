@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,7 +26,7 @@ import coil.compose.AsyncImage
 fun LoadingOverlay(
     isLoading: Boolean,
     text: String,
-    logoUrl: String = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1738730999/TuristGo/l0t9pks73dchofexnps9.jpg"
+    logoUrl: String = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771977314/turistgo-logo_evi36h.png"
 ) {
     AnimatedVisibility(
         visible = isLoading,
@@ -35,53 +36,60 @@ fun LoadingOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)),
+                .background(Color.Black.copy(alpha = 0.6f)),
             contentAlignment = Alignment.Center
         ) {
             val infiniteTransition = rememberInfiniteTransition(label = "loader")
             val scale by infiniteTransition.animateFloat(
-                initialValue = 0.8f,
-                targetValue = 1.2f,
+                initialValue = 0.95f,
+                targetValue = 1.05f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(1000),
+                    animation = tween(800),
                     repeatMode = RepeatMode.Reverse
                 ),
                 label = "scale_anim"
             )
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 8.dp,
-                    modifier = Modifier.size(120.dp)
+            Surface(
+                modifier = Modifier
+                    .width(300.dp)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(32.dp),
+                color = Color.White,
+                shadowElevation = 12.dp
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(top = 32.dp, start = 24.dp, end = 24.dp, bottom = 0.dp)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = logoUrl,
-                            contentDescription = "Loading...",
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(CircleShape)
-                                .scale(scale),
-                            contentScale = ContentScale.Crop
-                        )
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(4.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 3.dp
-                        )
-                    }
+                    AsyncImage(
+                        model = logoUrl,
+                        contentDescription = "Loading Character",
+                        modifier = Modifier
+                            .size(140.dp)
+                            .scale(scale),
+                        contentScale = ContentScale.Fit
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text(
+                        text = text,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 22.sp,
+                        color = Color(0xFFE53935), // Rojo TuristGo
+                        modifier = Modifier.padding(bottom = 32.dp)
+                    )
+
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)),
+                        color = Color(0xFFE53935),
+                        trackColor = Color(0xFFE53935).copy(alpha = 0.1f)
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = text,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Color.White
-                )
             }
         }
     }

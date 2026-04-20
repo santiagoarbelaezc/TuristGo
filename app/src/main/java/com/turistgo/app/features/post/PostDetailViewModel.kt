@@ -79,19 +79,33 @@ class PostDetailViewModel @Inject constructor(
         _moderationAlert.value = _moderationAlert.value.copy(isVisible = false)
     }
 
-    fun addComment(content: String, imageUrl: String? = null) {
+    fun addComment(context: android.content.Context, content: String, imageUrl: String? = null) {
         val post = _post.value ?: return
         viewModelScope.launch {
-            // --- MODERACIÓN POR IA ---
-            val safetyResult = com.turistgo.app.data.GeminiService.isTextSafe(content)
-            if (!safetyResult.isSafe) {
+            // --- MODERACIÓN POR IA (TEXTO) ---
+            val textSafety = com.turistgo.app.data.GeminiService.isTextSafe(content)
+            if (!textSafety.isSafe) {
                 _moderationAlert.value = com.turistgo.app.core.models.AlertState(
                     title = "Contenido Bloqueado",
-                    message = safetyResult.reason ?: "Este comentario no cumple con nuestras normas.",
+                    message = textSafety.reason ?: "Este comentario no cumple con nuestras normas.",
                     type = com.turistgo.app.core.models.AlertType.WARNING,
                     isVisible = true
                 )
                 return@launch
+            }
+
+            // --- MODERACIÓN POR IA (IMAGEN REAL) ---
+            if (imageUrl != null) {
+                val imageSafety = com.turistgo.app.data.GeminiService.isImageSafe(context, imageUrl)
+                if (!imageSafety.isSafe) {
+                    _moderationAlert.value = com.turistgo.app.core.models.AlertState(
+                        title = "Imagen Rechazada",
+                        message = imageSafety.reason ?: "La imagen adjunta no cumple con nuestras políticas de seguridad.",
+                        type = com.turistgo.app.core.models.AlertType.WARNING,
+                        isVisible = true
+                    )
+                    return@launch
+                }
             }
 
             val session = sessionManager.userSession.firstOrNull() ?: return@launch

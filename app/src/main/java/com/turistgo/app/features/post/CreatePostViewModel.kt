@@ -152,13 +152,13 @@ class CreatePostViewModel @Inject constructor(
 
     fun dismissModerationAlert() { _moderationAlert.value = _moderationAlert.value.copy(isVisible = false) }
 
-    fun savePost(onSuccess: () -> Unit) {
+    fun savePost(context: android.content.Context, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isUploading.value = true
             try {
                 // --- MODERACIÓN DE IMAGEN POR IA ---
                 _selectedImageUri.value?.let { uri ->
-                    val safetyResult = com.turistgo.app.data.GeminiService.isImageSafe(uri)
+                    val safetyResult = com.turistgo.app.data.GeminiService.isImageSafe(context, uri.toString())
                     if (!safetyResult.isSafe) {
                         _moderationAlert.value = com.turistgo.app.core.models.AlertState(
                             title = "Imagen Bloqueada",

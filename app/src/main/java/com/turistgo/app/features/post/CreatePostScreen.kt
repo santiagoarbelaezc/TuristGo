@@ -47,6 +47,8 @@ fun CreatePostScreen(
     onNavigateToMapPicker: () -> Unit = {},
     onBack: () -> Unit = {}
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     // ... rest of state stays the same ...
     val title              by viewModel.title
     val description        by viewModel.description
@@ -596,7 +598,7 @@ fun CreatePostScreen(
             // --- Botón Publicar ---
             Button(
                 onClick = { 
-                    viewModel.savePost { 
+                    viewModel.savePost(context) { 
                         showSuccessModal = true
                     } 
                 },

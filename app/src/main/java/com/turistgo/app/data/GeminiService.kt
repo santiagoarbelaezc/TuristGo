@@ -1,22 +1,144 @@
 package com.turistgo.app.data
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.content
+import com.turistgo.app.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.delay
+import org.json.JSONObject
+import com.google.ai.client.generativeai.type.BlockThreshold
+import com.google.ai.client.generativeai.type.HarmCategory
+import com.google.ai.client.generativeai.type.SafetySetting
 
 /**
  * Service to call Google Gemini API for AI-powered features.
- * Uses the free Gemini 2.0 Flash endpoint.
+ * Uses the Generative AI SDK with Gemini 1.5 Flash.
  */
 object GeminiService {
 
-    // Replace with your actual Gemini API key
-    private const val API_KEY = "AIzaSyCdummy_replace_with_real_key"
-    private const val BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    private val safetySettings = listOf(
+        SafetySetting(HarmCategory.HARASSMENT, BlockThreshold.NONE),
+        SafetySetting(HarmCategory.HATE_SPEECH, BlockThreshold.NONE),
+        SafetySetting(HarmCategory.SEXUALLY_EXPLICIT, BlockThreshold.NONE),
+        SafetySetting(HarmCategory.DANGEROUS_CONTENT, BlockThreshold.NONE)
+    )
+
+    private val generativeModel by lazy {
+        GenerativeModel(
+            modelName = "gemini-1.5-flash",
+            apiKey = BuildConfig.GEMINI_API_KEY,
+            safetySettings = safetySettings
+        )
+    }
 
     /**
-     * Generates a MOCK moderator review summary for a given post.
-     * Simulates an AI response without real API calls for demonstration purposes.
+     * Extracts JSON from a potentially messy AI response string.
+     */
+    private fun extractJson(text: String): JSONObject? {
+        return try {
+            val start = text.indexOf("{")
+            val end = text.lastIndexOf("}")
+            if (start != -1 && end != -1 && start <= end) {
+                val jsonPart = text.substring(start, end + 1)
+                JSONObject(jsonPart)
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    /**
+     * Moderates text content using real Gemini AI.
+     */
+    suspend fun isTextSafe(text: String): SafetyResult = withContext(Dispatchers.IO) {
+        try {
+            // Si el texto es muy corto o vacío, es seguro por defecto
+            if (text.trim().length < 2) return@withContext SafetyResult(true)
+
+            val prompt = """
+                Analiza este comentario para TuristGo. 
+                Sé permisivo con el lenguaje coloquial, pero RECHAZA (is_safe: false) insultos graves, odio o spam.
+                
+                Responde en JSON:
+                {
+                  "is_safe": boolean,
+                  "reason": "explicación breve en español si es necesario"
+                }
+
+                Texto: "$text"
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            val responseText = response.text ?: return@withContext SafetyResult(true) // Si falla la IA, permitimos texto por ahora
+
+            val json = extractJson(responseText) ?: return@withContext SafetyResult(true)
+            
+            SafetyResult(
+                isSafe = json.optBoolean("is_safe", true),
+                reason = json.optString("reason", "")
+            )
+        } catch (e: Exception) {
+            SafetyResult(true)
+        }
+    }
+
+    /**
+     * Moderates images using real Gemini Vision (Multimodal).
+     */
+    suspend fun isImageSafe(context: Context, uriString: String): SafetyResult = withContext(Dispatchers.IO) {
+        try {
+            val uri = Uri.parse(uriString)
+            val bitmap = context.contentResolver.openInputStream(uri).use { 
+                BitmapFactory.decodeStream(it)
+            } ?: return@withContext SafetyResult(true) // Si no carga, permitimos para no bloquear al usuario
+
+            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 512, 512, true)
+
+            val prompt = """
+                Analiza esta imagen para la app social TuristGo. 
+                Tu objetivo es permitir fotos de viajes y lugares, pero BLOQUEAR contenido dañino.
+                
+                RECHAZA (is_safe: false) SOLO si detectas:
+                1. Contenido sexual explícito o desnudos evidentes.
+                2. Violencia extrema, sangre real o gore.
+                3. Memes ofensivos o basura visual total (spam).
+                
+                Si la imagen es una foto normal de una persona, un paisaje, comida o el interior de un local, es SEGURA (is_safe: true).
+                
+                Responde en JSON:
+                {
+                  "is_safe": boolean,
+                  "reason": "explicación en español si se rechaza"
+                }
+            """.trimIndent()
+
+            val inputContent = content {
+                image(scaledBitmap)
+                text(prompt)
+            }
+
+            val response = generativeModel.generateContent(inputContent)
+            val responseText = response.text ?: return@withContext SafetyResult(true)
+
+            val json = extractJson(responseText) ?: return@withContext SafetyResult(true)
+
+            SafetyResult(
+                isSafe = json.optBoolean("is_safe", true),
+                reason = json.optString("reason", "")
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // En caso de error técnico real (ej. quota), permitimos por usabilidad
+            SafetyResult(true)
+        }
+    }
+
+    /**
+     * Generates a moderator review summary for a given post.
      */
     suspend fun generateModeratorSummary(
         title: String,
@@ -24,76 +146,35 @@ object GeminiService {
         category: String,
         author: String
     ): String = withContext(Dispatchers.IO) {
-        kotlinx.coroutines.delay(1500) // Simular tiempo de procesamiento
-        
-        """
-            1. **Puntos Clave**: La publicación describe detalladamente el sitio "$title". Proporciona información útil sobre acceso y experiencia del visitante.
-            2. **Nivel de Relevancia**: **Alta**. El contenido es original y aporta valor a la comunidad de TuristGo.
-            3. **Acciones Recomendadas**: **Aprobar**. La información no infringe ninguna norma y parece ser verídica basada en patrones históricos.
-            
-            _Análisis generado por el simulador de IA (Gemini Mockup)._
-        """.trimIndent()
-    }
-
-    /**
-     * Moderates text content (comments, descriptions) to check for toxicity or inappropriate language.
-     */
-    suspend fun isTextSafe(text: String): SafetyResult = withContext(Dispatchers.IO) {
-        delay(1000) // Simular análisis
-        
-        // Simulación: Lista ampliada de palabras inapropiadas (Incluyendo locales)
-        val forbidden = listOf(
-            "tonto", "estúpido", "idiota", "spam", "basura", "fuck", "shit", 
-            "hpta", "gonorrea", "malparido", "hijueputa", "h p", "puta", "perra",
-            "mierda", "malparida", "caremonda", "pirobo"
-        )
-        val found = forbidden.filter { text.lowercase().contains(it) }
-        
-        if (found.isNotEmpty()) {
-            SafetyResult(
-                isSafe = false,
-                reason = "Se ha detectado lenguaje inapropiado en tu mensaje. Por favor, mantén el respeto en la comunidad."
-            )
-        } else {
-            SafetyResult(isSafe = true)
+        try {
+            val prompt = "Genera un resumen ejecutivo de moderación para este post en TuristGo: Título: $title, Categoría: $category. Analiza su relevancia y da una recomendación."
+            val response = generativeModel.generateContent(prompt)
+            response.text ?: "No se pudo generar el resumen."
+        } catch (e: Exception) {
+            "Análisis no disponible temporalmente."
         }
     }
 
     /**
-     * Moderates images to check for suggestive or inappropriate content.
-     */
-    suspend fun isImageSafe(uri: Any): SafetyResult = withContext(Dispatchers.IO) {
-        delay(1500) // Simular análisis de visión por computadora
-        
-        // Simulación: En un entorno real llamaríamos a la API Vision de Gemini
-        // Aquí simulamos un éxito el 95% de las veces, para demostrar el bloqueo
-        // Si el URI contiene la palabra "inappropriate" simulamos un fallo
-        val uriString = uri.toString().lowercase()
-        if (uriString.contains("suggestive") || uriString.contains("inappropriate") || uriString.contains("nude")) {
-            SafetyResult(
-                isSafe = false,
-                reason = "La imagen detectada contiene contenido sugestivo o inapropiado que infringe nuestras normas."
-            )
-        } else {
-            SafetyResult(isSafe = true)
-        }
-    }
-
-    /**
-     * Generates a MOCK description for a tourist post based on a title and category.
+     * Generates a description for a tourist post based on a title and category using real AI.
      */
     suspend fun generatePostDescription(title: String, category: String): String = withContext(Dispatchers.IO) {
-        delay(1500) // Simular procesamiento de IA
-        
-        val templates = mapOf(
-            "Gastronomía" to "Descubre $title, un rincón gastronómico imperdible que ofrece una experiencia culinaria única. Con sabores auténticos de la región, ambiente acogedor y atención personalizada, es el lugar ideal para disfrutar en familia o con amigos. Sus especialidades locales y precios razonables lo hacen destacar entre los mejores de la zona.",
-            "Cultura" to "$title es un espacio cultural que invita a explorar la riqueza artística e histórica de la región. Con exhibiciones permanentes y temporales, actividades educativas y un entorno inspirador, este sitio es un punto de encuentro para amantes del arte, la historia y la identidad local.",
-            "Naturaleza" to "$title te conecta con lo mejor de la naturaleza colombiana. Un refugio de biodiversidad donde podrás disfrutar de paisajes impresionantes, fauna silvestre y senderos bien trazados. Ideal para senderismo, fotografía y quienes buscan desconectarse del ritmo urbano.",
-            "Entretenimiento" to "$title es el lugar perfecto para la diversión y el entretenimiento. Ambiente moderno, propuesta variada y una atmósfera vibrante que garantiza una experiencia memorable. Perfecta para grupos, celebraciones or simplemente para disfrutar de una buena noche.",
-            "Historia" to "$title es un testigo vivo de la historia de la región. Con una arquitectura imponente y relatos que atraviesan siglos, este lugar ofrece una conexión directa con el pasado. Ideal para recorridos guiados y amantes del patrimonio cultural."
-        )
-        
-        templates[category] ?: "$title es un punto de interés turístico que vale la pena visitar. Ofrece una experiencia única en su tipo, con características que lo hacen destacar en la región. Recomendado para turistas y locales que buscan nuevas experiencias."
+        try {
+            val prompt = """
+                Escribe una descripción atractiva y breve (máximo 3 párrafos) para un lugar turístico en Colombia.
+                Título del lugar: "$title"
+                Categoría: "$category"
+                Estilo: Inspirador, útil para viajeros y profesional.
+                No incluyas etiquetas ni introducciones, responde directamente con la descripción.
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            response.text ?: "Ven y descubre las maravillas de $title, un destino imperdible en la categoría de $category."
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Fallback en caso de error de red o cuota
+            "$title es un destino fascinante en la categoría de $category que ofrece experiencias únicas a sus visitantes."
+        }
     }
 }
 

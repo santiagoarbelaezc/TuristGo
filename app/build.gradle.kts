@@ -35,6 +35,7 @@ android {
         buildConfigField("String", "CLOUDINARY_API_KEY", "\"${env.getProperty("CLOUDINARY_API_KEY") ?: ""}\"")
         buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${env.getProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${env.getProperty("GEMINI_API_KEY") ?: ""}\"")
         
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
@@ -97,6 +98,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.retrofit.serialization.converter)
+    implementation(libs.generative.ai)
 
     testImplementation(libs.junit)
 

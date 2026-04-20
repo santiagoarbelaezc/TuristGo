@@ -43,6 +43,7 @@ fun PostDetailScreen(
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
     val isLiked by viewModel.isLiked.collectAsState()
     val isSaved by viewModel.isSaved.collectAsState()
     val comments by viewModel.comments.collectAsState()
@@ -298,7 +299,7 @@ fun PostDetailScreen(
                         trailingIcon = {
                             if (commentText.isNotEmpty() || selectedImageUri != null) {
                                 IconButton(onClick = { 
-                                    viewModel.addComment(commentText, selectedImageUri?.toString())
+                                    viewModel.addComment(context, commentText, selectedImageUri?.toString())
                                     commentText = "" 
                                     selectedImageUri = null
                                 }) {

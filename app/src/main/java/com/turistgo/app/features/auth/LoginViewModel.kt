@@ -192,7 +192,8 @@ class LoginViewModel @Inject constructor(
                 sessionManager.saveSession(
                     userId = "admin_001",
                     name = "Administrador",
-                    email = _email.value
+                    email = _email.value,
+                    role = "ADMIN"
                 )
                 onSuccess(true)
             } else {
@@ -205,7 +206,8 @@ class LoginViewModel @Inject constructor(
                         userId = user.id,
                         name = "${user.name} ${user.lastName}",
                         email = user.email,
-                        photoUrl = user.profilePhotoUrl
+                        photoUrl = user.profilePhotoUrl,
+                        role = user.role
                     )
                     onSuccess(false)
                 } else {
@@ -265,7 +267,8 @@ class LoginViewModel @Inject constructor(
                                 userId = googleUser.id,
                                 name = googleUser.name,
                                 email = googleUser.email,
-                                photoUrl = googleUser.photoUrl
+                                photoUrl = googleUser.photoUrl,
+                                role = "USER"
                             )
                             
                             // PERSISTIR EN EL REPOSITORIO
@@ -309,7 +312,8 @@ class LoginViewModel @Inject constructor(
                 sessionManager.saveSession(
                     userId = "social_${System.currentTimeMillis()}",
                     name = "$provider User",
-                    email = "${provider.lowercase()}@example.com"
+                    email = "${provider.lowercase()}@example.com",
+                    role = "USER"
                 )
                 
                 // También persistir en el repositorio para otros proveedores

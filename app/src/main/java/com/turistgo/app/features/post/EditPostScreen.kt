@@ -22,7 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel // Para obtener ViewModel en Compose
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController // Para navegación entre pantallas
 import coil.compose.AsyncImage // Para cargar imágenes desde URL
 import kotlinx.coroutines.launch // Para lanzar corrutinas
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch // Para lanzar corrutinas
 fun EditPostScreen(
     navController: NavController, // Controlador de navegación para volver atrás
     postId: String?, // ID de la publicación a editar (puede ser null si no se proporciona)
-    viewModel: EditPostViewModel = viewModel() // ViewModel obtenido mediante viewModel() (no Hilt)
+    viewModel: EditPostViewModel = hiltViewModel() // ViewModel obtenido mediante hiltViewModel()
 ) {
     // Observa el estado de la UI del ViewModel
     val uiState by viewModel.uiState
@@ -157,17 +157,18 @@ fun EditPostScreen(
 
                 Spacer(modifier = Modifier.height(32.dp)) // Espaciado más grande antes del botón
 
-                // --- Botón: Guardar Cambios ---
                 Button(
                     onClick = {
                         // Cuando se hace clic en guardar:
-                        scope.launch {
-                            // Muestra un mensaje de éxito en el snackbar
-                            snackbarHostState.showSnackbar("Publicación actualizada correctamente")
-                            // Espera 1 segundo para que el usuario vea el mensaje
-                            kotlinx.coroutines.delay(1000)
-                            // Vuelve a la pantalla anterior
-                            navController.popBackStack()
+                        viewModel.saveChanges {
+                            scope.launch {
+                                // Muestra un mensaje de éxito en el snackbar
+                                snackbarHostState.showSnackbar("Publicación actualizada correctamente")
+                                // Espera 1 segundo para que el usuario vea el mensaje
+                                kotlinx.coroutines.delay(1000)
+                                // Vuelve a la pantalla anterior
+                                navController.popBackStack()
+                            }
                         }
                     },
                     modifier = Modifier

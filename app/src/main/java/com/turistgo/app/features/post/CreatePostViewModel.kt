@@ -209,6 +209,7 @@ class CreatePostViewModel @Inject constructor(
                     status = PostStatus.PENDING,
                     authorId = session?.userId ?: "unknown",
                     authorName = session?.name ?: "Usuario",
+                    authorPhotoUrl = session?.photoUrl,
                     createdAt = System.currentTimeMillis()
                 )
                 repository.savePost(newPost)

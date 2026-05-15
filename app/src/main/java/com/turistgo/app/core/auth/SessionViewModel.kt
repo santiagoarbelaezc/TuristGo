@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -18,7 +19,7 @@ class SessionViewModel @Inject constructor(
     val authState: StateFlow<AuthState> = sessionManager.userSession
         .map { session ->
             if (session.isLoggedIn) {
-                AuthState.Authenticated
+                AuthState.Authenticated(session.role ?: "USER")
             } else {
                 AuthState.NotAuthenticated
             }
@@ -28,4 +29,10 @@ class SessionViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = AuthState.Loading
         )
+
+    fun logout() {
+        viewModelScope.launch {
+            sessionManager.clearSession()
+        }
+    }
 }

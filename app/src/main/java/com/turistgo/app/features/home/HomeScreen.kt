@@ -40,6 +40,8 @@ import com.turistgo.app.core.locale.AppLanguage
 import com.turistgo.app.features.auth.LoginViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.core.components.SocialLoginCard
+import com.turistgo.app.core.auth.SessionViewModel
+import com.turistgo.app.core.auth.AuthState
 
 // Declara la función composable principal de la pantalla de inicio (Home)
 @Composable
@@ -47,14 +49,26 @@ fun HomeScreen(
     onNavigateToLogin: () -> Unit, // Callback para navegar a la pantalla de inicio de sesión
     onNavigateToRegister: () -> Unit, // Callback para navegar a la pantalla de registro
     onNavigateToFeed: () -> Unit, // Callback para navegar al feed principal (cuando ya hay sesión)
-    viewModel: LoginViewModel = hiltViewModel() // ViewModel de login inyectado por Hilt
+    viewModel: LoginViewModel = hiltViewModel(), // ViewModel de login inyectado por Hilt
+    sessionViewModel: SessionViewModel = hiltViewModel() // ViewModel de sesión
 ) {
+    // Observar el estado de autenticación
+    val authState by sessionViewModel.authState.collectAsState()
     // Obtiene el idioma actual del estado global
     val lang by LanguageState.current
     // Obtiene los strings traducidos según el idioma actual
     val s = AppStrings.get(lang)
     // Estado para el scroll vertical
     val scrollState = rememberScrollState()
+    
+    // --- LÓGICA DE SEGURIDAD PARA ADMIN ---
+    // Si detectamos que el usuario es ADMIN en esta pantalla, cerramos su sesión automáticamente.
+    // Esto obliga a que siempre deba ingresar credenciales (no puede usar "Continuar").
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated && (authState as AuthState.Authenticated).role == "ADMIN") {
+            sessionViewModel.logout()
+        }
+    }
 
     // URL del logo de TuristGo (almacenado en Cloudinary)
     val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
@@ -183,33 +197,51 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Botón: Iniciar Sesión ---
-            Button(
-                onClick = onNavigateToLogin,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(s.loginBtn, fontSize = 18.sp, fontWeight = FontWeight.SemiBold) // "Iniciar Sesión"
-            }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            if (authState is AuthState.Authenticated && (authState as AuthState.Authenticated).role != "ADMIN") {
+                // --- Botón: Continuar a la App (solo si está autenticado y NO es ADMIN) ---
+                Button(
+                    onClick = onNavigateToFeed,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(
+                        if (lang == AppLanguage.SPANISH) "Continuar a la App" else "Continue to App",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                // --- Botón: Iniciar Sesión ---
+                Button(
+                    onClick = onNavigateToLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(s.loginBtn, fontSize = 18.sp, fontWeight = FontWeight.SemiBold) // "Iniciar Sesión"
+                }
 
-            // --- Botón: Registrarse (outlined) ---
-            OutlinedButton(
-                onClick = onNavigateToRegister,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text(
-                    s.registerBtn, // "Registrarse"
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // --- Botón: Registrarse (outlined) ---
+                OutlinedButton(
+                    onClick = onNavigateToRegister,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Text(
+                        s.registerBtn, // "Registrarse"
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

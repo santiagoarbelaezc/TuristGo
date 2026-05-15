@@ -22,6 +22,7 @@ interface AppDataRepository {
     suspend fun savePost(post: Post)
     suspend fun updatePostStatus(postId: String, status: com.turistgo.app.domain.model.PostStatus)
     suspend fun getPostById(postId: String): Post?
+    suspend fun deletePost(postId: String)
     
     // Saved posts
     suspend fun toggleSavedPost(userId: String, postId: String)

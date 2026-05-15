@@ -87,7 +87,7 @@ class RegisterViewModel @Inject constructor(
 
     fun onNameChange(v: String)            { _name.value = v }
     fun onLastNameChange(v: String)        { _lastName.value = v }
-    fun onAgeChange(v: String)             { _age.value = v }
+    fun onAgeChange(v: String)             { if (v.length <= 3 && v.all { it.isDigit() }) _age.value = v }
     
     fun onCountryChange(v: String) { 
         _country.value = v
@@ -125,7 +125,7 @@ class RegisterViewModel @Inject constructor(
     fun onCityChange(v: String)            { _city.value = v }
     fun onAddressChange(v: String)         { _address.value = v }
     fun onPhoneExtensionChange(v: String)  { _phoneExtension.value = v }
-    fun onPhoneChange(v: String)           { _phone.value = v }
+    fun onPhoneChange(v: String)           { if (v.length <= 10 && v.all { it.isDigit() }) _phone.value = v }
     fun onEmailChange(v: String)           { _email.value = v }
     fun onPasswordChange(v: String)        { _password.value = v }
     fun onConfirmPasswordChange(v: String) { _confirmPassword.value = v }
@@ -156,8 +156,54 @@ class RegisterViewModel @Inject constructor(
 
         if (_country.value == "Colombia" && _department.value.isEmpty()) {
             _alertState.value = AlertState(
-                title = "Departamento Faltante",
-                message = "Selecciona un departamento para continuar con tu registro en Colombia.",
+                title = "Geografía Incompleta",
+                message = "Por favor selecciona un departamento para continuar con tu registro en Colombia.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        // Validación de Nombre y Apellido (solo letras y longitud mínima)
+        val nameRegex = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$".toRegex()
+        if (!nameRegex.matches(_name.value) || _name.value.length < 2) {
+            _alertState.value = AlertState(
+                title = "Nombre Inválido",
+                message = "El nombre debe contener solo letras y tener al menos 2 caracteres.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        if (!nameRegex.matches(_lastName.value) || _lastName.value.length < 2) {
+            _alertState.value = AlertState(
+                title = "Apellido Inválido",
+                message = "El apellido debe contener solo letras y tener al menos 2 caracteres.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        // Validación de Edad (numérica y rango razonable)
+        val ageInt = _age.value.toIntOrNull()
+        if (ageInt == null || ageInt < 18 || ageInt > 120) {
+            _alertState.value = AlertState(
+                title = "Restricción de Edad",
+                message = "Debes ser mayor de 18 años para registrarte en TuristGo.",
+                type = AlertType.WARNING,
+                isVisible = true
+            )
+            return
+        }
+
+        // Validación de Teléfono (10 dígitos numéricos)
+        val phoneRegex = "^[0-9]{10}$".toRegex()
+        if (!phoneRegex.matches(_phone.value)) {
+            _alertState.value = AlertState(
+                title = "Teléfono Inválido",
+                message = "El número telefónico debe tener exactamente 10 dígitos numéricos.",
                 type = AlertType.WARNING,
                 isVisible = true
             )
@@ -216,7 +262,7 @@ class RegisterViewModel @Inject constructor(
             )
             
             repository.saveUser(newUser)
-            sessionManager.saveSession(userId, newUser.name, newUser.email)
+            sessionManager.saveSession(userId, newUser.name, newUser.email, role = "USER")
 
             kotlinx.coroutines.delay(3000)
             _snackbarMessage.value = "¡Bienvenido ${_name.value}! Registro casi completo"
@@ -249,7 +295,7 @@ class RegisterViewModel @Inject constructor(
             repository.saveUser(newUser)
             
             // Guardar sesión ficticia
-            sessionManager.saveSession(userId, userName, userEmail)
+            sessionManager.saveSession(userId, userName, userEmail, role = "USER")
             
             // Simular latencia
             kotlinx.coroutines.delay(2000)

@@ -1,6 +1,7 @@
 package com.turistgo.app.features.moderator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +33,7 @@ import javax.inject.Inject
 fun ReviewPostScreen(
     postId: String, 
     onBack: () -> Unit,
+    onNavigateToUserProfile: (String) -> Unit,
     viewModel: ReviewPostViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
@@ -83,7 +85,14 @@ fun ReviewPostScreen(
         ) {
             
             // --- 1. AUTHOR PROFILE CARD ---
-            AuthorCard(author)
+            AuthorCard(
+                author = author, 
+                post = post, 
+                onClick = { 
+                    val id = author?.id ?: post?.authorId
+                    if (id != null) onNavigateToUserProfile(id)
+                }
+            )
 
             // --- 2. POST PREVIEW IMAGE ---
             Surface(
@@ -186,10 +195,16 @@ fun ReviewPostScreen(
     }
 }
 
-@Composable
-fun AuthorCard(author: com.turistgo.app.domain.model.User?) {
+ @Composable
+fun AuthorCard(
+    author: com.turistgo.app.domain.model.User?, 
+    post: com.turistgo.app.domain.model.Post?,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
@@ -203,9 +218,10 @@ fun AuthorCard(author: com.turistgo.app.domain.model.User?) {
                 shape = RoundedCornerShape(16.dp),
                 color = Color(0xFFF0F0F0)
             ) {
-                if (author?.profilePhotoUrl != null) {
+                val photoUrl = author?.profilePhotoUrl ?: post?.authorPhotoUrl
+                if (photoUrl != null) {
                     AsyncImage(
-                        model = author.profilePhotoUrl,
+                        model = photoUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop
                     )
@@ -217,8 +233,9 @@ fun AuthorCard(author: com.turistgo.app.domain.model.User?) {
             Spacer(Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text("${author?.name ?: "Cargando..."} ${author?.lastName ?: ""}", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text(author?.email ?: "verificando cuenta...", fontSize = 12.sp, color = Color.Gray)
+                val fullName = if (author != null) "${author.name} ${author.lastName}" else post?.authorName ?: "Cargando..."
+                Text(fullName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(author?.email ?: "Perfil de usuario", fontSize = 12.sp, color = Color.Gray)
             }
             
             Column(horizontalAlignment = Alignment.End) {

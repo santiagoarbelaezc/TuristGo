@@ -147,11 +147,20 @@ object GeminiService {
         author: String
     ): String = withContext(Dispatchers.IO) {
         try {
-            val prompt = "Genera un resumen ejecutivo de moderación para este post en TuristGo: Título: $title, Categoría: $category. Analiza su relevancia y da una recomendación."
+            val prompt = """
+                Actúa como un asistente de moderación para TuristGo. 
+                Genera un RESUMEN EJECUTIVO (máximo 60 palabras) del siguiente post:
+                Título: "$title"
+                Categoría: "$category"
+                Autor: "$author"
+                Descripción: "$description"
+                
+                Analiza brevemente si el contenido es coherente para una aplicación de turismo y da una recomendación técnica (Aprobar/Revisar).
+            """.trimIndent()
             val response = generativeModel.generateContent(prompt)
-            response.text ?: "No se pudo generar el resumen."
+            response.text ?: "Resumen no disponible."
         } catch (e: Exception) {
-            "Análisis no disponible temporalmente."
+            "El análisis de IA falló. Por favor revisa manualmente."
         }
     }
 

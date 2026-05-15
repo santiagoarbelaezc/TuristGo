@@ -1,6 +1,7 @@
 package com.turistgo.app.features.moderator
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -72,6 +73,9 @@ fun UserManagementScreen(
                 items(users) { user ->
                     UserCardRedesigned(
                         user = user,
+                        onClick = {
+                            navController.navigate(com.turistgo.app.core.navigation.MainRoutes.PublicProfile(user.id))
+                        },
                         onVerify = {
                             viewModel.verifyUser(user.id)
                             scope.launch {
@@ -92,9 +96,16 @@ fun UserManagementScreen(
 }
 
 @Composable
-fun UserCardRedesigned(user: ModeratorUser, onVerify: () -> Unit, onDelete: () -> Unit) {
+fun UserCardRedesigned(
+    user: ModeratorUser, 
+    onClick: () -> Unit,
+    onVerify: () -> Unit, 
+    onDelete: () -> Unit
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

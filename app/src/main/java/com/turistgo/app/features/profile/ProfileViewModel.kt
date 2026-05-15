@@ -118,4 +118,10 @@ class ProfileViewModel @Inject constructor(
             repository.toggleLikedPost(userId, postId)
         }
     }
+
+    fun deletePost(postId: String) {
+        viewModelScope.launch {
+            repository.deletePost(postId)
+        }
+    }
 }

@@ -3,6 +3,11 @@ package com.turistgo.app.features.post
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.turistgo.app.domain.repository.AppDataRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class PostEditState(
     val title: String = "",
@@ -12,21 +17,45 @@ data class PostEditState(
     val imageUrl: String = ""
 )
 
-class EditPostViewModel : ViewModel() {
+@HiltViewModel
+class EditPostViewModel @Inject constructor(
+    private val repository: AppDataRepository
+) : ViewModel() {
     private val _uiState = mutableStateOf(PostEditState())
     val uiState: State<PostEditState> = _uiState
+    private var currentPostId: String? = null
 
     fun loadPost(postId: String?) {
-        // Simulación de carga de datos basada en el ID
-        // En una app real esto vendría de un repositorio/API
-        val simulatedPosts = mapOf(
-            "0" to PostEditState("Avistamiento de aves", "Increíble experiencia viendo aves rapaces.", "Manizales, Caldas", "Turismo", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
-            "1" to PostEditState("Camping en el Ruiz", "Frío pero vale la pena la vista.", "Nevado del Ruiz", "Aventura", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/nevadoruiz_rc301x.jpg"),
-            "2" to PostEditState("Café en Salento", "El mejor café de la región.", "Salento, Quindío", "Gastronomía", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/salento_i4sh8q.jpg")
-        )
+        if (postId == null || postId == currentPostId) return
+        currentPostId = postId
+        
+        viewModelScope.launch {
+            val post = repository.getPostById(postId)
+            post?.let {
+                _uiState.value = PostEditState(
+                    title = it.name,
+                    description = it.description,
+                    location = it.location,
+                    category = it.categories.firstOrNull() ?: "General",
+                    imageUrl = it.imageUrl
+                )
+            }
+        }
+    }
 
-        simulatedPosts[postId]?.let {
-            _uiState.value = it
+    fun saveChanges(onSuccess: () -> Unit) {
+        val id = currentPostId ?: return
+        viewModelScope.launch {
+            val post = repository.getPostById(id)
+            post?.let {
+                repository.savePost(it.copy(
+                    name = _uiState.value.title,
+                    description = _uiState.value.description,
+                    location = _uiState.value.location,
+                    categories = listOf(_uiState.value.category)
+                ))
+                onSuccess()
+            }
         }
     }
 

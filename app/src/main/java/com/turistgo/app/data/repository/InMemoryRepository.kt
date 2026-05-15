@@ -378,6 +378,10 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
 
     override suspend fun getPostById(postId: String): Post? = posts.value.find { it.id == postId }
 
+    override suspend fun deletePost(postId: String) {
+        posts.value = posts.value.filter { it.id != postId }
+    }
+
     override suspend fun toggleSavedPost(userId: String, postId: String) {
         val userExists = users.value.any { it.id == userId }
         if (!userExists) {

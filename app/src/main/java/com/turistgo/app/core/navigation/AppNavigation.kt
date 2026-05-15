@@ -63,6 +63,7 @@ import com.turistgo.app.features.moderator.ReviewPostScreen
 import com.turistgo.app.features.profile.PrivacyPolicyScreen
 import com.turistgo.app.features.profile.UsagePolicyScreen
 import com.turistgo.app.features.profile.HelpSupportScreen
+import com.turistgo.app.features.post.EditPostScreen
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
 
@@ -84,15 +85,6 @@ fun AppNavigation(
         return
     }
 
-    // Redirección automática al Feed si ya hay una sesión activa y estamos en la pantalla inicial
-    LaunchedEffect(authState) {
-        if (authState is AuthState.Authenticated && 
-            (currentDestination?.hasRoute(MainRoutes.Home::class) == true || currentDestination == null)) {
-            navController.navigate(MainRoutes.Feed) {
-                popUpTo(MainRoutes.Home) { inclusive = true }
-            }
-        }
-    }
 
     val bottomBarDestinations = listOf(
         BottomNavItem(stringResource(R.string.nav_home),    MainRoutes.Feed,          Icons.Default.Home),
@@ -353,7 +345,8 @@ fun AppNavigation(
                 ModeratorDashboard(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Login) {
+                        sessionViewModel.logout()
+                        navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
                         }
                     },
@@ -376,7 +369,8 @@ fun AppNavigation(
                 ModeratorSettingsScreen(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Login) {
+                        sessionViewModel.logout()
+                        navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -387,7 +381,8 @@ fun AppNavigation(
                 ModeratorProfileScreen(
                     innerPadding = innerPadding,
                     onLogout = {
-                        navController.navigate(MainRoutes.Login) {
+                        sessionViewModel.logout()
+                        navController.navigate(MainRoutes.Home) {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -411,7 +406,8 @@ fun AppNavigation(
                     onNavigateToSettings = { navController.navigate(MainRoutes.Settings) },
                     onNavigateToEditProfile = { navController.navigate(MainRoutes.EditProfile) },
                     onLogout = {
-                        navController.navigate(MainRoutes.Login) { popUpTo(0) { inclusive = true } }
+                        sessionViewModel.logout()
+                        navController.navigate(MainRoutes.Home) { popUpTo(0) { inclusive = true } }
                     },
                     onNavigateToBadges = { navController.navigate(MainRoutes.Badges) },
                     onNavigateToProgressGuide = { navController.navigate(MainRoutes.ProgressGuide) },
@@ -473,7 +469,13 @@ fun AppNavigation(
             }
             composable<MainRoutes.ReviewPost> { backStackEntry -> 
                 val route = backStackEntry.toRoute<MainRoutes.ReviewPost>()
-                ReviewPostScreen(postId = route.postId, onBack = { navController.popBackStack() }) 
+                ReviewPostScreen(
+                    postId = route.postId, 
+                    onBack = { navController.popBackStack() },
+                    onNavigateToUserProfile = { userId ->
+                        navController.navigate(MainRoutes.PublicProfile(userId))
+                    }
+                ) 
             }
             composable<MainRoutes.Stats> { UserStatsScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.Badges> { BadgesScreen(onBack = { navController.popBackStack() }) }
@@ -492,6 +494,7 @@ fun AppNavigation(
                     innerPadding = innerPadding,
                     onBack = { navController.popBackStack() },
                     onLogout = {
+                        sessionViewModel.logout()
                         navController.navigate(MainRoutes.Home) { popUpTo(0) { inclusive = true } }
                     },
                     onNavigateToPrivacy = { navController.navigate(MainRoutes.PrivacyPolicy) },
@@ -502,6 +505,14 @@ fun AppNavigation(
             composable<MainRoutes.PrivacyPolicy> { PrivacyPolicyScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.UsagePolicy> { UsagePolicyScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.HelpSupport> { HelpSupportScreen(onBack = { navController.popBackStack() }) }
+            
+            composable<MainRoutes.EditPost> { backStackEntry ->
+                val route = backStackEntry.toRoute<MainRoutes.EditPost>()
+                EditPostScreen(
+                    navController = navController,
+                    postId = route.postId
+                )
+            }
         }
     }
 }

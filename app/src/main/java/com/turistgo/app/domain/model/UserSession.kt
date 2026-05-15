@@ -5,5 +5,6 @@ data class UserSession(
     val name: String?,
     val email: String?,
     val photoUrl: String? = null,
+    val role: String? = null,
     val isLoggedIn: Boolean
 )

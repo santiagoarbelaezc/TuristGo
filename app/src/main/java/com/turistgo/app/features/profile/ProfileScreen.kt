@@ -320,9 +320,12 @@ fun ProfileScreen(
                                 contentPadding = PaddingValues(bottom = 16.dp)
                             ) {
                                 items(myPosts) { post ->
-                                    MyPostItem(post) {
-                                        onNavigateToPostDetail(post.id)
-                                    }
+                                    MyPostItem(
+                                        post = post, 
+                                        onEdit = { onNavigateToEditPost(post.id) },
+                                        onDelete = { viewModel.deletePost(post.id) },
+                                        onClick = { onNavigateToPostDetail(post.id) }
+                                    )
                                 }
                             }
                         } else {
@@ -464,26 +467,84 @@ fun ProfileScreen(
     }
 }
 
-// Componente que muestra un post del usuario en forma de tarjeta
-@Composable
-fun MyPostItem(post: com.turistgo.app.domain.model.Post, onClick: () -> Unit = {}) {
+ @Composable
+fun MyPostItem(
+    post: com.turistgo.app.domain.model.Post, 
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onClick: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier
-            .size(140.dp, 180.dp)
-            .clickable(onClick = onClick), // Navega al detalle del post
+            .size(160.dp, 200.dp)
+            .clickable(onClick = onClick), 
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column {
-            // Imagen del post
-            AsyncImage(
-                model = post.imageUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp),
-                contentScale = ContentScale.Crop
-            )
+            Box {
+                // Imagen del post
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp),
+                    contentScale = ContentScale.Crop
+                )
+                
+                // Botón de opciones
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    IconButton(
+                        onClick = { showMenu = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.3f),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                Icons.Default.MoreVert, 
+                                contentDescription = null, 
+                                tint = Color.White,
+                                modifier = Modifier.padding(2.dp)
+                            )
+                        }
+                    }
+                    
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Editar") },
+                            leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            onClick = { 
+                                showMenu = false
+                                onEdit() 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Eliminar", color = MaterialTheme.colorScheme.error) },
+                            leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp)) },
+                            onClick = { 
+                                showMenu = false
+                                onDelete() 
+                            }
+                        )
+                    }
+                }
+            }
+            
             // Información del post: nombre y estado (aprobado/pendiente/rechazado)
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(

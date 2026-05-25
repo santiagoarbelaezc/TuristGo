@@ -153,6 +153,19 @@ fun CreatePostScreen(
 
     // Estado para mostrar el modal de éxito
     var showSuccessModal by remember { mutableStateOf(false) }
+    val pointsEarned by viewModel.pointsEarned
+
+    // Modal de puntos ganados que se muestra al guardar el post
+    if (pointsEarned != null) {
+        com.turistgo.app.core.components.PointsEarnedModal(
+            points = pointsEarned!!,
+            reason = "Por publicar un nuevo destino y compartirlo con la comunidad",
+            onDismiss = {
+                viewModel.clearPointsEarned()
+                showSuccessModal = true
+            }
+        )
+    }
 
     // Modal de éxito que se muestra después de enviar el post
     if (showSuccessModal) {

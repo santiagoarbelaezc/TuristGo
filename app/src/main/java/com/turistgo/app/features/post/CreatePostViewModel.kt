@@ -152,6 +152,13 @@ class CreatePostViewModel @Inject constructor(
 
     fun dismissModerationAlert() { _moderationAlert.value = _moderationAlert.value.copy(isVisible = false) }
 
+    private val _pointsEarned = mutableStateOf<Int?>(null)
+    val pointsEarned: State<Int?> = _pointsEarned
+
+    fun clearPointsEarned() {
+        _pointsEarned.value = null
+    }
+
     fun savePost(context: android.content.Context, onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isUploading.value = true
@@ -214,6 +221,7 @@ class CreatePostViewModel @Inject constructor(
                 )
                 repository.savePost(newPost)
                 _isUploading.value = false
+                _pointsEarned.value = 1
                 onSuccess()
             } catch (e: Exception) {
                 _isUploading.value = false

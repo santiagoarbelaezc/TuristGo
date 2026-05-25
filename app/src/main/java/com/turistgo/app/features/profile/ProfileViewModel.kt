@@ -70,17 +70,19 @@ class ProfileViewModel @Inject constructor(
         val followers = user?.followerIds?.size ?: 0
         val following = user?.followingIds?.size ?: 0
         
-        // Rules: 100 pts per approved post, 10 pts per saved/liked item, 50 pts per follower
-        val totalPoints = (postsSize * 100) + (savedSize * 10) + (likedSize * 10) + (followers * 50)
+        val totalPoints = user?.points ?: 0
         
         val (levelName, levelNum, nextPts) = when {
-            postsSize >= 10 -> Triple("Guía Local", 3, 5000)
-            postsSize >= 5 -> Triple("Viajero", 2, 600)
-            postsSize >= 1 -> Triple("Explorador", 1, 300)
-            else -> Triple("Novato", 0, 100)
+            totalPoints <= 100 -> Triple("Novato", 1, 100)
+            totalPoints <= 300 -> Triple("Explorador", 2, 300)
+            else -> Triple("Guía Experto", 3, 300)
         }
 
-        val progress = if (nextPts > 0) (totalPoints.toFloat() / nextPts).coerceAtMost(1f) else 1f
+        val progress = when {
+            totalPoints <= 100 -> (totalPoints.toFloat() / 100f).coerceIn(0f, 1f)
+            totalPoints <= 300 -> ((totalPoints - 100).toFloat() / 200f).coerceIn(0f, 1f)
+            else -> 1f
+        }
         
         // Simple badge logic for UI counters
         var badges = 0

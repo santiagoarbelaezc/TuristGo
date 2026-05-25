@@ -103,12 +103,18 @@ class PublicProfileViewModel @Inject constructor(
         val postsSize = posts.size
         val followersList = user?.followerIds ?: emptyList()
         val followingList = user?.followingIds ?: emptyList()
+        val totalPoints = user?.points ?: 0
         
-        val (levelName, levelNum, _) = when {
-            postsSize >= 10 -> Triple("Guía Local", 3, 5000)
-            postsSize >= 5 -> Triple("Viajero", 2, 600)
-            postsSize >= 1 -> Triple("Explorador", 1, 300)
-            else -> Triple("Novato", 0, 100)
+        val (levelName, levelNum, nextPts) = when {
+            totalPoints <= 100 -> Triple("Novato", 1, 100)
+            totalPoints <= 300 -> Triple("Explorador", 2, 300)
+            else -> Triple("Guía Experto", 3, 300)
+        }
+
+        val progress = when {
+            totalPoints <= 100 -> (totalPoints.toFloat() / 100f).coerceIn(0f, 1f)
+            totalPoints <= 300 -> ((totalPoints - 100).toFloat() / 200f).coerceIn(0f, 1f)
+            else -> 1f
         }
 
         return ProfileStats(
@@ -119,8 +125,9 @@ class PublicProfileViewModel @Inject constructor(
             likedCount = user?.likedPostIds?.size ?: 0,
             followersCount = followersList.size,
             followingCount = followingList.size,
-            points = postsSize * 50 + followersList.size * 20,
-            levelProgress = 0.5f,
+            points = totalPoints,
+            nextLevelPoints = nextPts,
+            levelProgress = progress,
             badgesCount = if (postsSize >= 1) 1 else 0
         )
     }

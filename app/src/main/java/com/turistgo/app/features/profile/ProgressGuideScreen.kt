@@ -111,30 +111,23 @@ fun LevelsGuide() {
         
         // Cada nivel se muestra con su ícono, requisitos y descripción
         LevelStep(
-            level = stringResource(R.string.level_0_name),      // "Explorador"
-            requirement = stringResource(R.string.level_0_req), // "0 puntos"
-            description = stringResource(R.string.level_0_desc),// "¡Bienvenido! Comienza tu aventura."
+            level = stringResource(R.string.level_0_name),      // "Novato (Nivel 1)"
+            requirement = stringResource(R.string.level_0_req), // "0 a 100 puntos"
+            description = stringResource(R.string.level_0_desc),
             icon = Icons.Default.PersonOutline,
             color = Color.Gray
         )
         LevelStep(
-            level = stringResource(R.string.level_1_name),      // "Viajero"
-            requirement = stringResource(R.string.level_1_req), // "100 puntos"
-            description = stringResource(R.string.level_1_desc),// "Comparte tu primer destino."
+            level = stringResource(R.string.level_1_name),      // "Explorador (Nivel 2)"
+            requirement = stringResource(R.string.level_1_req), // "101 a 300 puntos"
+            description = stringResource(R.string.level_1_desc),
             icon = Icons.Default.Explore,
             color = Color(0xFF4CAF50) // Verde
         )
         LevelStep(
-            level = stringResource(R.string.level_2_name),      // "Guía"
-            requirement = stringResource(R.string.level_2_req), // "300 puntos"
-            description = stringResource(R.string.level_2_desc),// "Inspira a otros viajeros."
-            icon = Icons.Default.AirplanemodeActive,
-            color = Color(0xFF2196F3) // Azul
-        )
-        LevelStep(
-            level = stringResource(R.string.level_3_name),      // "Leyenda"
-            requirement = stringResource(R.string.level_3_req), // "500 puntos"
-            description = stringResource(R.string.level_3_desc),// "Eres un referente en la comunidad."
+            level = stringResource(R.string.level_2_name),      // "Guía Experto (Nivel 3)"
+            requirement = stringResource(R.string.level_2_req), // "301+ puntos"
+            description = stringResource(R.string.level_2_desc),
             icon = Icons.Default.MilitaryTech,
             color = Color(0xFFFF9800) // Naranja
         )
@@ -155,25 +148,14 @@ fun ReputationGuide() {
         
         // Tarjetas que muestran cada acción y los puntos que otorga
         ReputationCard(
-            action = stringResource(R.string.action_publish_dest), // "Publicar destino"
-            points = "+100 pts",
+            action = "Publicar un nuevo destino",
+            points = "+1 punto",
             icon = Icons.Default.AddPhotoAlternate
         )
         ReputationCard(
-            action = stringResource(R.string.action_save_place), // "Guardar lugar"
-            points = "+10 pts",
-            icon = Icons.Default.Bookmark
-        )
-        ReputationCard(
-            action = stringResource(R.string.action_give_like), // "Dar me gusta"
-            points = "+10 pts",
-            icon = Icons.Default.Favorite
-        )
-        ReputationCard(
-            action = "Recibir verificación", // Acción futura (próximamente)
-            points = "+50 pts",
-            icon = Icons.Default.CheckCircle,
-            isComingSoon = true // Marca que esta función aún no está disponible
+            action = "Escribir un comentario en un destino",
+            points = "+1 punto",
+            icon = Icons.Default.ChatBubble
         )
     }
 }

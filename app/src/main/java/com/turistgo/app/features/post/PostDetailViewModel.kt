@@ -122,6 +122,7 @@ class PostDetailViewModel @Inject constructor(
                 imageUrl = imageUrl
             )
             repository.addComment(newComment)
+            _pointsEarned.value = 1
 
             // Trigger Notification for author (if not same person)
             if (post.authorId != userId) {
@@ -149,5 +150,12 @@ class PostDetailViewModel @Inject constructor(
                 )
             )
         }
+    }
+
+    private val _pointsEarned = MutableStateFlow<Int?>(null)
+    val pointsEarned: StateFlow<Int?> = _pointsEarned.asStateFlow()
+
+    fun clearPointsEarned() {
+        _pointsEarned.value = null
     }
 }

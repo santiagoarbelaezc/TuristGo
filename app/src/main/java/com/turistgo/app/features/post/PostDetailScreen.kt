@@ -48,6 +48,15 @@ fun PostDetailScreen(
     val isSaved by viewModel.isSaved.collectAsState()
     val comments by viewModel.comments.collectAsState()
     val moderationAlert by viewModel.moderationAlert.collectAsState()
+    val pointsEarned by viewModel.pointsEarned.collectAsState()
+
+    if (pointsEarned != null) {
+        com.turistgo.app.core.components.PointsEarnedModal(
+            points = pointsEarned!!,
+            reason = "Por escribir un comentario e inspirar a la comunidad",
+            onDismiss = { viewModel.clearPointsEarned() }
+        )
+    }
 
     var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
     val photoPickerLauncher = rememberLauncherForActivityResult(

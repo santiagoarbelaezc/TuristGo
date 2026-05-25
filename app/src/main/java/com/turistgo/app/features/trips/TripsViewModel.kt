@@ -43,11 +43,15 @@ class TripsViewModel @Inject constructor(
     // Se reconstruyen en sesión desde este mapa.
     private val destinationsMap = mutableMapOf<String, List<Post>>()
 
+    // Bandera para evitar que collectLatest agregue mensaje de bienvenida
+    // duplicado mientras clearChat() está ejecutándose
+    @Volatile private var isClearingChat = false
+
     init {
         viewModelScope.launch {
             chatRepository.getMessages().collectLatest { savedMessages ->
-                // No sobreescribir mientras la IA está respondiendo (evita el parpadeo de tarjetas)
-                if (_isLoading.value) return@collectLatest
+                // No sobreescribir mientras la IA responde o se está limpiando el chat
+                if (_isLoading.value || isClearingChat) return@collectLatest
 
                 if (savedMessages.isEmpty()) {
                     val initialMessage = ChatMessage(
@@ -59,7 +63,6 @@ class TripsViewModel @Inject constructor(
                     _messages.add(initialMessage)
                     chatRepository.saveMessages(listOf(initialMessage))
                 } else {
-                    // Reconstruir mensajes con destinos del mapa en memoria
                     val rebuilt = savedMessages.map { msg ->
                         msg.copy(
                             suggestedDestinations = destinationsMap[msg.id] ?: emptyList(),
@@ -96,6 +99,8 @@ class TripsViewModel @Inject constructor(
 
     fun clearChat() {
         viewModelScope.launch {
+            isClearingChat = true
+            destinationsMap.clear()
             chatRepository.clearMessages()
             _messages.clear()
             val welcomeMessage = ChatMessage(
@@ -105,6 +110,7 @@ class TripsViewModel @Inject constructor(
             )
             _messages.add(welcomeMessage)
             chatRepository.saveMessages(listOf(welcomeMessage))
+            isClearingChat = false
         }
     }
 

@@ -1,5 +1,12 @@
 package com.turistgo.app.features.trips
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.turistgo.app.R
 import com.turistgo.app.domain.model.ChatMessage
@@ -43,6 +52,7 @@ fun TripsScreen(
     val scrollState = rememberLazyListState()
     val logoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
     var showClearDialog by remember { mutableStateOf(false) }
+    var showLogoDialog by remember { mutableStateOf(false) }
     
     // Auto-scroll when new messages arrive
     LaunchedEffect(messages.size) {
@@ -61,23 +71,26 @@ fun TripsScreen(
         // Pinned Top Bar
         TopAppBar(
             title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { showLogoDialog = true }
+                ) {
                     AsyncImage(
                         model = logoUrl,
-                        contentDescription = null,
+                        contentDescription = "Logo TuristGo",
                         modifier = Modifier.size(45.dp)
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            "TuristGo AI", 
-                            fontWeight = FontWeight.ExtraBold, 
-                            fontSize = 18.sp, 
+                            "TuristGo AI",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 18.sp,
                             color = Color(0xFFC62828)
                         )
                         Text(
-                            stringResource(R.string.trips_ai_subtitle), 
-                            fontSize = 11.sp, 
+                            stringResource(R.string.trips_ai_subtitle),
+                            fontSize = 11.sp,
                             color = Color.Gray,
                             fontWeight = FontWeight.Medium
                         )
@@ -173,6 +186,61 @@ fun TripsScreen(
                 containerColor = Color.White,
                 shape = RoundedCornerShape(20.dp)
             )
+        }
+
+        // Diálogo de logo expandido al tocar el águila
+        if (showLogoDialog) {
+            Dialog(
+                onDismissRequest = { showLogoDialog = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.85f))
+                        .clickable { showLogoDialog = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        AsyncImage(
+                            model = logoUrl,
+                            contentDescription = "TuristGo Logo",
+                            modifier = Modifier.size(220.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            "TuristGo AI",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Tu asistente de viajes inteligente",
+                            fontSize = 16.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Surface(
+                            onClick = { showLogoDialog = false },
+                            color = Color(0xFFC62828),
+                            shape = RoundedCornerShape(50.dp)
+                        ) {
+                            Text(
+                                "Empezar a planear 🚀",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(horizontal = 32.dp, vertical = 14.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Main Content Area

@@ -2,6 +2,7 @@ package com.turistgo.app.core.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
 import com.turistgo.app.data.datastore.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val sessionManager: UserSessionManager
+    private val sessionManager: UserSessionManager,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     val authState: StateFlow<AuthState> = sessionManager.userSession
@@ -32,6 +34,7 @@ class SessionViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
+            firebaseAuth.signOut()
             sessionManager.clearSession()
         }
     }

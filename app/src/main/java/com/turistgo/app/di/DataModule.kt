@@ -1,7 +1,6 @@
 package com.turistgo.app.di
 
-import com.turistgo.app.data.datastore.UserSessionManager
-import com.turistgo.app.data.repository.InMemoryRepository
+import com.turistgo.app.data.repository.FirestoreRepository
 import com.turistgo.app.domain.repository.AppDataRepository
 import dagger.Binds
 import dagger.Module
@@ -18,7 +17,7 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindAppDataRepository(
-        inMemoryRepository: InMemoryRepository
+        firestoreRepository: FirestoreRepository
     ): AppDataRepository
 
     @Binds

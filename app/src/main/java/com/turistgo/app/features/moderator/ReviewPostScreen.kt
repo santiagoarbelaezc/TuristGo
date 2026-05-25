@@ -51,8 +51,8 @@ fun ReviewPostScreen(
 
     if (showApprovedModal) {
         SuccessModal(
-            title = stringResource(R.string.post_approved_title),
-            message = stringResource(R.string.post_approved_msg),
+            title = "Aprobado con éxito",
+            message = "La publicación ha sido aprobada y el autor ha sido notificado.",
             onDismiss = {
                 showApprovedModal = false
                 onBack()

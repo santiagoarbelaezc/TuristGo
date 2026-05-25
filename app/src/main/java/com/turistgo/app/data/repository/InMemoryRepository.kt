@@ -381,6 +381,17 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
 
     override suspend fun updatePostStatus(postId: String, status: com.turistgo.app.domain.model.PostStatus) {
         posts.value = posts.value.map { if (it.id == postId) it.copy(status = status) else it }
+        if (status == com.turistgo.app.domain.model.PostStatus.REJECTED) {
+            val post = getPostById(postId)
+            if (post != null && post.authorId.isNotEmpty()) {
+                val user = users.value.find { it.id == post.authorId }
+                if (user != null) {
+                    users.value = users.value.map {
+                        if (it.id == post.authorId) it.copy(points = (it.points - 1).coerceAtLeast(0)) else it
+                    }
+                }
+            }
+        }
     }
 
     override suspend fun getPostById(postId: String): Post? = posts.value.find { it.id == postId }

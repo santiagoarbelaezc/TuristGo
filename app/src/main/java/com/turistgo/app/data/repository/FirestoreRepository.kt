@@ -109,6 +109,22 @@ class FirestoreRepository @Inject constructor(
 
     override suspend fun updatePostStatus(postId: String, status: PostStatus) {
         postsCol.document(postId).update("status", status.name).await()
+        if (status == PostStatus.REJECTED) {
+            val post = getPostById(postId)
+            if (post != null && post.authorId.isNotEmpty()) {
+                incrementUserPoints(post.authorId, -1)
+                saveActivityLog(
+                    ActivityLog(
+                        id = java.util.UUID.randomUUID().toString(),
+                        type = "REJECT_POST",
+                        userId = post.authorId,
+                        userName = post.authorName,
+                        details = "Se rechazó la publicación '${post.name}' (Deducción de 1 punto)",
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
     }
 
     override suspend fun getPostById(postId: String): Post? {
@@ -275,7 +291,25 @@ class FirestoreRepository @Inject constructor(
     }
 
     override suspend fun markNotificationAsRead(notificationId: String) {
-        notificationsCol.document(notificationId).update("isRead", true).await()
+        try {
+            val docRef = notificationsCol.document(notificationId)
+            val snap = docRef.get().await()
+            val notification = snap.toObject(Notification::class.java)
+            if (notification != null) {
+                docRef.set(notification.copy(isRead = true)).await()
+            } else {
+                docRef.update("isRead", true).await()
+                docRef.update("read", true).await()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            try {
+                notificationsCol.document(notificationId).update("isRead", true).await()
+            } catch (_: Exception) {}
+            try {
+                notificationsCol.document(notificationId).update("read", true).await()
+            } catch (_: Exception) {}
+        }
     }
 
     private suspend fun incrementUserPoints(userId: String, pointsToAdd: Int) {

@@ -25,6 +25,10 @@ import com.turistgo.app.core.components.Destination
 import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.FeedSearchBar
 import com.turistgo.app.features.feed.components.SearchContent
+import com.turistgo.app.core.components.SuccessModal
+import com.turistgo.app.core.components.TuristGoDialog
+import com.turistgo.app.core.models.AlertState
+import com.turistgo.app.core.models.AlertType
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -246,6 +250,38 @@ fun FeedScreen(
                     // Item: Espaciador final
                     item { Spacer(modifier = Modifier.height(20.dp)) }
                 }
+            }
+        }
+
+        // --- Alertas Emergentes de Moderación (Aprobación y Rechazo) ---
+        val pendingPopup by viewModel.pendingPopupNotification.collectAsState()
+        var dismissedNotificationId by remember { mutableStateOf<String?>(null) }
+
+        val activePopup = pendingPopup?.takeIf { it.id != dismissedNotificationId }
+
+        activePopup?.let { notification ->
+            if (notification.type == com.turistgo.app.domain.model.NotificationType.POST_APPROVED) {
+                SuccessModal(
+                    title = stringResource(R.string.post_approved_title),
+                    message = notification.message,
+                    onDismiss = {
+                        dismissedNotificationId = notification.id
+                        viewModel.markNotificationAsRead(notification.id)
+                    }
+                )
+            } else if (notification.type == com.turistgo.app.domain.model.NotificationType.POST_REJECTED) {
+                TuristGoDialog(
+                    state = AlertState(
+                        title = "Publicación Rechazada",
+                        message = notification.message,
+                        type = AlertType.WARNING,
+                        isVisible = true
+                    ),
+                    onDismiss = {
+                        dismissedNotificationId = notification.id
+                        viewModel.markNotificationAsRead(notification.id)
+                    }
+                )
             }
         }
     }

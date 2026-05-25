@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turistgo.app.domain.model.Post
 import com.turistgo.app.domain.model.PostStatus
+import com.turistgo.app.domain.model.Notification
+import com.turistgo.app.domain.model.NotificationType
 import com.turistgo.app.domain.repository.AppDataRepository
 import com.turistgo.app.data.datastore.UserSessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -99,6 +101,34 @@ class FeedViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = sessionManager.userSession.first().userId ?: return@launch
             repository.toggleLikedPost(userId, postId)
+        }
+    }
+
+    private val dismissedPopupIds = MutableStateFlow<Set<String>>(emptySet())
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pendingPopupNotification: StateFlow<Notification?> = combine(
+        userSession,
+        dismissedPopupIds
+    ) { session, dismissedIds ->
+        session to dismissedIds
+    }.flatMapLatest { (session, dismissedIds) ->
+        val userId = session.userId
+        if (userId != null) {
+            repository.getNotifications(userId).map { list ->
+                list.firstOrNull { 
+                    !it.isRead && 
+                    it.id !in dismissedIds &&
+                    (it.type == NotificationType.POST_APPROVED || it.type == NotificationType.POST_REJECTED) 
+                }
+            }
+        } else flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun markNotificationAsRead(notificationId: String) {
+        dismissedPopupIds.update { it + notificationId }
+        viewModelScope.launch {
+            repository.markNotificationAsRead(notificationId)
         }
     }
 }

@@ -23,7 +23,6 @@ import coil.compose.AsyncImage
 import com.turistgo.app.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.core.components.SuccessModal
-import com.turistgo.app.data.repository.InMemoryRepository
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

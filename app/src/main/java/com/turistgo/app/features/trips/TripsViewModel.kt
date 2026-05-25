@@ -101,14 +101,21 @@ class TripsViewModel @Inject constructor(
                 val isLowBudget = budgetService.isLowBudget(userMessage) || 
                         _messages.takeLast(4).any { it.isFromUser && budgetService.isLowBudget(it.content) }
 
-                val filteredPosts = if (isLowBudget) {
+                // Extraer presupuesto explícito y validar si es menor a 50k
+                val extractedBudget = budgetService.extractBudget(userMessage)
+                val isBudgetInsufficient = extractedBudget != null && extractedBudget < 50000
+
+                val filteredPosts = if (isBudgetInsufficient) {
+                    // Si el presupuesto es menor a 50k, obtener los más baratos y cercanos por latitud/longitud
+                    budgetService.getClosestCheapestPlaces(availablePosts, userProfile?.city, userProfile?.department)
+                } else if (isLowBudget) {
                     budgetService.filterPlacesForLowBudget(availablePosts, userProfile?.city, userProfile?.department)
                 } else {
                     availablePosts
                 }
 
-                val placesContext = filteredPosts.joinToString("\n") { 
-                    "- ID: ${it.id}, Nombre: ${it.name}, Categorías: ${it.categories.joinToString(", ")}, Ubicación: ${it.location}, Descripción: ${it.description}"
+                val placesContext = filteredPosts.take(8).joinToString("\n") { 
+                    "- ID: ${it.id}, Nombre: ${it.name}, Categorías: ${it.categories.joinToString(", ")}, Ubicación: ${it.location}, Lat: ${it.latitude}, Lng: ${it.longitude}, Precio: ${it.priceRange}, Descripción: ${it.description}"
                 }
                 
                 var systemPrompt = """
@@ -136,7 +143,15 @@ class TripsViewModel @Inject constructor(
                     4. IDs: Al final añade SUGGESTED_IDS: [id1, id2, ...] solo si incluyes lugares del catálogo.
                 """.trimIndent()
 
-                if (isLowBudget) {
+                if (isBudgetInsufficient) {
+                    systemPrompt += "\n\n" + """
+                        ⚠️ REGLA DE PRESUPUESTO INSUFICIENTE (< 50.000 COP) DETECTADA:
+                        El presupuesto indicado por el usuario (${extractedBudget} COP) es menor a los 50.000 COP mínimos necesarios para un plan de turismo completo.
+                        - Debes aclararle de manera muy empática y amigable al inicio de tu respuesta lo siguiente: "Para armar un plan completo de turismo se necesita un presupuesto mínimo recomendado de 50.000 COP. No obstante, te propongo opciones muy baratas y actividades locales cerca de tu ubicación actual."
+                        - Diseña un itinerario de un solo día (Día 1 únicamente).
+                        - Sugiere exclusivamente actividades gratuitas o de muy bajo costo basadas en los lugares del catálogo local provistos más baratos y cercanos.
+                    """.trimIndent()
+                } else if (isLowBudget) {
                     systemPrompt += "\n\n" + budgetService.getLowBudgetContext(userProfile?.city)
                 }
 

@@ -572,4 +572,14 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             if (it.id == notificationId) it.copy(isRead = true) else it
         }
     }
+
+    private val activityLogs = MutableStateFlow<List<com.turistgo.app.domain.model.ActivityLog>>(emptyList())
+
+    override fun getActivityLogs(): Flow<List<com.turistgo.app.domain.model.ActivityLog>> = activityLogs
+
+    override suspend fun saveActivityLog(log: com.turistgo.app.domain.model.ActivityLog) {
+        val id = if (log.id.isEmpty()) java.util.UUID.randomUUID().toString() else log.id
+        val newLog = log.copy(id = id)
+        activityLogs.value = listOf(newLog) + activityLogs.value
+    }
 }

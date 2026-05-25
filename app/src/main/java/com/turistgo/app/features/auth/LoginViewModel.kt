@@ -115,7 +115,7 @@ class LoginViewModel @Inject constructor(
                 val result = try {
                     firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
                 } catch (signInException: Exception) {
-                    if (emailToUse == "santiago@turistgo.com" && _password.value == "santi123") {
+                    if (emailToUse == "santiago@turistgo.com" && _password.value == "TuristGo@Admin#2026!SecureKey") {
                         try {
                             val createResult = firebaseAuth.createUserWithEmailAndPassword(emailToUse, _password.value).await()
                             val uid = createResult.user?.uid
@@ -131,7 +131,7 @@ class LoginViewModel @Inject constructor(
                                     phone = "3054078225",
                                     email = "santiago@turistgo.com",
                                     username = "santiarco",
-                                    password = "santi123",
+                                    password = "TuristGo@Admin#2026!SecureKey",
                                     role = "ADMIN",
                                     isVerified = true
                                 )
@@ -163,7 +163,7 @@ class LoginViewModel @Inject constructor(
                             phone = "3054078225",
                             email = "santiago@turistgo.com",
                             username = "santiarco",
-                            password = "santi123",
+                            password = "TuristGo@Admin#2026!SecureKey",
                             role = "ADMIN",
                             isVerified = true
                         )

@@ -26,7 +26,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             phone = "3054078225",
             email = "santiago@turistgo.com",
             username = "santiarco",
-            password = "santi123",
+            password = "TuristGo@Admin#2026!SecureKey",
             role = "ADMIN",
             isVerified = true
         ),

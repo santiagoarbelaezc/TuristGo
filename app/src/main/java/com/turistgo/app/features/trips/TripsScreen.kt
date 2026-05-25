@@ -42,6 +42,7 @@ fun TripsScreen(
     val isAiTyping by viewModel.isLoading
     val scrollState = rememberLazyListState()
     val logoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
+    var showClearDialog by remember { mutableStateOf(false) }
     
     // Auto-scroll when new messages arrive
     LaunchedEffect(messages.size) {
@@ -84,6 +85,24 @@ fun TripsScreen(
                 }
             },
             actions = {
+                // Botón nuevo chat
+                Box(
+                    modifier = Modifier
+                        .padding(end = 4.dp)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFDE8E8))
+                        .clickable(enabled = !isAiTyping) { showClearDialog = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.AddComment,
+                        contentDescription = "Nuevo chat",
+                        tint = Color(0xFFC62828),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
                         .padding(end = 12.dp)
@@ -93,9 +112,9 @@ fun TripsScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.AutoAwesome, 
-                        contentDescription = null, 
-                        tint = Color(0xFFC62828), 
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color(0xFFC62828),
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -105,6 +124,56 @@ fun TripsScreen(
             ),
             windowInsets = WindowInsets(0, 0, 0, 0)
         )
+
+        // Diálogo de confirmación para limpiar el chat
+        if (showClearDialog) {
+            AlertDialog(
+                onDismissRequest = { showClearDialog = false },
+                icon = {
+                    Icon(
+                        Icons.Default.AddComment,
+                        contentDescription = null,
+                        tint = Color(0xFFC62828),
+                        modifier = Modifier.size(32.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        "Nuevo chat",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                },
+                text = {
+                    Text(
+                        "¿Quieres empezar una nueva conversación? El historial actual se borrará.",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.clearChat()
+                            showClearDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFC62828)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Nuevo chat", color = Color.White, fontWeight = FontWeight.SemiBold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showClearDialog = false }) {
+                        Text("Cancelar", color = Color.Gray)
+                    }
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(20.dp)
+            )
+        }
 
         // Main Content Area
         LazyColumn(
@@ -238,13 +307,32 @@ fun DayLabel(text: String) {
 @Composable
 fun PlanResponseView(destinations: List<Post>, onNavigateToDetail: (String) -> Unit) {
     Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF8F6)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Destinos Sugeridos", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.Place,
+                    contentDescription = null,
+                    tint = Color(0xFFC62828),
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    "Destinos en tu plan",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color(0xFF1A1A1A)
+                )
+            }
+            Text(
+                "Toca un lugar para ver todos los detalles",
+                fontSize = 11.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+            )
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 items(destinations) { post ->
                     SuggestedDestinationItem(post) { onNavigateToDetail(post.id) }
@@ -257,24 +345,77 @@ fun PlanResponseView(destinations: List<Post>, onNavigateToDetail: (String) -> U
 @Composable
 fun SuggestedDestinationItem(post: Post, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.size(160.dp, 200.dp).clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp)
+        modifier = Modifier
+            .width(170.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Box {
-            AsyncImage(
-                model = post.imageUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-            Box(
-                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f))
-            )
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
-            ) {
-                Text(post.name, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp, maxLines = 1)
-                Text(post.location, color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, maxLines = 1)
+        Column {
+            Box(modifier = Modifier.height(120.dp)) {
+                AsyncImage(
+                    model = post.imageUrl,
+                    contentDescription = post.name,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
+                            )
+                        )
+                )
+                if (post.categories.isNotEmpty()) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp),
+                        color = Color(0xFFC62828),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = post.categories.first(),
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+            Column(modifier = Modifier.padding(10.dp)) {
+                Text(
+                    post.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    color = Color(0xFF1A1A1A)
+                )
+                Text(
+                    post.location,
+                    fontSize = 11.sp,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Surface(
+                    onClick = onClick,
+                    color = Color(0xFFC62828),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        "Ver destino →",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(vertical = 6.dp)
+                    )
+                }
             }
         }
     }
@@ -283,13 +424,34 @@ fun SuggestedDestinationItem(post: Post, onClick: () -> Unit) {
 @Composable
 fun TypingIndicator() {
     Row(
-        modifier = Modifier.padding(24.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier
+            .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            Icons.Default.AutoAwesome,
+            contentDescription = null,
+            tint = Color(0xFFC62828),
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            "TuristGo AI está pensando",
+            fontSize = 12.sp,
+            color = Color.Gray,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.width(4.dp))
         repeat(3) {
             Box(
-                modifier = Modifier.size(8.dp).clip(CircleShape).background(Color.Gray.copy(alpha = 0.5f))
+                modifier = Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFC62828).copy(alpha = 0.5f))
             )
         }
     }

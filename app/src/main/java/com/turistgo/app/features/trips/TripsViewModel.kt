@@ -7,8 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.turistgo.app.domain.model.ChatMessage
 import com.turistgo.app.domain.model.Post
+import com.turistgo.app.domain.model.PostStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -20,7 +20,6 @@ import com.turistgo.app.data.datastore.UserSessionManager
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import com.turistgo.app.BuildConfig
-
 import com.turistgo.app.domain.repository.ChatRepository
 import kotlinx.coroutines.flow.collectLatest
 
@@ -67,7 +66,7 @@ class TripsViewModel @Inject constructor(
             content = content,
             isFromUser = true
         )
-        
+
         _messages.add(userMessage)
         viewModelScope.launch {
             chatRepository.saveMessages(_messages.toList())
@@ -80,111 +79,180 @@ class TripsViewModel @Inject constructor(
         sendMessage(planType)
     }
 
+    fun clearChat() {
+        viewModelScope.launch {
+            chatRepository.clearMessages()
+            _messages.clear()
+            val welcomeMessage = ChatMessage(
+                id = UUID.randomUUID().toString(),
+                content = "¿Qué viaje quieres planear?",
+                isFromUser = false
+            )
+            _messages.add(welcomeMessage)
+            chatRepository.saveMessages(listOf(welcomeMessage))
+        }
+    }
+
     private fun generateAiResponse(userMessage: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            
+
             try {
-                // 1. Obtener datos del usuario para personalización
+                // 1. Datos del usuario para personalización
                 val session = sessionManager.userSession.firstOrNull()
                 val userProfile = session?.userId?.let { repository.getUserById(it) }
-                
+
+                val userName = userProfile?.name ?: session?.name ?: "Viajero"
+                val userCity = userProfile?.city ?: "No especificada"
+                val userCountry = userProfile?.country ?: "Colombia"
+                val userInterests = userProfile?.interests?.joinToString(", ") ?: "Viajes, aventura, cultura"
+
                 val userContext = """
                     DATOS DEL USUARIO:
-                    - Nombre: ${userProfile?.name ?: session?.name ?: "Viajero"}
-                    - Ubicación Actual: ${userProfile?.city ?: "No especificada"}, ${userProfile?.country ?: "No especificada"}
-                    - Intereses: ${userProfile?.interests?.joinToString(", ") ?: "Viajes, aventura, relax"}
+                    - Nombre: $userName
+                    - Ciudad actual: $userCity, $userCountry
+                    - Intereses: $userInterests
                 """.trimIndent()
 
-                // 2. Obtener los lugares disponibles (posts) con filtros de presupuesto
-                val availablePosts = repository.getPosts().first()
-                val isLowBudget = budgetService.isLowBudget(userMessage) || 
+                // 2. Cargar SOLO posts APROBADOS de Firestore
+                val allApprovedPosts = repository.getPosts(PostStatus.APPROVED).first()
+
+                // 3. Lógica de presupuesto
+                val extractedBudget = budgetService.extractBudget(userMessage)
+                val isBudgetInsufficient = extractedBudget != null && extractedBudget < 50_000
+
+                val isLowBudget = isBudgetInsufficient ||
+                        budgetService.isLowBudget(userMessage) ||
                         _messages.takeLast(4).any { it.isFromUser && budgetService.isLowBudget(it.content) }
 
-                // Extraer presupuesto explícito y validar si es menor a 50k
-                val extractedBudget = budgetService.extractBudget(userMessage)
-                val isBudgetInsufficient = extractedBudget != null && extractedBudget < 50000
+                // 4. Filtrar posts según presupuesto
+                val filteredPosts: List<Post> = when {
+                    isBudgetInsufficient -> budgetService.getClosestCheapestPlaces(
+                        allApprovedPosts, userProfile?.city, userProfile?.department
+                    )
+                    isLowBudget -> budgetService.filterPlacesForLowBudget(
+                        allApprovedPosts, userProfile?.city, userProfile?.department
+                    ).ifEmpty { allApprovedPosts }
+                    else -> allApprovedPosts
+                }
 
-                val filteredPosts = if (isBudgetInsufficient) {
-                    // Si el presupuesto es menor a 50k, obtener los más baratos y cercanos por latitud/longitud
-                    budgetService.getClosestCheapestPlaces(availablePosts, userProfile?.city, userProfile?.department)
-                } else if (isLowBudget) {
-                    budgetService.filterPlacesForLowBudget(availablePosts, userProfile?.city, userProfile?.department)
+                // 5. Construir catálogo de lugares para el prompt
+                val catalogContext = if (filteredPosts.isEmpty()) {
+                    "No hay destinos registrados aún en el catálogo."
                 } else {
-                    availablePosts
+                    filteredPosts.take(12).joinToString("\n") { post ->
+                        buildString {
+                            append("• ID: ${post.id}")
+                            append(" | Nombre: ${post.name}")
+                            append(" | Tipo: ${post.categories.joinToString(", ").ifEmpty { "Turístico" }}")
+                            append(" | Ubicación: ${post.location}")
+                            if (!post.city.isNullOrBlank()) append(", ${post.city}")
+                            if (!post.department.isNullOrBlank()) append(", ${post.department}")
+                            if (post.latitude != null && post.longitude != null)
+                                append(" | Coords: (${post.latitude}, ${post.longitude})")
+                            append(" | Precio: ${post.priceRange.ifBlank { "No disponible" }}")
+                            append(" | Horario: ${post.schedule.ifBlank { "No disponible" }}")
+                            append(" | Descripción: ${post.description.take(120).ifBlank { "Sin descripción" }}")
+                        }
+                    }
                 }
 
-                val placesContext = filteredPosts.take(8).joinToString("\n") { 
-                    "- ID: ${it.id}, Nombre: ${it.name}, Categorías: ${it.categories.joinToString(", ")}, Ubicación: ${it.location}, Lat: ${it.latitude}, Lng: ${it.longitude}, Precio: ${it.priceRange}, Descripción: ${it.description}"
-                }
-                
+                // 6. System prompt principal
                 var systemPrompt = """
-                    Eres un asistente de viajes experto y local para TuristGo.
-                    
-                    USUARIO:
-                    $userContext
-                    
-                    CATÁLOGO DE LUGARES:
-                    ${if (filteredPosts.isEmpty()) "Sugerencias genéricas." else placesContext}
-                    
-                    REGLAS DE RESPUESTA:
-                    1. CONSULTA PUNTUAL: Si falta información (duración, acompañantes, etc.), responde ÚNICAMENTE con las preguntas de forma directa. Sin introducciones ni saludos largos.
-                       Ejemplo: "¿Para cuántas personas es el viaje? ¿Cuántos días tienes disponibles?"
-                    2. ITINERARIO (ESTRICTO): Si generas un plan, usa este formato:
-                       🗓️ Itinerario día a día
-                       
-                       Día 1
-                       [Emoji] HH:mm – Actividad
-                       [Emoji] HH:mm – Actividad
-                       
-                       Día 2
-                       ...
-                    3. ESTILO: Tuteo siempre. Sé breve y usa emojis.
-                    4. IDs: Al final añade SUGGESTED_IDS: [id1, id2, ...] solo si incluyes lugares del catálogo.
+Eres TuristGo AI, un asistente experto en turismo colombiano. Eres empático, creativo, cercano y usas tuteo siempre.
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+👤 PERFIL DEL USUARIO
+━━━━━━━━━━━━━━━━━━━━━━━━
+$userContext
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+📍 CATÁLOGO DE DESTINOS REGISTRADOS EN LA APP (solo APROBADOS)
+━━━━━━━━━━━━━━━━━━━━━━━━
+$catalogContext
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+📌 INSTRUCCIONES CRÍTICAS
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. **USA EL CATÁLOGO SIEMPRE**: Cuando diseñes itinerarios o recomendaciones, prioriza los lugares del catálogo anterior. No inventes destinos que no estén registrados, a menos que el catálogo esté vacío.
+
+2. **IDs OBLIGATORIOS**: Cuando menciones uno o más destinos del catálogo, SIEMPRE incluye al final de tu respuesta:
+   SUGGESTED_IDS: [id1, id2, id3]
+   Esto permite que el usuario pueda navegar directamente al lugar desde la app.
+
+3. **ITINERARIO CREATIVO**: Cuando el usuario pida un plan, sé muy creativo. Usa este formato EXACTO:
+   🗓️ Itinerario – [nombre del viaje creativo]
+   
+   📅 Día 1 – [título temático del día]
+   🕗 07:00 – Actividad con detalle emotivo
+   🍽️ 12:00 – Almuerzo en [lugar del catálogo si existe]
+   🌆 15:00 – Actividad vespertina con descripción
+   🌙 19:00 – Actividad nocturna o cierre del día
+   
+   📅 Día 2 – [título temático]
+   ...
+
+4. **INFORMACIÓN FALTANTE**: Si el usuario no ha dado suficiente info (días, acompañantes, intereses), haz MÁXIMO 2 preguntas directas y concisas. Sin introducciones largas.
+   Ejemplo: "¿Cuántos días tienes disponibles? ¿Viajas solo o en grupo?"
+
+5. **MENSAJES ABSURDOS O SIN SENTIDO**: Si el usuario escribe algo sin coherencia, no relacionado con viajes, o claramente una prueba (ej: "asdfjkl", "sdfsdf", "quiero volar a marte"), responde de forma amigable y redirige la conversación:
+   - Responde con humor suave o empatía.
+   - Recuérdales que eres un asistente de viajes turísticos.
+   - Invita a que cuenten su próximo destino soñado.
+   Ejemplo: "¡Parece que tu mensaje se perdió en el camino viajero! 😄 Soy TuristGo AI y me especializo en ayudarte a planear aventuras increíbles por Colombia. ¿A dónde te gustaría escaparte pronto?"
+
+6. **ESTILO**: Usa emojis con moderación (no en cada línea). Sé breve y directo. Responde en español siempre.
+
+7. **NUNCA inventes IDs** que no estén en el catálogo de arriba.
                 """.trimIndent()
 
+                // 7. Regla adicional si presupuesto insuficiente
                 if (isBudgetInsufficient) {
-                    systemPrompt += "\n\n" + """
-                        ⚠️ REGLA DE PRESUPUESTO INSUFICIENTE (< 50.000 COP) DETECTADA:
-                        El presupuesto indicado por el usuario (${extractedBudget} COP) es menor a los 50.000 COP mínimos necesarios para un plan de turismo completo.
-                        - Debes aclararle de manera muy empática y amigable al inicio de tu respuesta lo siguiente: "Para armar un plan completo de turismo se necesita un presupuesto mínimo recomendado de 50.000 COP. No obstante, te propongo opciones muy baratas y actividades locales cerca de tu ubicación actual."
-                        - Diseña un itinerario de un solo día (Día 1 únicamente).
-                        - Sugiere exclusivamente actividades gratuitas o de muy bajo costo basadas en los lugares del catálogo local provistos más baratos y cercanos.
+                    systemPrompt += """
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ ALERTA DE PRESUPUESTO BAJO (< 50.000 COP)
+━━━━━━━━━━━━━━━━━━━━━━━━
+El usuario indicó un presupuesto de ${extractedBudget} COP, que es menor al mínimo recomendado de 50.000 COP para un viaje completo.
+
+- Comienza tu respuesta explicando esto de forma muy empática: "Para armar un plan completo se recomienda al menos 50.000 COP. Pero no te preocupes, te armo algo especial con lo que tienes 💪"
+- Diseña un itinerario de UN SOLO DÍA.
+- Usa únicamente destinos del catálogo gratuitos o de bajo costo, ordenados por cercanía al usuario.
+- Incluye actividades en parques, caminatas, miradores o plazas públicas.
                     """.trimIndent()
                 } else if (isLowBudget) {
                     systemPrompt += "\n\n" + budgetService.getLowBudgetContext(userProfile?.city)
                 }
 
-                // 3. Preparar historial (últimos 10 mensajes)
-                val conversationHistory = _messages.takeLast(10).map { msg ->
+                // 8. Historial de conversación (últimos 12 mensajes)
+                val conversationHistory = _messages.takeLast(12).map { msg ->
                     GroqMessage(
                         role = if (msg.isFromUser) "user" else "assistant",
                         content = msg.content
                     )
                 }
 
-                // 4. Llamar a Groq API
+                // 9. Llamada a Groq API
                 val request = GroqRequest(
                     messages = listOf(GroqMessage(role = "system", content = systemPrompt)) + conversationHistory
                 )
-                
-                // API Key from .env (via BuildConfig) - Se agrega el prefijo Bearer programáticamente
-                val apiKey = "Bearer ${com.turistgo.app.BuildConfig.GROQ_API_KEY}"
-                
-                val response = groqService.getChatCompletion(
-                    apiKey = apiKey,
-                    request = request
-                )
-                
-                val aiContent = response.choices.firstOrNull()?.message?.content ?: "Lo siento, no pude generar una respuesta."
-                
-                // 4. Procesar IDs sugeridos
+
+                val apiKey = "Bearer ${BuildConfig.GROQ_API_KEY}"
+                val response = groqService.getChatCompletion(apiKey = apiKey, request = request)
+
+                val aiContent = response.choices.firstOrNull()?.message?.content
+                    ?: "Lo siento, no pude generar una respuesta en este momento."
+
+                // 10. Extraer IDs sugeridos y limpiar la respuesta
                 val suggestedIds = extractIds(aiContent)
-                val cleanContent = aiContent.replace(Regex("SUGGESTED_IDS: \\[.*?\\]"), "").trim()
-                
-                val suggestedPosts = availablePosts.filter { it.id in suggestedIds }
-                
-                // 5. Agregar mensaje a la lista
+                val cleanContent = aiContent
+                    .replace(Regex("SUGGESTED_IDS:\\s*\\[.*?\\]", RegexOption.DOT_MATCHES_ALL), "")
+                    .trim()
+
+                // 11. Cruzar IDs con posts aprobados (evita mostrar posts no aprobados)
+                val suggestedPosts = allApprovedPosts.filter { it.id in suggestedIds }
+
                 val aiMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),
                     content = cleanContent,
@@ -194,12 +262,12 @@ class TripsViewModel @Inject constructor(
                 )
                 _messages.add(aiMessage)
                 chatRepository.saveMessages(_messages.toList())
-                
+
             } catch (e: Exception) {
                 _messages.add(
                     ChatMessage(
                         id = UUID.randomUUID().toString(),
-                        content = "Lo siento, tuve un problema al conectar con mi cerebro viajero. Por favor, verifica tu conexión e inténtalo de nuevo.",
+                        content = "Ups, tuve un problema al conectarme. Revisa tu conexión e inténtalo de nuevo 🌐",
                         isFromUser = false
                     )
                 )
@@ -211,7 +279,7 @@ class TripsViewModel @Inject constructor(
     }
 
     private fun extractIds(content: String): List<String> {
-        val regex = Regex("SUGGESTED_IDS: \\[(.*?)\\]")
+        val regex = Regex("SUGGESTED_IDS:\\s*\\[(.*?)\\]", RegexOption.DOT_MATCHES_ALL)
         val match = regex.find(content)
         return if (match != null) {
             match.groupValues[1]

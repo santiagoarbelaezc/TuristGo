@@ -49,7 +49,7 @@ fun CreatePostScreen(
     viewModel: CreatePostViewModel = hiltViewModel(), // ViewModel inyectado por Hilt
     mapResult: String? = null, // Resultado del selector de mapa (coordenadas: "lat,lng")
     onConsumeMapResult: () -> Unit = {}, // Callback para consumir el resultado del mapa
-    onNavigateToMapPicker: () -> Unit = {}, // Callback para abrir el selector de mapa
+    onNavigateToMapPicker: (Double?, Double?) -> Unit = { _, _ -> }, // Callback para abrir el selector de mapa
     onBack: () -> Unit = {} // Callback para volver atrás
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -477,7 +477,7 @@ fun CreatePostScreen(
                     Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFF555555))
                 },
                 trailingIcon = {
-                    IconButton(onClick = onNavigateToMapPicker) { // Abre el selector de mapa
+                    IconButton(onClick = { onNavigateToMapPicker(viewModel.userCityLat.value, viewModel.userCityLng.value) }) { // Abre el selector de mapa
                         Icon(
                             Icons.Default.MyLocation, 
                             contentDescription = "Fijar en Mapa", 

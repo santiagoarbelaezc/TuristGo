@@ -395,7 +395,13 @@ fun AppNavigation(
                     innerPadding = innerPadding,
                     mapResult = mapResult,
                     onConsumeMapResult = { backStackEntry.savedStateHandle.remove<String>("selected_location") },
-                    onNavigateToMapPicker = { navController.navigate(MainRoutes.MapPicker) },
+                    onNavigateToMapPicker = { lat, lng ->
+                        if (lat != null && lng != null) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("initial_map_lat", lat)
+                            navController.currentBackStackEntry?.savedStateHandle?.set("initial_map_lng", lng)
+                        }
+                        navController.navigate(MainRoutes.MapPicker)
+                    },
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -481,7 +487,17 @@ fun AppNavigation(
             composable<MainRoutes.Badges> { BadgesScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.ProgressGuide> { ProgressGuideScreen(onBack = { navController.popBackStack() }) }
             composable<MainRoutes.MapPicker> {
+                val prevBackStackEntry = remember { navController.previousBackStackEntry }
+                val initialLat = prevBackStackEntry?.savedStateHandle?.get<Double>("initial_map_lat")
+                val initialLng = prevBackStackEntry?.savedStateHandle?.get<Double>("initial_map_lng")
+                
+                // Clear them so they don't linger for future navigations
+                prevBackStackEntry?.savedStateHandle?.remove<Double>("initial_map_lat")
+                prevBackStackEntry?.savedStateHandle?.remove<Double>("initial_map_lng")
+
                 MapPickerScreen(
+                    initialLat = initialLat,
+                    initialLng = initialLng,
                     onLocationSelected = { lat, lng ->
                         navController.previousBackStackEntry?.savedStateHandle?.set("selected_location", "$lat,$lng")
                         navController.popBackStack()

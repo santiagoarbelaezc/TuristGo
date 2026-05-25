@@ -40,15 +40,12 @@ import com.turistgo.app.domain.model.Post
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreatePostScreen(
+fun TripsScreen(
     innerPadding: PaddingValues,
-    viewModel: CreatePostViewModel = hiltViewModel(),
-    mapResult: String? = null,
-    onConsumeMapResult: () -> Unit = {},
-    onNavigateToMapPicker: (Double?, Double?) -> Unit = { _, _ -> },
-    onBack: () -> Unit = {}
+    onNavigateToDetail: (String) -> Unit,
+    viewModel: TripsViewModel = hiltViewModel()
 ) {
     val messages = viewModel.messages
     val isAiTyping by viewModel.isLoading

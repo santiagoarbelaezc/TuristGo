@@ -90,8 +90,9 @@ class CreatePostViewModel @Inject constructor(
     private fun loadUserCity() {
         viewModelScope.launch {
             try {
-                val userId = sessionManager.getUserId().firstOrNull() ?: return@launch
-                val profile = repository.getUserProfile(userId) ?: return@launch
+                val userSession = sessionManager.userSession.firstOrNull() ?: return@launch
+                val userId = userSession.userId ?: return@launch
+                val profile = repository.getUserById(userId) ?: return@launch
                 val cityName = profile.city.ifBlank { "Medellín" }
 
                 withContext(Dispatchers.IO) {

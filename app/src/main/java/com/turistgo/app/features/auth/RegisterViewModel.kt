@@ -131,16 +131,26 @@ class RegisterViewModel @Inject constructor(
     fun onConfirmPasswordChange(v: String) { _confirmPassword.value = v }
 
     fun register(onSuccess: (String) -> Unit) {
+        val trimmedName = _name.value.trim()
+        val trimmedLastName = _lastName.value.trim()
+        val trimmedAge = _age.value.trim()
+        val trimmedCountry = _country.value.trim()
+        val trimmedCity = _city.value.trim()
+        val trimmedPhone = _phone.value.trim()
+        val trimmedEmail = _email.value.trim()
+        val trimmedPassword = _password.value.trim()
+        val trimmedConfirmPassword = _confirmPassword.value.trim()
+
         val fields = listOf(
-            _name.value to "Nombre",
-            _lastName.value to "Apellido",
-            _age.value to "Edad",
-            _country.value to "País",
-            _city.value to "Ciudad",
-            _phone.value to "Teléfono",
-            _email.value to "Correo",
-            _password.value to "Contraseña",
-            _confirmPassword.value to "Confirmación"
+            trimmedName to "Nombre",
+            trimmedLastName to "Apellido",
+            trimmedAge to "Edad",
+            trimmedCountry to "País",
+            trimmedCity to "Ciudad",
+            trimmedPhone to "Teléfono",
+            trimmedEmail to "Correo",
+            trimmedPassword to "Contraseña",
+            trimmedConfirmPassword to "Confirmación"
         )
 
         val emptyField = fields.find { it.first.isEmpty() }
@@ -154,7 +164,7 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        if (_country.value == "Colombia" && _department.value.isEmpty()) {
+        if (trimmedCountry == "Colombia" && _department.value.trim().isEmpty()) {
             _alertState.value = AlertState(
                 title = "Geografía Incompleta",
                 message = "Por favor selecciona un departamento para continuar con tu registro en Colombia.",
@@ -165,7 +175,7 @@ class RegisterViewModel @Inject constructor(
         }
 
         val nameRegex = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$".toRegex()
-        if (!nameRegex.matches(_name.value) || _name.value.length < 2) {
+        if (!nameRegex.matches(trimmedName) || trimmedName.length < 2) {
             _alertState.value = AlertState(
                 title = "Nombre Inválido",
                 message = "El nombre debe contener solo letras y tener al menos 2 caracteres.",
@@ -175,7 +185,7 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        if (!nameRegex.matches(_lastName.value) || _lastName.value.length < 2) {
+        if (!nameRegex.matches(trimmedLastName) || trimmedLastName.length < 2) {
             _alertState.value = AlertState(
                 title = "Apellido Inválido",
                 message = "El apellido debe contener solo letras y tener al menos 2 caracteres.",
@@ -185,7 +195,7 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        val ageInt = _age.value.toIntOrNull()
+        val ageInt = trimmedAge.toIntOrNull()
         if (ageInt == null || ageInt < 18 || ageInt > 120) {
             _alertState.value = AlertState(
                 title = "Restricción de Edad",
@@ -197,7 +207,7 @@ class RegisterViewModel @Inject constructor(
         }
 
         val phoneRegex = "^[0-9]{10}$".toRegex()
-        if (!phoneRegex.matches(_phone.value)) {
+        if (!phoneRegex.matches(trimmedPhone)) {
             _alertState.value = AlertState(
                 title = "Teléfono Inválido",
                 message = "El número telefónico debe tener exactamente 10 dígitos numéricos.",
@@ -207,7 +217,7 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(_email.value).matches()) {
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
             _alertState.value = AlertState(
                 title = "Email Inválido",
                 message = "La dirección de correo electrónico no tiene un formato válido.",
@@ -217,17 +227,18 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        if (_password.value.length < 8) {
+        val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!_\\-*?&()]).{8,}$".toRegex()
+        if (!passwordPattern.matches(trimmedPassword)) {
              _alertState.value = AlertState(
-                title = "Seguridad de Contraseña",
-                message = "Tu contraseña debe ser más fuerte. Usa al menos 8 caracteres.",
+                title = "Contraseña Débil",
+                message = "La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial (ej. @, #, $, %, etc.).",
                 type = AlertType.WARNING,
                 isVisible = true
             )
             return
         }
 
-        if (_password.value != _confirmPassword.value) {
+        if (trimmedPassword != trimmedConfirmPassword) {
             _alertState.value = AlertState(
                 title = "Contraseñas Diferentes",
                 message = "Las contraseñas no coinciden. Asegúrate de escribirlas idénticas en ambos campos.",
@@ -243,30 +254,30 @@ class RegisterViewModel @Inject constructor(
             try {
                 // Crear usuario en Firebase Authentication
                 val result = firebaseAuth.createUserWithEmailAndPassword(
-                    _email.value,
-                    _password.value
+                    trimmedEmail,
+                    trimmedPassword
                 ).await()
 
                 val firebaseUser = result.user
                     ?: throw Exception("Firebase no retornó usuario")
 
                 val uid = firebaseUser.uid
-                val generatedUsername = _email.value
+                val generatedUsername = trimmedEmail
                     .substringBefore("@")
                     .lowercase()
                     .filter { it.isLetterOrDigit() }
 
                 val newUser = User(
                     id = uid,  // usar el UID de Firebase
-                    name = _name.value,
-                    lastName = _lastName.value,
-                    age = _age.value,
-                    country = _country.value,
-                    department = _department.value.takeIf { it.isNotEmpty() },
-                    city = _city.value,
-                    address = _address.value.takeIf { it.isNotEmpty() },
-                    phone = "${_phoneExtension.value} ${_phone.value}",
-                    email = _email.value,
+                    name = trimmedName,
+                    lastName = trimmedLastName,
+                    age = trimmedAge,
+                    country = trimmedCountry,
+                    department = _department.value.trim().takeIf { it.isNotEmpty() },
+                    city = trimmedCity,
+                    address = _address.value.trim().takeIf { it.isNotEmpty() },
+                    phone = "${_phoneExtension.value} ${trimmedPhone}",
+                    email = trimmedEmail,
                     password = null,  // nunca guardar contraseña en Firestore
                     username = generatedUsername
                 )
@@ -275,7 +286,7 @@ class RegisterViewModel @Inject constructor(
                 repository.saveUser(newUser)
                 sessionManager.saveSession(uid, newUser.name, newUser.email, role = "USER")
 
-                _snackbarMessage.value = "¡Bienvenido ${_name.value}! Registro completado"
+                _snackbarMessage.value = "¡Bienvenido ${trimmedName}! Registro completado"
                 onSuccess(uid)
 
             } catch (e: Exception) {

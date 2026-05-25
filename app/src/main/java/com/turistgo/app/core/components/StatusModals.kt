@@ -23,6 +23,7 @@ import com.turistgo.app.R
 fun SuccessModal(
     title: String,
     message: String,
+    imageRes: Int? = null,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -39,15 +40,26 @@ fun SuccessModal(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo de TuristGo (Mascota)
-                AsyncImage(
-                    model = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png",
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(120.dp)
-                        .padding(bottom = 16.dp),
-                    contentScale = ContentScale.Fit
-                )
+                if (imageRes != null) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = imageRes),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(140.dp)
+                            .padding(bottom = 16.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    // Logo de TuristGo (Mascota)
+                    AsyncImage(
+                        model = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png",
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .padding(bottom = 16.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
 
                 Text(
                     text = title,
@@ -109,10 +121,13 @@ fun PointsEarnedModal(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "🌟",
-                    fontSize = 64.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = R.raw.puntos),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(140.dp)
+                        .padding(bottom = 16.dp),
+                    contentScale = ContentScale.Fit
                 )
 
                 Text(

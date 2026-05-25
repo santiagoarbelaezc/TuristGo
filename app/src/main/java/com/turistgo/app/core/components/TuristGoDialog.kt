@@ -26,6 +26,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.turistgo.app.core.models.AlertState
 import com.turistgo.app.core.models.AlertType
+import com.turistgo.app.R
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun TuristGoDialog(
@@ -65,23 +67,34 @@ fun TuristGoDialog(
                         // Icon header with gradient background
                         val (icon, color) = getAlertDetails(state.type)
                         
-                        Box(
-                            modifier = Modifier
-                                .size(84.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(color.copy(alpha = 0.15f), color.copy(alpha = 0.05f))
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = icon,
+                        if (state.type == AlertType.ERROR) {
+                            androidx.compose.foundation.Image(
+                                painter = androidx.compose.ui.res.painterResource(id = R.raw.error),
                                 contentDescription = null,
-                                tint = color,
-                                modifier = Modifier.size(44.dp)
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .padding(bottom = 16.dp),
+                                contentScale = ContentScale.Fit
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(84.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(color.copy(alpha = 0.15f), color.copy(alpha = 0.05f))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = color,
+                                    modifier = Modifier.size(44.dp)
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))

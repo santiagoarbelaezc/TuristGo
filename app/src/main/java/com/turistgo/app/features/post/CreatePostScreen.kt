@@ -172,6 +172,7 @@ fun CreatePostScreen(
         SuccessModal(
             title = stringResource(R.string.post_submitted_title),
             message = stringResource(R.string.post_submitted_msg),
+            imageRes = R.raw.publicacion,
             onDismiss = {
                 showSuccessModal = false
                 onBack() // Vuelve a la pantalla anterior

@@ -32,6 +32,10 @@ import coil.compose.AsyncImage
 import com.turistgo.app.R
 import com.turistgo.app.core.components.Destination
 import com.turistgo.app.core.components.DestinationCard
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -263,8 +267,42 @@ fun PostDetailScreen(
                     Text(text = stringResource(R.string.description), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = description, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
+
+                    // Mapa de ubicación interactivo
+                    if (post?.latitude != null && post?.longitude != null) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        SectionHeader("Ubicación en el Mapa")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val postLocation = LatLng(post!!.latitude!!, post!!.longitude!!)
+                        val cameraPositionState = rememberCameraPositionState {
+                            position = CameraPosition.fromLatLngZoom(postLocation, 15f)
+                        }
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(16.dp)),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            GoogleMap(
+                                modifier = Modifier.fillMaxSize(),
+                                cameraPositionState = cameraPositionState,
+                                uiSettings = MapUiSettings(
+                                    zoomControlsEnabled = false,
+                                    mapToolbarEnabled = true,
+                                    myLocationButtonEnabled = false
+                                )
+                            ) {
+                                Marker(
+                                    state = MarkerState(position = postLocation),
+                                    title = title
+                                )
+                            }
+                        }
+                    }
                 }
             }
+
 
             // Sección de Comentarios
             item {

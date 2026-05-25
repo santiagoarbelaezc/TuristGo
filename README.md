@@ -17,18 +17,13 @@
 
 **TuristGo** es una aplicación móvil moderna orientada al turismo inteligente. La plataforma permite a los usuarios descubrir lugares, crear rutas turísticas, recibir sugerencias mediante IA y gamificar su experiencia de viaje a través de un sistema de puntos e insignias.
 
-> ⚠️ **Estado del Proyecto:** En desarrollo activo
->
-> ⚠️ **Estado del Proyecto:** Falta implementar funcionalidades
-
-
 ---
 
 ## ✨ **Características Principales**
 
-- **Feed de Descubrimiento:** Visualiza lugares populares en una lista o en un mapa interactivo (Mapbox).
+- **Feed de Descubrimiento:** Visualiza lugares populares en una lista o en un mapa interactivo.
 - **Asistente IA:** Clasificación automática de categorías y sugerencias personalizadas con Gemini API.
-- **Planificación de Viajes IA:** Integración con Minimax o DeepSeek para planificar itinerarios de viaje de forma inteligente.
+- **Planificación de Viajes IA:** Integración con asistentes de IA para planificar itinerarios de viaje de forma inteligente.
 - **Sistema de Reputación:** Acumula puntos, sube de nivel y gana insignias (Badges) por tu actividad.
 - **Rutas Turísticas:** Crea, comparte y sigue rutas optimizadas que conectan diferentes puntos de interés.
 - **Moderación Comunitaria:** Un panel de moderadores se encarga de verificar la calidad de los posts.
@@ -37,13 +32,11 @@
 
 ## 🤖 **Requisito de Inteligencia Artificial**
 
-TuristGo implementa **Clasificación automática de categorías** como requisito de IA:
+TuristGo implementa **Clasificación automática de categorías y moderación activa** como requisitos de IA:
 
-> Al momento de crear una publicación de un lugar turístico, el sistema analiza el título y la descripción ingresados por el usuario y sugiere automáticamente la categoría más apropiada (playa, montaña, museo, gastronomía, aventura, etc.). El usuario puede aceptar la sugerencia o seleccionar manualmente otra categoría.
+> Al momento de crear una publicación o actualizar una foto de perfil, el sistema analiza la descripción o la imagen mediante el SDK de Google Generative AI y clasifica/modera la seguridad del contenido en tiempo real.
 
-**Modelo utilizado:** Google Gemini API
-
-Adicionalmente, se integra una sección de planificación de viajes con IA (Minimax / DeepSeek) que genera itinerarios personalizados basados en los intereses y ubicación del usuario.
+**Modelo utilizado:** Google Gemini API (Gemini 1.5 Flash)
 
 ---
 
@@ -63,11 +56,13 @@ Adicionalmente, se integra una sección de planificación de viajes con IA (Mini
   <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" />
   <img width="8" />
   <img src="https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white" />
+  <img width="8" />
+  <img src="https://img.shields.io/badge/Cloudinary-000000?style=for-the-badge&logo=cloudinary&logoColor=white" />
 </div>
 
 ### **Mapas**
 <div align="center">
-  <img src="https://img.shields.io/badge/Mapbox-000000?style=for-the-badge&logo=mapbox&logoColor=white" />
+  <img src="https://img.shields.io/badge/Google%20Maps-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white" />
 </div>
 
 ---
@@ -78,49 +73,43 @@ Adicionalmente, se integra una sección de planificación de viajes con IA (Mini
 
 Diseño de todas las pantallas necesarias para resolver los requerimientos del proyecto, siguiendo las guías de diseño de **Material You** de Google. Los prototipos se realizan en formato digital usando **Figma**.
 
-**Pantallas diseñadas:**
-- Splash & Onboarding
-- Login / Registro / Recuperación de contraseña
-- Feed principal (Lista y Mapa)
-- Detalle de lugar turístico
-- Creación y edición de publicación (con sugerencia IA de categoría)
-- Perfil de usuario con estadísticas e insignias
-- Panel de moderación
-- Gestión de rutas turísticas
-- Sección de planificación de viajes con IA
-- Centro de notificaciones
-
 ---
 
 ### **⚙️ Fase 2 — Funcionalidades Básicas**
 
-Implementación de toda la parte funcional de la aplicación: pantallas, navegación y lógica principal. Los datos se manejan en memoria (sin persistencia en base de datos).
-
-**Entregables:**
-- Navegación completa entre pantallas con NavHost
-- Arquitectura MVVM con repositorios en memoria
-- Inyección de dependencias con Hilt
-- Feed de lugares con lista y mapa (Mapbox)
-- Creación de publicaciones con clasificación automática de categoría por IA (Gemini)
-- Sistema de reputación: puntos e insignias
-- Rutas turísticas: creación y visualización
-- Panel de moderación funcional
-- Sección de planificación de viajes con IA (Minimax / DeepSeek)
+Implementación de toda la parte funcional de la aplicación: pantallas, navegación y lógica principal. Los datos se manejaban inicialmente en memoria (sin persistencia en base de datos).
 
 ---
 
-### **🚀 Fase 3 — Funcionalidades Completas**
+### **🚀 Fase 3 — Funcionalidades Completas (Fase Actual)**
 
 Entrega final con todas las funcionalidades integradas, incluyendo persistencia, autenticación y servicios en la nube.
 
 **Entregables:**
-- 🔐 **Autenticación** con Firebase Auth (login, registro, recuperación de contraseña)
-- 🗄️ **Persistencia** con Firebase Firestore o Realtime Database
-- 🖼️ **Subida de imágenes** con Firebase Storage
-- 🗺️ **Mapas** con Mapbox (mapa interactivo de lugares)
-- 🌐 **Internacionalización** (soporte para múltiples idiomas)
-- 🤖 **IA completa:** clasificación de categorías con Gemini + planificación de viajes con Minimax/DeepSeek
-- 🔑 **Recuperación de contraseña** por correo electrónico vía Firebase
+- 🔐 **Autenticación** con Firebase Auth (login, registro, recuperación de contraseña).
+- 🗄️ **Persistencia** en tiempo real con Firebase Firestore.
+- 🗺️ **Mapas** interactivos con Google Maps SDK.
+- 🤖 **IA completa:** clasificación de categorías y moderación de imágenes con Gemini + planificación de viajes con Groq LLM.
+- 🖼️ **Subida de imágenes** remota con Cloudinary.
+
+---
+
+## 🔥 **Integración con Firebase**
+
+El proyecto cuenta con una integración completa a los servicios de Firebase para toda la capa de datos y seguridad:
+
+*   🔐 **Autenticación (Firebase Auth):**
+    *   Registro e inicio de sesión convencional con Correo y Contraseña.
+    *   Inicio de sesión social integrado con **Google Sign-In** mediante el nuevo Credential Manager de Android.
+    *   Flujo real de recuperación de contraseña enviando correos de restablecimiento de contraseña automatizados.
+    *   Gestión de cierres de sesión sincronizando la sesión remota (`firebaseAuth.signOut()`) con el almacenamiento de estado local (`DataStore`).
+*   🗄️ **Base de Datos (Cloud Firestore):**
+    *   Persistencia completa reactiva mediante `Flow` de Kotlin en lugar de almacenamiento temporal en memoria.
+    *   **Usuarios (`users/`):** Almacena perfiles detallados sincronizados con su UID de autenticación, listas de seguidores, seguidos, posts guardados y me gusta.
+    *   **Publicaciones (`posts/`):** Base de datos de destinos turísticos y eventos moderados, vinculada a los autores de las publicaciones.
+    *   **Comentarios (`comments/`):** Gestión de hilos de comentarios para cada publicación.
+    *   **Notificaciones (`notifications/`):** Sistema de notificaciones en tiempo real para solicitudes de amistad, aprobaciones de posts, etc.
+    *   **Chat en Tiempo Real (`users/{uid}/chat_messages/`):** Registro persistente en tiempo real de los itinerarios y mensajes de chat de planificación turística asistida por IA.
 
 ---
 
@@ -128,10 +117,11 @@ Entrega final con todas las funcionalidades integradas, incluyendo persistencia,
 
 ```text
 ui/
+ui/
 ├── theme/          # Material You (Colores, Tipografía, Formas)
 ├── navigation/     # NavHost y Definición de Rutas
 ├── components/     # Composables reutilizables (Cards, Chips, etc.)
-├── auth/           # Login, Registro, Recuperación de contraseña
+├── auth/           # Login, Registro, Recuperación de contraseña, Completar Perfil
 ├── feed/           # Feed principal (Lista/Mapa)
 ├── home/           # Pantalla de inicio
 ├── post/           # Detalle, Creación y Edición de Posts
@@ -147,9 +137,18 @@ ui/
 ## 🛠️ **Configuración Local**
 
 1. Clona el repositorio.
-2. Añade tu `google-services.json` en la carpeta `app/`.
-3. Configura tus claves de API (Mapbox, Gemini) en `secrets.properties`.
-4. Sincroniza el proyecto con Gradle y ejecuta en un emulador o dispositivo Android.
+2. Añade tu archivo `google-services.json` (descargado de la consola de Firebase) en la carpeta `app/`.
+3. Crea un archivo `.env` en la raíz del proyecto y agrega tus variables de entorno configuradas:
+   ```env
+   GROQ_API_KEY=tu_api_key_de_groq
+   GEMINI_API_KEY=tu_api_key_de_gemini
+   GOOGLE_WEB_CLIENT_ID=tu_web_client_id_de_google_auth
+   CLOUDINARY_CLOUD_NAME=tu_cloud_name_de_cloudinary
+   CLOUDINARY_API_KEY=tu_api_key_de_cloudinary
+   CLOUDINARY_API_SECRET=tu_api_secret_de_cloudinary
+   GOOGLE_MAPS_API_KEY=tu_api_key_de_google_maps
+   ```
+4. Sincroniza el proyecto con Gradle y ejecuta en tu emulador o dispositivo Android.
 
 ---
 

@@ -111,13 +111,65 @@ class LoginViewModel @Inject constructor(
                     _email.value
                 }
 
-                // Autenticar con Firebase Authentication
-                val result = firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
+                // Autenticar con Firebase Authentication (con auto-creación para el administrador por defecto si no existe)
+                val result = try {
+                    firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
+                } catch (signInException: Exception) {
+                    if (emailToUse == "santiago@turistgo.com" && _password.value == "santi123") {
+                        try {
+                            val createResult = firebaseAuth.createUserWithEmailAndPassword(emailToUse, _password.value).await()
+                            val uid = createResult.user?.uid
+                            if (uid != null) {
+                                val adminUser = User(
+                                    id = uid,
+                                    name = "Santiago",
+                                    lastName = "Arbelaez",
+                                    age = "25",
+                                    country = "Colombia",
+                                    city = "Armenia",
+                                    department = "Quindío",
+                                    phone = "3054078225",
+                                    email = "santiago@turistgo.com",
+                                    username = "santiarco",
+                                    password = "santi123",
+                                    role = "ADMIN",
+                                    isVerified = true
+                                )
+                                repository.saveUser(adminUser)
+                            }
+                            createResult
+                        } catch (_: Exception) {
+                            throw signInException
+                        }
+                    } else {
+                        throw signInException
+                    }
+                }
                 val firebaseUser = result.user
 
                 if (firebaseUser != null) {
-                    // Obtener datos completos del usuario desde Firestore
-                    val user = repository.getUserById(firebaseUser.uid)
+                    // Obtener datos completos del usuario desde Firestore (y auto-crear documento si falta)
+                    var user = repository.getUserById(firebaseUser.uid)
+                    
+                    if (user == null && firebaseUser.email == "santiago@turistgo.com") {
+                        val adminUser = User(
+                            id = firebaseUser.uid,
+                            name = "Santiago",
+                            lastName = "Arbelaez",
+                            age = "25",
+                            country = "Colombia",
+                            city = "Armenia",
+                            department = "Quindío",
+                            phone = "3054078225",
+                            email = "santiago@turistgo.com",
+                            username = "santiarco",
+                            password = "santi123",
+                            role = "ADMIN",
+                            isVerified = true
+                        )
+                        repository.saveUser(adminUser)
+                        user = adminUser
+                    }
 
                     if (user != null) {
                         val isAdmin = user.role == "ADMIN"

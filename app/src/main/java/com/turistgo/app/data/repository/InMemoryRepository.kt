@@ -24,9 +24,9 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
             city = "Armenia",
             department = "Quindío",
             phone = "3054078225",
-            email = "santiago@turistgo.com",
+            email = com.turistgo.app.BuildConfig.ADMIN_EMAIL,
             username = "santiarco",
-            password = "TuristGo@Admin#2026!SecureKey",
+            password = com.turistgo.app.BuildConfig.ADMIN_PASSWORD,
             role = "ADMIN",
             isVerified = true
         ),

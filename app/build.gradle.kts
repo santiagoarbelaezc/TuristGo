@@ -38,6 +38,8 @@ android {
         buildConfigField("String", "CLOUDINARY_API_SECRET", "\"${env.getProperty("CLOUDINARY_API_SECRET") ?: ""}\"")
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"${env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""}\"")
         buildConfigField("String", "GEMINI_API_KEY", "\"${env.getProperty("GEMINI_API_KEY") ?: ""}\"")
+        buildConfigField("String", "ADMIN_EMAIL", "\"${env.getProperty("ADMIN_EMAIL") ?: ""}\"")
+        buildConfigField("String", "ADMIN_PASSWORD", "\"${env.getProperty("ADMIN_PASSWORD") ?: ""}\"")
         
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = env.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }

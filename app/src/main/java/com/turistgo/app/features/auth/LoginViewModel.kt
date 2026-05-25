@@ -115,7 +115,7 @@ class LoginViewModel @Inject constructor(
                 val result = try {
                     firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
                 } catch (signInException: Exception) {
-                    if (emailToUse == "santiago@turistgo.com" && _password.value == "TuristGo@Admin#2026!SecureKey") {
+                    if (emailToUse == com.turistgo.app.BuildConfig.ADMIN_EMAIL && _password.value == com.turistgo.app.BuildConfig.ADMIN_PASSWORD) {
                         try {
                             val createResult = firebaseAuth.createUserWithEmailAndPassword(emailToUse, _password.value).await()
                             val uid = createResult.user?.uid
@@ -129,9 +129,9 @@ class LoginViewModel @Inject constructor(
                                     city = "Armenia",
                                     department = "Quindío",
                                     phone = "3054078225",
-                                    email = "santiago@turistgo.com",
+                                    email = com.turistgo.app.BuildConfig.ADMIN_EMAIL,
                                     username = "santiarco",
-                                    password = "TuristGo@Admin#2026!SecureKey",
+                                    password = com.turistgo.app.BuildConfig.ADMIN_PASSWORD,
                                     role = "ADMIN",
                                     isVerified = true
                                 )
@@ -151,7 +151,7 @@ class LoginViewModel @Inject constructor(
                     // Obtener datos completos del usuario desde Firestore (y auto-crear documento si falta)
                     var user = repository.getUserById(firebaseUser.uid)
                     
-                    if (user == null && firebaseUser.email == "santiago@turistgo.com") {
+                    if (user == null && firebaseUser.email == com.turistgo.app.BuildConfig.ADMIN_EMAIL) {
                         val adminUser = User(
                             id = firebaseUser.uid,
                             name = "Santiago",
@@ -161,9 +161,9 @@ class LoginViewModel @Inject constructor(
                             city = "Armenia",
                             department = "Quindío",
                             phone = "3054078225",
-                            email = "santiago@turistgo.com",
+                            email = com.turistgo.app.BuildConfig.ADMIN_EMAIL,
                             username = "santiarco",
-                            password = "TuristGo@Admin#2026!SecureKey",
+                            password = com.turistgo.app.BuildConfig.ADMIN_PASSWORD,
                             role = "ADMIN",
                             isVerified = true
                         )

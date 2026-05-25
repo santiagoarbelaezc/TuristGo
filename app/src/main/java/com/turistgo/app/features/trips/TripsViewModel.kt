@@ -38,9 +38,17 @@ class TripsViewModel @Inject constructor(
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
+    // Mapa en memoria: messageId -> List<Post>
+    // Las tarjetas NO se guardan en Firestore (problemas de serialización con enums anidados)
+    // Se reconstruyen en sesión desde este mapa.
+    private val destinationsMap = mutableMapOf<String, List<Post>>()
+
     init {
         viewModelScope.launch {
             chatRepository.getMessages().collectLatest { savedMessages ->
+                // No sobreescribir mientras la IA está respondiendo (evita el parpadeo de tarjetas)
+                if (_isLoading.value) return@collectLatest
+
                 if (savedMessages.isEmpty()) {
                     val initialMessage = ChatMessage(
                         id = UUID.randomUUID().toString(),
@@ -51,8 +59,15 @@ class TripsViewModel @Inject constructor(
                     _messages.add(initialMessage)
                     chatRepository.saveMessages(listOf(initialMessage))
                 } else {
+                    // Reconstruir mensajes con destinos del mapa en memoria
+                    val rebuilt = savedMessages.map { msg ->
+                        msg.copy(
+                            suggestedDestinations = destinationsMap[msg.id] ?: emptyList(),
+                            isPlanResponse = destinationsMap.containsKey(msg.id)
+                        )
+                    }
                     _messages.clear()
-                    _messages.addAll(savedMessages)
+                    _messages.addAll(rebuilt)
                 }
             }
         }
@@ -264,6 +279,9 @@ El usuario indicó un presupuesto de ${extractedBudget} COP, que es menor al mí
                     isPlanResponse = true, // SIEMPRE mostrar la sección de destinos
                     suggestedDestinations = suggestedPosts
                 )
+                // Guardar destinos en el mapa en memoria ANTES de actualizar _messages
+                destinationsMap[aiMessage.id] = suggestedPosts
+
                 _messages.add(aiMessage)
                 chatRepository.saveMessages(_messages.toList())
 

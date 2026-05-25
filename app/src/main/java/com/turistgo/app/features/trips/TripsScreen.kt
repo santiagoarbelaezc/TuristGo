@@ -221,62 +221,99 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
             .padding(horizontal = 16.dp),
         horizontalAlignment = if (message.isFromUser) Alignment.End else Alignment.Start
     ) {
-        Surface(
-            color = if (message.isFromUser) Color(0xFFC62828) else Color.White,
-            shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
-                bottomStart = if (message.isFromUser) 16.dp else 4.dp,
-                bottomEnd = if (message.isFromUser) 4.dp else 16.dp
-            ),
-            tonalElevation = if (message.isFromUser) 0.dp else 1.dp
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                if (!message.isFromUser) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFC62828), modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("TuristGo AI", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFC62828))
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
+            // Avatar de la IA (solo en mensajes de IA)
+            if (!message.isFromUser) {
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFDE8E8)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = Color(0xFFC62828),
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
-                
-                val lines = message.content.split("\n")
-                Column {
-                    lines.forEach { line ->
-                        val trimmedLine = line.trim()
-                        when {
-                            trimmedLine.startsWith("Día ", ignoreCase = true) -> {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                DayLabel(trimmedLine)
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-                            trimmedLine.contains(Regex("^\\p{So}|\\p{Sk}|\\p{Sm}")) || trimmedLine.contains(Regex("\\d{2}:\\d{2}")) -> {
-                                Text(
-                                    text = line,
-                                    color = if (message.isFromUser) Color.White else Color.Black,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.padding(vertical = 2.dp)
-                                )
-                            }
-                            trimmedLine.startsWith("🗓️") -> {
-                                Text(
-                                    text = line,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = Color.Black,
-                                    modifier = Modifier.padding(vertical = 4.dp)
-                                )
-                            }
-                            else -> {
-                                Text(
-                                    text = line,
-                                    color = if (message.isFromUser) Color.White else Color.Black,
-                                    fontSize = 14.sp
-                                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+
+            // Burbuja del mensaje
+            Surface(
+                color = if (message.isFromUser) Color(0xFFC62828) else Color.White,
+                shape = RoundedCornerShape(
+                    topStart = 18.dp,
+                    topEnd = 18.dp,
+                    bottomStart = if (message.isFromUser) 18.dp else 4.dp,
+                    bottomEnd = if (message.isFromUser) 4.dp else 18.dp
+                ),
+                shadowElevation = if (message.isFromUser) 0.dp else 2.dp,
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)) {
+                    // Label "TuristGo AI" solo en mensajes de IA
+                    if (!message.isFromUser) {
+                        Text(
+                            "TuristGo AI",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFC62828),
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                    }
+
+                    val lines = message.content.split("\n")
+                    Column {
+                        lines.forEach { line ->
+                            val trimmedLine = line.trim()
+                            when {
+                                trimmedLine.startsWith("Día ", ignoreCase = true) ||
+                                trimmedLine.startsWith("📅") -> {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    DayLabel(trimmedLine)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                }
+                                trimmedLine.startsWith("🗓️") -> {
+                                    Text(
+                                        text = line,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = if (message.isFromUser) Color.White else Color(0xFF1A1A1A),
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    )
+                                }
+                                else -> {
+                                    Text(
+                                        text = line,
+                                        color = if (message.isFromUser) Color.White else Color(0xFF1A1A1A),
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp
+                                    )
+                                }
                             }
                         }
                     }
+                }
+            }
+
+            // Avatar del usuario (solo en mensajes de usuario)
+            if (message.isFromUser) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF1A1A1A)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Tú", fontSize = 8.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -287,6 +324,7 @@ fun ChatBubble(message: ChatMessage, onNavigateToDetail: (String) -> Unit) {
         }
     }
 }
+
 
 @Composable
 fun DayLabel(text: String) {

@@ -27,7 +27,24 @@ class FirestoreChatRepository @Inject constructor(
         val listener = getChatMessagesCol()
             .orderBy("timestamp", Query.Direction.ASCENDING)
             .addSnapshotListener { snap, _ ->
-                snap?.let { trySend(it.toObjects(ChatMessage::class.java)) }
+                snap?.let { snapshot ->
+                    // Deserializar manualmente para evitar fallos con tipos complejos (Post, enums)
+                    val messages = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            ChatMessage(
+                                id = doc.getString("id") ?: doc.id,
+                                content = doc.getString("content") ?: "",
+                                isFromUser = doc.getBoolean("isFromUser") ?: false,
+                                timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis(),
+                                isPlanResponse = doc.getBoolean("isPlanResponse") ?: false,
+                                suggestedDestinations = emptyList() // Se reconstruye en memoria en el ViewModel
+                            )
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    trySend(messages)
+                }
             }
         awaitClose { listener.remove() }
     }
@@ -37,7 +54,16 @@ class FirestoreChatRepository @Inject constructor(
         val batch = firestore.batch()
         messages.forEach { message ->
             val docRef = col.document(message.id)
-            batch.set(docRef, message)
+            // Guardar SOLO campos primitivos — NO incluir suggestedDestinations (List<Post>)
+            // ya que Firestore no puede serializar/deserializar correctamente enums anidados.
+            val data = hashMapOf(
+                "id" to message.id,
+                "content" to message.content,
+                "isFromUser" to message.isFromUser,
+                "timestamp" to message.timestamp,
+                "isPlanResponse" to message.isPlanResponse
+            )
+            batch.set(docRef, data)
         }
         batch.commit().await()
     }

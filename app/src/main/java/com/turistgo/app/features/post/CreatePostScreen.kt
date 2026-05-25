@@ -477,7 +477,7 @@ fun CreatePostScreen(
                     Icon(Icons.Default.Home, contentDescription = null, tint = Color(0xFF555555))
                 },
                 trailingIcon = {
-                    IconButton(onClick = { onNavigateToMapPicker(viewModel.userCityLat.value, viewModel.userCityLng.value) }) { // Abre el selector de mapa
+                    IconButton(onClick = { onNavigateToMapPicker(latitude ?: viewModel.userCityLat.value, longitude ?: viewModel.userCityLng.value) }) { // Abre el selector de mapa
                         Icon(
                             Icons.Default.MyLocation, 
                             contentDescription = "Fijar en Mapa", 

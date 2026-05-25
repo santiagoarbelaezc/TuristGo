@@ -84,6 +84,16 @@ class FirestoreRepository @Inject constructor(
         docRef.set(post.copy(id = id)).await()
         if (!exists && post.authorId.isNotEmpty()) {
             incrementUserPoints(post.authorId, 1)
+            saveActivityLog(
+                ActivityLog(
+                    id = java.util.UUID.randomUUID().toString(),
+                    type = "PUBLISH_POST",
+                    userId = post.authorId,
+                    userName = post.authorName,
+                    details = "Creó la publicación: ${post.name}",
+                    timestamp = System.currentTimeMillis()
+                )
+            )
         }
     }
 
@@ -264,6 +274,29 @@ class FirestoreRepository @Inject constructor(
                 "points", 
                 com.google.firebase.firestore.FieldValue.increment(pointsToAdd.toLong())
             ).await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private val activityLogsCol = firestore.collection("activity_logs")
+
+    override fun getActivityLogs(): Flow<List<ActivityLog>> = callbackFlow {
+        val listener = activityLogsCol.addSnapshotListener { snap, _ ->
+            snap?.let {
+                trySend(
+                    it.toObjects(ActivityLog::class.java)
+                        .sortedByDescending { log -> log.timestamp }
+                )
+            }
+        }
+        awaitClose { listener.remove() }
+    }
+
+    override suspend fun saveActivityLog(log: ActivityLog) {
+        try {
+            val id = log.id.ifEmpty { activityLogsCol.document().id }
+            activityLogsCol.document(id).set(log.copy(id = id)).await()
         } catch (e: Exception) {
             e.printStackTrace()
         }

@@ -121,6 +121,16 @@ class LoginViewModel @Inject constructor(
 
                     if (user != null) {
                         val isAdmin = user.role == "ADMIN"
+                        repository.saveActivityLog(
+                            com.turistgo.app.domain.model.ActivityLog(
+                                id = java.util.UUID.randomUUID().toString(),
+                                type = "LOGIN",
+                                userId = user.id,
+                                userName = "${user.name} ${user.lastName}",
+                                details = "Inicio de sesión exitoso con correo electrónico",
+                                timestamp = System.currentTimeMillis()
+                            )
+                        )
                         sessionManager.saveSession(
                             userId = user.id,
                             name = "${user.name} ${user.lastName}",
@@ -179,6 +189,16 @@ class LoginViewModel @Inject constructor(
                 result.fold(
                     onSuccess = { googleUser ->
                         if (googleUser != null) {
+                            repository.saveActivityLog(
+                                com.turistgo.app.domain.model.ActivityLog(
+                                    id = java.util.UUID.randomUUID().toString(),
+                                    type = "LOGIN",
+                                    userId = googleUser.id,
+                                    userName = googleUser.name,
+                                    details = "Inicio de sesión exitoso con Google",
+                                    timestamp = System.currentTimeMillis()
+                                )
+                            )
                             sessionManager.saveSession(
                                 userId = googleUser.id,
                                 name = googleUser.name,
@@ -222,8 +242,19 @@ class LoginViewModel @Inject constructor(
                 _snackbarMessage.value = "Conectando con $provider..."
                 kotlinx.coroutines.delay(2000)
                 
+                val socialUserId = "social_${System.currentTimeMillis()}"
+                repository.saveActivityLog(
+                    com.turistgo.app.domain.model.ActivityLog(
+                        id = java.util.UUID.randomUUID().toString(),
+                        type = "LOGIN",
+                        userId = socialUserId,
+                        userName = "$provider User",
+                        details = "Inicio de sesión exitoso con $provider",
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
                 sessionManager.saveSession(
-                    userId = "social_${System.currentTimeMillis()}",
+                    userId = socialUserId,
                     name = "$provider User",
                     email = "${provider.lowercase()}@example.com",
                     role = "USER"

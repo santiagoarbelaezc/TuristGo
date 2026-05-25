@@ -44,4 +44,8 @@ interface AppDataRepository {
     fun getNotifications(userId: String): Flow<List<Notification>>
     suspend fun addNotification(notification: Notification)
     suspend fun markNotificationAsRead(notificationId: String)
+
+    // Activity logs related
+    fun getActivityLogs(): Flow<List<com.turistgo.app.domain.model.ActivityLog>>
+    suspend fun saveActivityLog(log: com.turistgo.app.domain.model.ActivityLog)
 }

@@ -29,6 +29,7 @@ class TripsViewModel @Inject constructor(
     private val repository: AppDataRepository,
     private val groqService: GroqService,
     private val sessionManager: UserSessionManager,
+    private val budgetService: com.turistgo.app.data.AssistantBudgetService,
     private val chatRepository: ChatRepository
 ) : ViewModel() {
 
@@ -95,21 +96,29 @@ class TripsViewModel @Inject constructor(
                     - Intereses: ${userProfile?.interests?.joinToString(", ") ?: "Viajes, aventura, relax"}
                 """.trimIndent()
 
-                // 2. Obtener los lugares disponibles (posts)
+                // 2. Obtener los lugares disponibles (posts) con filtros de presupuesto
                 val availablePosts = repository.getPosts().first()
-                
-                val placesContext = availablePosts.joinToString("\n") { 
+                val isLowBudget = budgetService.isLowBudget(userMessage) || 
+                        _messages.takeLast(4).any { it.isFromUser && budgetService.isLowBudget(it.content) }
+
+                val filteredPosts = if (isLowBudget) {
+                    budgetService.filterPlacesForLowBudget(availablePosts, userProfile?.city, userProfile?.department)
+                } else {
+                    availablePosts
+                }
+
+                val placesContext = filteredPosts.joinToString("\n") { 
                     "- ID: ${it.id}, Nombre: ${it.name}, Categorías: ${it.categories.joinToString(", ")}, Ubicación: ${it.location}, Descripción: ${it.description}"
                 }
                 
-                val systemPrompt = """
+                var systemPrompt = """
                     Eres un asistente de viajes experto y local para TuristGo.
                     
                     USUARIO:
                     $userContext
                     
                     CATÁLOGO DE LUGARES:
-                    ${if (availablePosts.isEmpty()) "Sugerencias genéricas." else placesContext}
+                    ${if (filteredPosts.isEmpty()) "Sugerencias genéricas." else placesContext}
                     
                     REGLAS DE RESPUESTA:
                     1. CONSULTA PUNTUAL: Si falta información (duración, acompañantes, etc.), responde ÚNICAMENTE con las preguntas de forma directa. Sin introducciones ni saludos largos.
@@ -126,6 +135,10 @@ class TripsViewModel @Inject constructor(
                     3. ESTILO: Tuteo siempre. Sé breve y usa emojis.
                     4. IDs: Al final añade SUGGESTED_IDS: [id1, id2, ...] solo si incluyes lugares del catálogo.
                 """.trimIndent()
+
+                if (isLowBudget) {
+                    systemPrompt += "\n\n" + budgetService.getLowBudgetContext(userProfile?.city)
+                }
 
                 // 3. Preparar historial (últimos 10 mensajes)
                 val conversationHistory = _messages.takeLast(10).map { msg ->

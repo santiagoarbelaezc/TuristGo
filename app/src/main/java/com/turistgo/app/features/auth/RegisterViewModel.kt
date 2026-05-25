@@ -284,6 +284,16 @@ class RegisterViewModel @Inject constructor(
 
                 // Guardar perfil en Firestore
                 repository.saveUser(newUser)
+                repository.saveActivityLog(
+                    com.turistgo.app.domain.model.ActivityLog(
+                        id = java.util.UUID.randomUUID().toString(),
+                        type = "REGISTER",
+                        userId = uid,
+                        userName = "${trimmedName} ${trimmedLastName}",
+                        details = "Registró una nueva cuenta con correo: ${trimmedEmail}",
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
                 sessionManager.saveSession(uid, newUser.name, newUser.email, role = "USER")
 
                 _snackbarMessage.value = "¡Bienvenido ${trimmedName}! Registro completado"

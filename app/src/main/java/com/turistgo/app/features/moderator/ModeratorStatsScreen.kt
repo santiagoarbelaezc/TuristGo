@@ -96,12 +96,45 @@ fun ModeratorStatsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Analytics Chart (User Growth)
-        AnalyticsCard(title = "Crecimiento de Usuarios") {
-            LineChart(
-                data = listOf(0.2f, 0.4f, 0.3f, 0.7f, 0.6f, 0.9f, 0.8f),
-                modifier = Modifier.fillMaxWidth().height(180.dp)
-            )
+        // Analytics Charts Card (Tabbed selection)
+        var selectedChartTab by remember { mutableStateOf(0) }
+        val chartTabs = listOf("Inicios de Sesión", "Registros", "Publicaciones")
+        
+        AnalyticsCard(title = "Actividad de la Plataforma (Últimos 7 días)") {
+            Column {
+                TabRow(
+                    selectedTabIndex = selectedChartTab,
+                    containerColor = Color.Transparent,
+                    divider = {},
+                    indicator = {}
+                ) {
+                    chartTabs.forEachIndexed { index, label ->
+                        val isSelected = selectedChartTab == index
+                        Tab(
+                            selected = isSelected,
+                            onClick = { selectedChartTab = index },
+                            text = {
+                                Text(
+                                    text = label,
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray
+                                )
+                            }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                val chartData = when (selectedChartTab) {
+                    0 -> stats.loginHistory
+                    1 -> stats.registerHistory
+                    else -> stats.postHistory
+                }
+                LineChart(
+                    data = chartData,
+                    modifier = Modifier.fillMaxWidth().height(180.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -114,8 +147,96 @@ fun ModeratorStatsScreen(
                 ComparisonBar(label = "Rechazadas", percentage = stats.rejectedPercentage, color = Color(0xFFE53935), count = stats.rejectedPosts.toString())
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Traceability / Recent Activity Logs
+        AnalyticsCard(title = "Trazabilidad de Actividades (Auditoría)") {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (stats.recentLogs.isEmpty()) {
+                    Text(
+                        text = "No hay actividades registradas aún.",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(vertical = 12.dp)
+                    )
+                } else {
+                    stats.recentLogs.forEach { log ->
+                        ActivityLogItem(log = log)
+                    }
+                }
+            }
+        }
     }
 }
+}
+
+@Composable
+fun ActivityLogItem(log: com.turistgo.app.domain.model.ActivityLog) {
+    val formattedTime = remember(log.timestamp) {
+        val sdf = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault())
+        sdf.format(java.util.Date(log.timestamp))
+    }
+    
+    val badgeColor = when (log.type) {
+        "LOGIN" -> Color(0xFF1976D2)       // Azul
+        "REGISTER" -> Color(0xFF388E3C)    // Verde
+        "PUBLISH_POST" -> Color(0xFFF57C00) // Naranja
+        else -> Color.Gray
+    }
+
+    val badgeLabel = when (log.type) {
+        "LOGIN" -> "LOGIN"
+        "REGISTER" -> "REGISTRO"
+        "PUBLISH_POST" -> "POST"
+        else -> log.type
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFF9F9F9), RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = badgeColor.copy(alpha = 0.15f)
+            ) {
+                Text(
+                    text = badgeLabel,
+                    color = badgeColor,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+            Text(
+                text = formattedTime,
+                fontSize = 11.sp,
+                color = Color.Gray
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = log.userName,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
+            color = Color(0xFF222222)
+        )
+        Text(
+            text = log.details,
+            fontSize = 12.sp,
+            color = Color(0xFF555555)
+        )
+    }
 }
 
 @Composable

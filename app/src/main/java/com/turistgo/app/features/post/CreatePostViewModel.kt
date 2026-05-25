@@ -1,5 +1,6 @@
 package com.turistgo.app.features.post
  
+import android.location.Geocoder
 import com.turistgo.app.core.utils.ColombiaGeography
 
 import androidx.compose.runtime.State
@@ -9,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.turistgo.app.domain.model.Post
 import com.turistgo.app.domain.repository.AppDataRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import android.content.Context
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -18,12 +21,15 @@ import com.turistgo.app.data.datastore.UserSessionManager
 import com.turistgo.app.data.remote.MediaRepository
 import com.turistgo.app.domain.model.PostStatus
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val repository: AppDataRepository,
     private val mediaRepository: MediaRepository,
-    private val sessionManager: UserSessionManager
+    private val sessionManager: UserSessionManager,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
     private val _title = mutableStateOf("")
     val title: State<String> = _title
@@ -68,6 +74,42 @@ class CreatePostViewModel @Inject constructor(
 
     private val _longitude = mutableStateOf<Double?>(null)
     val longitude: State<Double?> = _longitude
+
+    // Coordenadas de la ciudad del perfil del usuario (para centrar el mapa al abrirlo)
+    private val _userCityLat = mutableStateOf<Double?>(null)
+    val userCityLat: State<Double?> = _userCityLat
+
+    private val _userCityLng = mutableStateOf<Double?>(null)
+    val userCityLng: State<Double?> = _userCityLng
+
+    init {
+        loadUserCity()
+    }
+
+    /** Geocodifica la ciudad del perfil del usuario para centrar el mapa */
+    private fun loadUserCity() {
+        viewModelScope.launch {
+            try {
+                val userId = sessionManager.getUserId().firstOrNull() ?: return@launch
+                val profile = repository.getUserProfile(userId) ?: return@launch
+                val cityName = profile.city.ifBlank { "Medellín" }
+
+                withContext(Dispatchers.IO) {
+                    @Suppress("DEPRECATION")
+                    val geocoder = Geocoder(appContext)
+                    val results = geocoder.getFromLocationName("$cityName, Colombia", 1)
+                    if (!results.isNullOrEmpty()) {
+                        _userCityLat.value = results[0].latitude
+                        _userCityLng.value = results[0].longitude
+                    }
+                }
+            } catch (_: Exception) {
+                // Fallback silencioso: Medellín
+                _userCityLat.value = 6.2442
+                _userCityLng.value = -75.5812
+            }
+        }
+    }
 
     private val _startTime = mutableStateOf("")
     val startTime: State<String> = _startTime

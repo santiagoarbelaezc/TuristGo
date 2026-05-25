@@ -87,6 +87,15 @@ class CompleteProfileViewModel @Inject constructor(
             
             if (finalPhotoUrl != null && finalPhotoUrl.startsWith("content://")) {
                 val uri = Uri.parse(finalPhotoUrl)
+                
+                // Moderar la imagen de perfil aquí con Gemini antes de subirla
+                val safetyResult = com.turistgo.app.data.GeminiService.isImageSafe(context, uri.toString())
+                if (!safetyResult.isSafe) {
+                    _snackbarMessage.value = safetyResult.reason ?: "La foto de perfil seleccionada no cumple con las políticas de seguridad."
+                    _isLoading.value = false
+                    return@launch
+                }
+                
                 val uploadedUrl = CloudinaryManager.uploadImage(context, uri)
                 if (uploadedUrl != null) {
                     finalPhotoUrl = uploadedUrl

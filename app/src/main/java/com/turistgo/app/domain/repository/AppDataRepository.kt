@@ -15,6 +15,8 @@ interface AppDataRepository {
     suspend fun getUserByUsername(username: String): User?
     suspend fun getUserById(userId: String): User?
     suspend fun deleteUser(userId: String)
+    suspend fun updateFcmToken(userId: String, token: String)
+
 
     // Post related
     fun getPosts(status: com.turistgo.app.domain.model.PostStatus? = null): Flow<List<Post>>

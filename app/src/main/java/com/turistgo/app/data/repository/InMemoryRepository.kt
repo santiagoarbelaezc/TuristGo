@@ -359,6 +359,13 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
         users.value = users.value.filter { it.id != userId }
     }
 
+    override suspend fun updateFcmToken(userId: String, token: String) {
+        users.value = users.value.map {
+            if (it.id == userId) it.copy(fcmToken = token) else it
+        }
+    }
+
+
     override fun getPosts(status: com.turistgo.app.domain.model.PostStatus?): Flow<List<Post>> {
         return if (status == null) posts
         else posts.map { list -> list.filter { it.status == status } }

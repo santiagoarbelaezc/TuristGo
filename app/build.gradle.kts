@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.appdistribution)
 }
 
 import java.util.Properties
@@ -49,6 +50,12 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            firebaseAppDistribution {
+                artifactType = "APK"
+                testers = "santiago@example.com"
+            }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -67,6 +74,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

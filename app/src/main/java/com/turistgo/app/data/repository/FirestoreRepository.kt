@@ -56,6 +56,16 @@ class FirestoreRepository @Inject constructor(
         usersCol.document(userId).delete().await()
     }
 
+    override suspend fun updateFcmToken(userId: String, token: String) {
+        try {
+            usersCol.document(userId).update("fcmToken", token).await()
+        } catch (e: Exception) {
+            // Fallback if document doesn't have other fields or fails update (e.g. merge)
+            usersCol.document(userId).set(mapOf("fcmToken" to token), com.google.firebase.firestore.SetOptions.merge()).await()
+        }
+    }
+
+
     // ── Posts ──────────────────────────────────────────────────────────────
 
     override fun getPosts(status: PostStatus?): Flow<List<Post>> = callbackFlow {

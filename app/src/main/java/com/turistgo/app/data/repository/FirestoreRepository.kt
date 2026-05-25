@@ -79,7 +79,12 @@ class FirestoreRepository @Inject constructor(
 
     override suspend fun savePost(post: Post) {
         val id = if (post.id.isEmpty()) postsCol.document().id else post.id
-        postsCol.document(id).set(post.copy(id = id)).await()
+        val docRef = postsCol.document(id)
+        val exists = docRef.get().await().exists()
+        docRef.set(post.copy(id = id)).await()
+        if (!exists && post.authorId.isNotEmpty()) {
+            incrementUserPoints(post.authorId, 1)
+        }
     }
 
     override suspend fun updatePostStatus(postId: String, status: PostStatus) {
@@ -225,6 +230,9 @@ class FirestoreRepository @Inject constructor(
         post?.let {
             postsCol.document(it.id).update("commentCount", it.commentCount + 1).await()
         }
+        if (comment.authorId.isNotEmpty()) {
+            incrementUserPoints(comment.authorId, 1)
+        }
     }
 
     // ── Notifications ──────────────────────────────────────────────────────
@@ -248,5 +256,16 @@ class FirestoreRepository @Inject constructor(
 
     override suspend fun markNotificationAsRead(notificationId: String) {
         notificationsCol.document(notificationId).update("isRead", true).await()
+    }
+
+    private suspend fun incrementUserPoints(userId: String, pointsToAdd: Int) {
+        try {
+            usersCol.document(userId).update(
+                "points", 
+                com.google.firebase.firestore.FieldValue.increment(pointsToAdd.toLong())
+            ).await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

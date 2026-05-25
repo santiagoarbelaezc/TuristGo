@@ -25,132 +25,50 @@ import com.turistgo.app.domain.repository.AppDataRepository
 import com.turistgo.app.domain.model.User
 import com.turistgo.app.core.models.AlertState
 import com.turistgo.app.core.models.AlertType
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.tasks.await
 
 /**
  * LoginViewModel - Maneja la lógica de negocio y el estado de la pantalla de inicio de sesión
- * 
- * Responsabilidades:
- * 1. Almacenar y gestionar los estados de email y contraseña
- * 2. Manejar el estado de carga durante la autenticación
- * 3. Gestionar mensajes de notificación (Snackbar)
- * 4. Validar credenciales y simular el proceso de login
- * 5. Diferenciar entre usuarios normales y administradores
- * 
- * Patrones utilizados:
- * - Unidirectional Data Flow (UDF): Los eventos fluyen del UI al ViewModel
- * - Observable State: El UI observa los estados del ViewModel
- * - StateFlow y State: Para estados reactivos
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val sessionManager: UserSessionManager,
     private val googleAuthHelper: GoogleAuthHelper,
-    private val repository: AppDataRepository
+    private val repository: AppDataRepository,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     
-    // ==================== ESTADOS PRIVADOS MUTABLES ====================
-    
-    /**
-     * Estado interno mutable del email
-     * mutableStateOf: Crea un observable que recompondrá la UI cuando cambie
-     * valor inicial: String vacío ""
-     */
     private val _email = mutableStateOf("")
-    
-    /**
-     * Estado público de solo lectura del email
-     * State<String>: Interfaz de solo lectura que expone el valor actual
-     * El UI puede LEER pero no MODIFICAR directamente
-     */
     val email: State<String> = _email
     
-    /**
-     * Estado interno mutable de la contraseña
-     * Privado para encapsulamiento - solo el ViewModel puede modificarlo
-     */
     private val _password = mutableStateOf("")
-    
-    /**
-     * Estado público de solo lectura de la contraseña
-     * El UI observa este estado para mostrar el valor actual
-     */
     val password: State<String> = _password
     
-    /**
-     * Estado interno mutable de carga (loading)
-     * true: Mostrar indicador de progreso, deshabilitar botones
-     * false: UI normal, interacciones habilitadas
-     */
     private val _isLoading = mutableStateOf(false)
-    
-    /**
-     * Estado público de solo lectura del estado de carga
-     * El UI usa esto para mostrar/ocultar loading y habilitar/deshabilitar interacciones
-     */
     val isLoading: State<Boolean> = _isLoading
     
-    /**
-     * Flow mutable para mensajes de notificación (Snackbar)
-     * MutableStateFlow: Similar a mutableStateOf pero para Flows
-     * - Soporta operaciones de coroutine
-     * - Ideal para eventos únicos como mostrar un mensaje
-     * valor inicial: null (sin mensaje)
-     */
     private val _snackbarMessage = MutableStateFlow<String?>(null)
-    
-    /**
-     * Flow público de solo lectura para mensajes del Snackbar
-     * StateFlow: Emite valores a los collectors (el UI)
-     * asStateFlow(): Convierte a tipo inmutable (solo lectura)
-     * El UI colecta estos cambios para mostrar notificaciones
-     */
     val snackbarMessage: StateFlow<String?> = _snackbarMessage.asStateFlow()
     
-    /**
-     * Estado de aceptación de términos y privacidad
-     */
     private val _isPrivacyAccepted = mutableStateOf(false)
     val isPrivacyAccepted: State<Boolean> = _isPrivacyAccepted
 
-    /**
-     * Estado para el modal de alerta premium
-     */
     private val _alertState = MutableStateFlow(AlertState())
     val alertState: StateFlow<AlertState> = _alertState.asStateFlow()
     
-    // ==================== MÉTODOS PÚBLICOS (EVENTOS DEL UI) ====================
-
     fun onPrivacyAcceptanceChange(newValue: Boolean) {
         _isPrivacyAccepted.value = newValue
     }
     
-    /**
-     * Actualiza el valor del email cuando el usuario escribe en el campo
-     * Este método es llamado desde el UI (OutlinedTextField)
-     * 
-     * @param newValue El nuevo texto ingresado por el usuario
-     * 
-     * Flujo: UI -> ViewModel -> Actualiza estado -> UI se recomponer
-     */
     fun onEmailChange(newValue: String) { 
-        // Permitimos cualquier carácter válido para email o usuario (sin espacios al inicio/final)
         _email.value = newValue.trim() 
     }
     
-    /**
-     * Actualiza el valor de la contraseña cuando el usuario escribe
-     * 
-     * @param newValue El nuevo texto de contraseña ingresado
-     */
     fun onPasswordChange(newValue: String) { 
         _password.value = newValue 
     }
     
-    /**
-     * Método principal de autenticación - Valida credenciales y realiza login
-     * 
-     * @param onSuccess Callback que devuelve true si es administrador, false si es usuario normal
-     */
     fun login(onSuccess: (Boolean) -> Unit) {
         if (!_isPrivacyAccepted.value) {
             _alertState.value = AlertState(
@@ -184,55 +102,59 @@ class LoginViewModel @Inject constructor(
         
         viewModelScope.launch {
             _isLoading.value = true
-            kotlinx.coroutines.delay(1000)
             
-            val isAdmin = _email.value == "admin" && _password.value == "admin"
-            
-            if (isAdmin) {
-                sessionManager.saveSession(
-                    userId = "admin_001",
-                    name = "Administrador",
-                    email = _email.value,
-                    role = "ADMIN"
-                )
-                onSuccess(true)
-            } else {
-                // Buscar usuario en el repositorio por email o username
-                val user = repository.getUserByEmail(_email.value) 
-                        ?: repository.getUserByUsername(_email.value)
-                
-                if (user != null && user.password == _password.value) {
-                    sessionManager.saveSession(
-                        userId = user.id,
-                        name = "${user.name} ${user.lastName}",
-                        email = user.email,
-                        photoUrl = user.profilePhotoUrl,
-                        role = user.role
-                    )
-                    onSuccess(false)
+            try {
+                // Login por username → buscar email en Firestore primero
+                val emailToUse = if (!_email.value.contains("@")) {
+                    repository.getUserByUsername(_email.value)?.email ?: _email.value
                 } else {
-                    _alertState.value = AlertState(
-                        title = "Credenciales Incorrectas",
-                        message = "El correo/usuario o la contraseña no coinciden con nuestros registros. Inténtalo de nuevo.",
-                        type = AlertType.ERROR,
-                        isVisible = true
-                    )
+                    _email.value
                 }
+
+                // Autenticar con Firebase Authentication
+                val result = firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
+                val firebaseUser = result.user
+
+                if (firebaseUser != null) {
+                    // Obtener datos completos del usuario desde Firestore
+                    val user = repository.getUserById(firebaseUser.uid)
+
+                    if (user != null) {
+                        val isAdmin = user.role == "ADMIN"
+                        sessionManager.saveSession(
+                            userId = user.id,
+                            name = "${user.name} ${user.lastName}",
+                            email = user.email,
+                            photoUrl = user.profilePhotoUrl,
+                            role = user.role
+                        )
+                        onSuccess(isAdmin)
+                    } else {
+                        _alertState.value = AlertState(
+                            title = "Usuario no encontrado",
+                            message = "Tu cuenta existe pero no tiene perfil. Contacta soporte.",
+                            type = AlertType.ERROR,
+                            isVisible = true
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _alertState.value = AlertState(
+                    title = "Credenciales Incorrectas",
+                    message = "El correo/usuario o la contraseña no coinciden. Inténtalo de nuevo.",
+                    type = AlertType.ERROR,
+                    isVisible = true
+                )
             }
             
             _isLoading.value = false
         }
     }
 
-    /**
-     * Valida si el input es un correo electrónico válido o un nombre de usuario (sin espacios)
-     */
     private fun isValidIdentity(identity: String): Boolean {
-        // Si tiene un @, validamos como email
         return if (identity.contains("@")) {
             android.util.Patterns.EMAIL_ADDRESS.matcher(identity).matches()
         } else {
-            // Si no tiene @, validamos como username (mínimo 3 caracteres, sin espacios internos)
             identity.length >= 3 && !identity.contains(" ")
         }
     }
@@ -241,12 +163,6 @@ class LoginViewModel @Inject constructor(
         _alertState.value = _alertState.value.copy(isVisible = false)
     }
 
-    /**
-     * Realiza login con proveedor social (Google, Facebook, LinkedIn)
-     * 
-     * @param provider El nombre del proveedor
-     * @param onSuccess Callback de éxito
-     */
     fun loginWithSocial(context: Context, provider: String, onSuccess: (Boolean) -> Unit) {
         if (!_isPrivacyAccepted.value) {
             _snackbarMessage.value = "Debes aceptar el uso de datos personales para iniciar sesión"
@@ -271,8 +187,6 @@ class LoginViewModel @Inject constructor(
                                 role = "USER"
                             )
                             
-                            // PERSISTIR EN EL REPOSITORIO
-                            // Intentamos separar el nombre en partes
                             val nameParts = googleUser.name.split(" ", limit = 2)
                             val firstName = nameParts.getOrNull(0) ?: googleUser.name
                             val lastName = nameParts.getOrNull(1) ?: ""
@@ -306,7 +220,6 @@ class LoginViewModel @Inject constructor(
                 )
             } else {
                 _snackbarMessage.value = "Conectando con $provider..."
-                // Simular latencia para otros proveedores (Facebook, LinkedIn)
                 kotlinx.coroutines.delay(2000)
                 
                 sessionManager.saveSession(
@@ -316,7 +229,6 @@ class LoginViewModel @Inject constructor(
                     role = "USER"
                 )
                 
-                // También persistir en el repositorio para otros proveedores
                 repository.saveUser(
                     User(
                         id = "social_${System.currentTimeMillis()}",
@@ -342,38 +254,3 @@ class LoginViewModel @Inject constructor(
         _snackbarMessage.value = null 
     }
 }
-
-// ==================== NOTAS ADICIONALES SOBRE BUENAS PRÁCTICAS ====================
-
-/**
- * 1. ENCAPSULAMIENTO:
- *    - Propiedades mutables (_email, _password, etc) son PRIVADAS
- *    - Propiedades públicas (email, password, etc) son de solo lectura
- *    - Solo el ViewModel puede modificar el estado interno
- *
- * 2. REACTIVIDAD:
- *    - Uso de mutableStateOf para estados que causan recomposición
- *    - Uso de StateFlow para eventos únicos (Snackbar)
- *    - El UI observa cambios automáticamente
- *
- * 3. CICLO DE VIDA:
- *    - ViewModel sobrevive a cambios de configuración (rotación, cambio de idioma)
- *    - viewModelScope se cancela automáticamente cuando el ViewModel ya no es necesario
- *
- * 4. SEGURIDAD DE HILOS:
- *    - viewModelScope.launch ejecuta en el hilo principal (Dispatchers.Main por defecto)
- *    - Para operaciones pesadas, se usaría withContext(Dispatchers.IO)
- *
- * 5. SEPARACIÓN DE RESPONSABILIDADES:
- *    - ViewModel: Lógica de negocio, estado, validación
- *    - UI: Solo muestra datos y envía eventos
- *
- * 6. MEJORAS PARA PRODUCCIÓN:
- *    - Inyección de dependencias (repositorio de autenticación)
- *    - Manejo de errores más robusto (try-catch)
- *    - Validación más estricta (expresiones regulares para email)
- *    - Encriptación de credenciales
- *    - Autenticación biométrica
- *    - Manejo de tokens JWT
- *    - Persistencia de sesión
- */

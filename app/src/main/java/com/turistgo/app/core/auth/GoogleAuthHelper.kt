@@ -1,33 +1,29 @@
 package com.turistgo.app.core.auth
 
 import android.content.Context
+import android.util.Base64
+import android.util.Log
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.turistgo.app.R
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.turistgo.app.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.tasks.await
+import org.json.JSONObject
 import javax.inject.Inject
 import javax.inject.Singleton
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import android.util.Log
-import android.util.Base64
-import org.json.JSONObject
 
-/**
- * Helper class to manage Google Sign-In using Credential Manager
- */
 @Singleton
-class GoogleAuthHelper @Inject constructor() {
-
+class GoogleAuthHelper @Inject constructor(
+    private val firebaseAuth: FirebaseAuth
+) {
     suspend fun getGoogleCredential(context: Context): Result<GoogleUserData?> {
         val credentialManager = CredentialManager.create(context)
-        try {
-            val googleClientId = com.turistgo.app.BuildConfig.GOOGLE_WEB_CLIENT_ID
-            
-            // Check if it's still a placeholder
-            if (googleClientId.contains("YOUR_GOOGLE_CLIENT_ID")) {
-                return Result.failure(Exception("Error de configuración: Debes configurar un Web Client ID válido en strings.xml"))
-            }
+        return try {
+            val googleClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
 
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
@@ -39,23 +35,26 @@ class GoogleAuthHelper @Inject constructor() {
                 .addCredentialOption(googleIdOption)
                 .build()
 
-            val result = credentialManager.getCredential(
-                request = request,
-                context = context
-            )
-
+            val result = credentialManager.getCredential(request = request, context = context)
             val credential = result.credential
-            
-            return if (credential is GoogleIdTokenCredential) {
+
+            if (credential is GoogleIdTokenCredential) {
                 val idToken = credential.idToken
+
+                // Autenticar en Firebase con el token de Google
+                val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+                val firebaseResult = firebaseAuth.signInWithCredential(firebaseCredential).await()
+                val firebaseUser = firebaseResult.user
+                    ?: return Result.failure(Exception("Firebase no retornó usuario"))
+
                 val locale = extractLocaleFromIdToken(idToken)
-                
+
                 Result.success(
                     GoogleUserData(
-                        id = credential.id,
-                        email = credential.id,
-                        name = credential.displayName ?: "Google User",
-                        photoUrl = credential.profilePictureUri?.toString(),
+                        id = firebaseUser.uid,
+                        email = firebaseUser.email ?: credential.id,
+                        name = firebaseUser.displayName ?: "Google User",
+                        photoUrl = firebaseUser.photoUrl?.toString(),
                         locale = locale
                     )
                 )
@@ -64,7 +63,7 @@ class GoogleAuthHelper @Inject constructor() {
             }
         } catch (e: Exception) {
             Log.e("GoogleAuthHelper", "Error getting Google credential", e)
-            return Result.failure(e)
+            Result.failure(e)
         }
     }
 

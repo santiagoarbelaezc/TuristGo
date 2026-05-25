@@ -1,118 +1,252 @@
-// Declara el paquete donde se encuentra esta pantalla dentro de la estructura de la app.
 package com.turistgo.app.features.post
 
-// Importaciones de Jetpack Compose para la UI
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-// Importaciones de Google Maps Compose
+import androidx.compose.ui.unit.sp
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import kotlinx.coroutines.launch
 
-// Marca que se usan APIs experimentales de Material 3
 @OptIn(ExperimentalMaterial3Api::class)
-// Declara la función composable principal de la pantalla de selección de ubicación en mapa
 @Composable
 fun MapPickerScreen(
-    initialLat: Double? = null, // Latitud inicial (opcional, puede ser null)
-    initialLng: Double? = null, // Longitud inicial (opcional, puede ser null)
-    onLocationSelected: (Double, Double) -> Unit, // Callback que devuelve las coordenadas seleccionadas (lat, lng)
-    onNavigateBack: () -> Unit // Callback para volver a la pantalla anterior
+    initialLat: Double? = null,
+    initialLng: Double? = null,
+    onLocationSelected: (Double, Double) -> Unit,
+    onNavigateBack: () -> Unit
 ) {
-    // Ubicación por defecto: Bogotá, Colombia (centro de la ciudad)
-    val defaultLocation = LatLng(4.6097, -74.0817)
-    
-    // Determina la ubicación inicial: usa la proporcionada o la de Bogotá por defecto
+    val defaultLocation = LatLng(6.2442, -75.5812) // Medellín, Colombia
     val initialLocation = if (initialLat != null && initialLng != null) {
-        LatLng(initialLat, initialLng) // Usa las coordenadas recibidas
+        LatLng(initialLat, initialLng)
     } else {
-        defaultLocation // Usa Bogotá como fallback
+        defaultLocation
     }
 
-    // Estado de la cámara del mapa (posición, zoom, inclinación, etc.)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(initialLocation, 15f) // Zoom nivel 15 (aproximadamente a nivel de calle)
+        position = CameraPosition.fromLatLngZoom(initialLocation, 14f)
     }
 
-    // Estado que almacena la posición actual del marcador (se actualiza al tocar el mapa)
     var markerPosition by remember { mutableStateOf(initialLocation) }
+    var isMapLoaded by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
-    // Scaffold proporciona la estructura base con top bar y FAB (Floating Action Button)
-    Scaffold(
-        topBar = {
-            // Barra superior con título, botón de retroceso y botón de confirmación
-            TopAppBar(
-                title = { Text("Seleccionar Ubicación") }, // Título de la pantalla
-                navigationIcon = {
-                    // Botón de flecha hacia atrás
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
-                    }
-                },
-                actions = {
-                    // Botón de confirmación en la barra superior (texto)
-                    TextButton(onClick = { 
-                        onLocationSelected(markerPosition.latitude, markerPosition.longitude) // Envía las coordenadas actuales
-                    }) {
-                        Text("Confirmar", color = MaterialTheme.colorScheme.primary) // Texto en color primario
-                    }
-                }
+    // Formatear coordenadas legibles
+    val latText = "%.5f".format(markerPosition.latitude)
+    val lngText = "%.5f".format(markerPosition.longitude)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // ── MAPA ─────────────────────────────────────────────────────────────
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(
+                isMyLocationEnabled = false,
+                mapType = MapType.NORMAL
+            ),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                myLocationButtonEnabled = false,
+                compassEnabled = true
+            ),
+            onMapLoaded = { isMapLoaded = true },
+            onMapClick = { latLng ->
+                markerPosition = latLng
+            }
+        ) {
+            Marker(
+                state = MarkerState(position = markerPosition),
+                title = "Ubicación seleccionada",
+                draggable = true,
+                onClick = { false }
             )
-        },
-        floatingActionButton = {
-            // Botón flotante de acción (FAB) como alternativa de confirmación
-            FloatingActionButton(
-                onClick = { 
-                    onLocationSelected(markerPosition.latitude, markerPosition.longitude) // Envía las coordenadas actuales
-                },
-                containerColor = MaterialTheme.colorScheme.primary // Color de fondo primario
+        }
+
+        // ── LOADING OVERLAY ───────────────────────────────────────────────────
+        AnimatedVisibility(
+            visible = !isMapLoaded,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F5F5)),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Confirmar", tint = Color.White) // Ícono de check blanco
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = Color(0xFFC62828))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Cargando mapa...",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
-    ) { padding -> // padding interno para evitar la top bar y FAB
-        // Contenedor Box que ocupa todo el espacio disponible
-        Box(modifier = Modifier.padding(padding)) {
-            // Componente de Google Maps
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(), // Ocupa toda la pantalla
-                cameraPositionState = cameraPositionState, // Estado de la cámara para controlar zoom y posición
-                onMapClick = { latLng -> // Callback cuando el usuario toca el mapa
-                    markerPosition = latLng // Actualiza la posición del marcador a donde se tocó
-                }
-            ) {
-                // Marcador que muestra la ubicación seleccionada
-                Marker(
-                    state = MarkerState(position = markerPosition), // Posición actual del marcador
-                    title = "Ubicación seleccionada", // Título que aparece al tocar el marcador
-                    draggable = true // Permite arrastrar el marcador a otra posición
-                )
-            }
 
-            // Overlay (superposición) que muestra una pista/hint al usuario
+        // ── TOP BAR flotante ─────────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+        ) {
             Surface(
                 modifier = Modifier
-                    .align(Alignment.TopCenter) // Alineado en la parte superior centrada
-                    .padding(16.dp), // Padding de 16dp alrededor
-                color = Color.Black.copy(alpha = 0.6f), // Fondo negro con 60% de opacidad (semitransparente)
-                shape = MaterialTheme.shapes.medium // Forma redondeada estándar de Material 3
+                    .fillMaxWidth()
+                    .shadow(8.dp, RoundedCornerShape(20.dp)),
+                shape = RoundedCornerShape(20.dp),
+                color = Color.White
             ) {
-                // Texto de ayuda
-                Text(
-                    text = "Toca el mapa para mover el marcador", // Instrucción para el usuario
-                    color = Color.White, // Texto blanco para contraste
-                    modifier = Modifier.padding(8.dp), // Padding interno de 8dp
-                    style = MaterialTheme.typography.bodySmall // Estilo de texto pequeño
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Botón atrás
+                    IconButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFF5F5F5))
+                    ) {
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = "Regresar",
+                            tint = Color(0xFF1A1A1A)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    // Título y coords
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Seleccionar ubicación",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF1A1A1A)
+                        )
+                        Text(
+                            "📍 $latText, $lngText",
+                            fontSize = 11.sp,
+                            color = Color.Gray
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Botón confirmar
+                    Button(
+                        onClick = {
+                            onLocationSelected(
+                                markerPosition.latitude,
+                                markerPosition.longitude
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFC62828)
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            "Confirmar",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
             }
+        }
+
+        // ── HINT: Instrucción ─────────────────────────────────────────────────
+        AnimatedVisibility(
+            visible = isMapLoaded,
+            enter = fadeIn(),
+            modifier = Modifier
+                .align(Alignment.Center)
+                .padding(bottom = 80.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(50.dp),
+                color = Color.Black.copy(alpha = 0.65f),
+                modifier = Modifier.padding(top = 180.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        "Toca el mapa para mover el marcador",
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+
+        // ── FAB: Centrar en ubicación seleccionada ─────────────────────────
+        FloatingActionButton(
+            onClick = {
+                coroutineScope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(markerPosition, 16f)
+                    )
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 32.dp),
+            containerColor = Color.White,
+            contentColor = Color(0xFFC62828),
+            shape = CircleShape
+        ) {
+            Icon(
+                Icons.Default.MyLocation,
+                contentDescription = "Centrar marcador",
+                modifier = Modifier.size(22.dp)
+            )
         }
     }
 }

@@ -279,13 +279,17 @@ fun AnalyticsCard(title: String, content: @Composable () -> Unit) {
 @Composable
 fun LineChart(data: List<Float>, modifier: Modifier = Modifier) {
     Canvas(modifier = modifier) {
+        if (data.isEmpty()) return@Canvas
+        
         val width = size.width
         val height = size.height
-        val spacing = width / (data.size - 1)
+        val spacing = width / if (data.size > 1) (data.size - 1) else 1
         
         val points = data.mapIndexed { index, value ->
             Offset(index * spacing, height * (1 - value))
         }
+        
+        if (points.isEmpty()) return@Canvas
         
         val path = Path().apply {
             moveTo(points[0].x, points[0].y)
@@ -300,11 +304,13 @@ fun LineChart(data: List<Float>, modifier: Modifier = Modifier) {
             }
         }
         
-        drawPath(
-            path = path,
-            color = Color(0xFF5C6BC0),
-            style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
-        )
+        if (points.size > 1) {
+            drawPath(
+                path = path,
+                color = Color(0xFF5C6BC0),
+                style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+            )
+        }
         
         // Draw points
         points.forEach { point ->

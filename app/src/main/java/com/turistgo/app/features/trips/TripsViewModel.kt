@@ -244,33 +244,24 @@ El usuario indicó un presupuesto de ${extractedBudget} COP, que es menor al mí
                 val aiContent = response.choices.firstOrNull()?.message?.content
                     ?: "Lo siento, no pude generar una respuesta en este momento."
 
-                // 10. Extraer IDs sugeridos y limpiar la respuesta
-                val suggestedIds = extractIds(aiContent)
+                // 10. Limpiar la respuesta de tags internos
                 val cleanContent = aiContent
                     .replace(Regex("SUGGESTED_IDS:\\s*\\[.*?\\]", RegexOption.DOT_MATCHES_ALL), "")
                     .trim()
 
-                // 11. Cruzar IDs con posts aprobados
-                //     Si la IA no devolvió SUGGESTED_IDS, hacemos fallback: 
-                //     buscamos qué posts del catálogo menciona la IA por nombre.
-                var suggestedPosts = allApprovedPosts.filter { it.id in suggestedIds }
-
-                if (suggestedPosts.isEmpty()) {
-                    // Fallback: detectar posts mencionados por nombre en la respuesta
-                    val responseNormalized = cleanContent.lowercase()
-                    suggestedPosts = allApprovedPosts.filter { post ->
-                        val postNameNormalized = post.name.lowercase()
-                        // Coincidencia si al menos 3 palabras del nombre del post aparecen en la respuesta
-                        val words = postNameNormalized.split(" ").filter { it.length > 3 }
-                        words.isNotEmpty() && words.any { word -> responseNormalized.contains(word) }
-                    }.take(4) // Máximo 4 tarjetas por fallback
-                }
+                // 11. SIEMPRE mostrar tarjetas - sistema de 4 niveles de prioridad:
+                val suggestedPosts = extractRelevantPosts(
+                    aiContent = aiContent,
+                    cleanContent = cleanContent,
+                    userMessage = userMessage,
+                    allPosts = allApprovedPosts
+                )
 
                 val aiMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),
                     content = cleanContent,
                     isFromUser = false,
-                    isPlanResponse = suggestedPosts.isNotEmpty(),
+                    isPlanResponse = true, // SIEMPRE mostrar la sección de destinos
                     suggestedDestinations = suggestedPosts
                 )
                 _messages.add(aiMessage)
@@ -302,5 +293,58 @@ El usuario indicó un presupuesto de ${extractedBudget} COP, que es menor al mí
         } else {
             emptyList()
         }
+    }
+
+    /**
+     * Sistema de 4 niveles para SIEMPRE retornar tarjetas de destino relevantes:
+     * 1. IDs exactos indicados por la IA en SUGGESTED_IDS
+     * 2. Posts cuyos nombres aparecen en la respuesta de la IA
+     * 3. Posts que coinciden con palabras clave del mensaje del usuario (ciudad, categoría)
+     * 4. Top 4 posts más relevantes por defecto (si ningún match)
+     */
+    private fun extractRelevantPosts(
+        aiContent: String,
+        cleanContent: String,
+        userMessage: String,
+        allPosts: List<Post>
+    ): List<Post> {
+        val maxCards = 4
+
+        // NIVEL 1: IDs exactos del tag SUGGESTED_IDS
+        val suggestedIds = extractIds(aiContent)
+        if (suggestedIds.isNotEmpty()) {
+            val byId = allPosts.filter { it.id in suggestedIds }
+            if (byId.isNotEmpty()) return byId.take(maxCards)
+        }
+
+        // NIVEL 2: Nombres de posts mencionados en la respuesta de la IA
+        val responseNormalized = cleanContent.lowercase()
+        val byName = allPosts.filter { post ->
+            val words = post.name.lowercase().split(" ").filter { it.length > 3 }
+            words.isNotEmpty() && words.count { word -> responseNormalized.contains(word) } >= 1
+        }
+        if (byName.isNotEmpty()) return byName.take(maxCards)
+
+        // NIVEL 3: Palabras clave del mensaje del usuario vs location/categorías/descripción
+        val userNormalized = userMessage.lowercase()
+        val byKeyword = allPosts.filter { post ->
+            val searchTarget = buildString {
+                append(post.location.lowercase())
+                append(" ")
+                append(post.city?.lowercase() ?: "")
+                append(" ")
+                append(post.department?.lowercase() ?: "")
+                append(" ")
+                append(post.categories.joinToString(" ").lowercase())
+                append(" ")
+                append(post.description.lowercase().take(100))
+            }
+            val userWords = userNormalized.split(" ").filter { it.length > 3 }
+            userWords.any { word -> searchTarget.contains(word) }
+        }
+        if (byKeyword.isNotEmpty()) return byKeyword.take(maxCards)
+
+        // NIVEL 4: Fallback — top 4 posts (los primeros del catálogo aprobado)
+        return allPosts.take(maxCards)
     }
 }

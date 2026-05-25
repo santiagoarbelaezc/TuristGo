@@ -290,8 +290,18 @@ fun AiInsightsPanel(analysis: String?, isLoading: Boolean) {
 @Composable
 fun MetadataGrid(post: com.turistgo.app.domain.model.Post?) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        MetadataItem(Icons.Default.LocationOn, "Ubicación", "${post?.latitude}, ${post?.longitude}")
-        MetadataItem(Icons.Default.Map, "Ciudad/Dpto", "${post?.city ?: "N/A"}")
+        MetadataItem(Icons.Default.LocationOn, "Ubicación", "${post?.latitude ?: 0.0}, ${post?.longitude ?: 0.0}")
+        
+        val cityDpto = if (!post?.city.isNullOrBlank() && !post?.department.isNullOrBlank()) {
+            "${post.city}, ${post.department}"
+        } else if (!post?.city.isNullOrBlank()) {
+            post.city!!
+        } else if (!post?.department.isNullOrBlank()) {
+            post.department!!
+        } else {
+            "N/A"
+        }
+        MetadataItem(Icons.Default.Map, "Ciudad/Dpto", cityDpto)
         MetadataItem(Icons.Default.DateRange, "Fecha", "Reciente")
     }
 }

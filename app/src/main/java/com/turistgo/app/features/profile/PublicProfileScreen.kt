@@ -149,9 +149,10 @@ fun PublicProfileScreen(
                 val isPending by viewModel.isPendingRequest.collectAsState() // ¿He recibido una solicitud de él?
                 val isSent by viewModel.isSentRequest.collectAsState() // ¿Le he enviado una solicitud?
                 val isMe by viewModel.isMe.collectAsState() // ¿Es el propio usuario?
+                val isCurrentModerator by viewModel.isCurrentModerator.collectAsState()
 
-                // Botón de interacción (solo si no es el propio usuario)
-                if (!isMe) {
+                // Botón de interacción (solo si no es el propio usuario y no es moderador)
+                if (!isMe && !isCurrentModerator) {
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     if (isPending) {

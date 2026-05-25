@@ -46,6 +46,10 @@ class PublicProfileViewModel @Inject constructor(
         current != null && target != null && current.id == target.id
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isCurrentModerator: StateFlow<Boolean> = userSession.map { session ->
+        session.role == "ADMIN"
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val isPendingRequest: StateFlow<Boolean> = combine(currentUser, userProfile) { current, target ->
         current != null && target != null && current.pendingFollowRequestIds.contains(target.id)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

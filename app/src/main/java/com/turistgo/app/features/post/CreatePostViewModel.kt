@@ -159,6 +159,45 @@ class CreatePostViewModel @Inject constructor(
     fun onCoordinatesSelected(lat: Double, lng: Double) {
         _latitude.value = lat
         _longitude.value = lng
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                @Suppress("DEPRECATION")
+                val geocoder = Geocoder(appContext, java.util.Locale.getDefault())
+                val results = geocoder.getFromLocation(lat, lng, 1)
+                val address = results?.firstOrNull()
+                if (address != null) {
+                    val adminArea = address.adminArea
+                    val locality = address.locality
+                    val subAdminArea = address.subAdminArea
+                    
+                    // Match department
+                    val matchedDept = ColombiaGeography.getDepartments().firstOrNull { dept ->
+                        adminArea?.contains(dept, ignoreCase = true) == true || dept.contains(adminArea ?: "", ignoreCase = true)
+                    }
+                    
+                    if (matchedDept != null) {
+                        withContext(Dispatchers.Main) {
+                            _department.value = matchedDept
+                            _availableCities.value = ColombiaGeography.getCities(matchedDept)
+                            
+                            // Match city
+                            val matchedCity = ColombiaGeography.getCities(matchedDept).firstOrNull { city ->
+                                locality?.contains(city, ignoreCase = true) == true || 
+                                city.contains(locality ?: "", ignoreCase = true) ||
+                                subAdminArea?.contains(city, ignoreCase = true) == true ||
+                                city.contains(subAdminArea ?: "", ignoreCase = true)
+                            }
+                            if (matchedCity != null) {
+                                _city.value = matchedCity
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun acceptAiSuggestion() {

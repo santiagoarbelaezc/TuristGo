@@ -1,13 +1,13 @@
 package com.turistgo.app.di
 
 import com.turistgo.app.data.repository.FirestoreRepository
+import com.turistgo.app.data.repository.FirestoreChatRepository
 import com.turistgo.app.domain.repository.AppDataRepository
+import com.turistgo.app.domain.repository.ChatRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import com.turistgo.app.data.repository.InMemoryChatRepository
-import com.turistgo.app.domain.repository.ChatRepository
 import javax.inject.Singleton
 
 @Module
@@ -23,6 +23,6 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindChatRepository(
-        inMemoryChatRepository: InMemoryChatRepository
+        firestoreChatRepository: FirestoreChatRepository
     ): ChatRepository
 }

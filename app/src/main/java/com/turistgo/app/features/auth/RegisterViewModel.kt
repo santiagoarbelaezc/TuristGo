@@ -18,11 +18,14 @@ import com.turistgo.app.core.models.AlertState
 import com.turistgo.app.core.models.AlertType
 import java.util.UUID
 import javax.inject.Inject
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val repository: AppDataRepository,
-    private val sessionManager: UserSessionManager
+    private val sessionManager: UserSessionManager,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     private val _name = mutableStateOf("")
     val name: State<String> = _name
@@ -51,10 +54,7 @@ class RegisterViewModel @Inject constructor(
     private val _phone = mutableStateOf("")
     val phone: State<String> = _phone
     
-    // Lista restringida de países
     val countries = listOf("Colombia", "Argentina", "Brasil")
-    
-    // Datos de geografía para Colombia se obtienen de ColombiaGeography utility
  
     private val argentinaCities = listOf("Buenos Aires", "Córdoba", "Rosario", "Mendoza", "La Plata", "Mar del Plata", "San Miguel de Tucumán", "Salta", "Santa Fe", "Corrientes")
     private val brasilCities = listOf("São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza", "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Porto Alegre")
@@ -164,7 +164,6 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        // Validación de Nombre y Apellido (solo letras y longitud mínima)
         val nameRegex = "^[a-zA-ZáéíóúÁÉÍÓÚñÑ ]+$".toRegex()
         if (!nameRegex.matches(_name.value) || _name.value.length < 2) {
             _alertState.value = AlertState(
@@ -186,7 +185,6 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        // Validación de Edad (numérica y rango razonable)
         val ageInt = _age.value.toIntOrNull()
         if (ageInt == null || ageInt < 18 || ageInt > 120) {
             _alertState.value = AlertState(
@@ -198,7 +196,6 @@ class RegisterViewModel @Inject constructor(
             return
         }
 
-        // Validación de Teléfono (10 dígitos numéricos)
         val phoneRegex = "^[0-9]{10}$".toRegex()
         if (!phoneRegex.matches(_phone.value)) {
             _alertState.value = AlertState(
@@ -242,31 +239,60 @@ class RegisterViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isLoading.value = true
-            
-            val userId = UUID.randomUUID().toString()
-            val generatedUsername = _email.value.substringBefore("@").lowercase().filter { it.isLetterOrDigit() }
-            
-            val newUser = User(
-                id = userId,
-                name = _name.value,
-                lastName = _lastName.value,
-                age = _age.value,
-                country = _country.value,
-                department = _department.value.takeIf { it.isNotEmpty() },
-                city = _city.value,
-                address = _address.value.takeIf { it.isNotEmpty() },
-                phone = "${_phoneExtension.value} ${_phone.value}",
-                email = _email.value,
-                password = _password.value,
-                username = generatedUsername
-            )
-            
-            repository.saveUser(newUser)
-            sessionManager.saveSession(userId, newUser.name, newUser.email, role = "USER")
 
-            kotlinx.coroutines.delay(3000)
-            _snackbarMessage.value = "¡Bienvenido ${_name.value}! Registro casi completo"
-            onSuccess(userId)
+            try {
+                // Crear usuario en Firebase Authentication
+                val result = firebaseAuth.createUserWithEmailAndPassword(
+                    _email.value,
+                    _password.value
+                ).await()
+
+                val firebaseUser = result.user
+                    ?: throw Exception("Firebase no retornó usuario")
+
+                val uid = firebaseUser.uid
+                val generatedUsername = _email.value
+                    .substringBefore("@")
+                    .lowercase()
+                    .filter { it.isLetterOrDigit() }
+
+                val newUser = User(
+                    id = uid,  // usar el UID de Firebase
+                    name = _name.value,
+                    lastName = _lastName.value,
+                    age = _age.value,
+                    country = _country.value,
+                    department = _department.value.takeIf { it.isNotEmpty() },
+                    city = _city.value,
+                    address = _address.value.takeIf { it.isNotEmpty() },
+                    phone = "${_phoneExtension.value} ${_phone.value}",
+                    email = _email.value,
+                    password = null,  // nunca guardar contraseña en Firestore
+                    username = generatedUsername
+                )
+
+                // Guardar perfil en Firestore
+                repository.saveUser(newUser)
+                sessionManager.saveSession(uid, newUser.name, newUser.email, role = "USER")
+
+                _snackbarMessage.value = "¡Bienvenido ${_name.value}! Registro completado"
+                onSuccess(uid)
+
+            } catch (e: Exception) {
+                val errorMessage = when {
+                    e.message?.contains("email address is already in use") == true ->
+                        "Este correo ya está registrado. Intenta iniciar sesión."
+                    e.message?.contains("badly formatted") == true ->
+                        "El formato del correo no es válido."
+                    else -> "Error al registrar: ${e.message}"
+                }
+                _alertState.value = AlertState(
+                    title = "Error de Registro",
+                    message = errorMessage,
+                    type = AlertType.ERROR,
+                    isVisible = true
+                )
+            }
 
             _isLoading.value = false
         }
@@ -281,7 +307,6 @@ class RegisterViewModel @Inject constructor(
             val userName = "$provider User"
             val userEmail = "${provider.lowercase()}@example.com"
             
-            // Crear usuario social (con campos opcionales nulos por defecto)
             val newUser = User(
                 id = userId,
                 name = userName,
@@ -294,10 +319,8 @@ class RegisterViewModel @Inject constructor(
             )
             repository.saveUser(newUser)
             
-            // Guardar sesión ficticia
             sessionManager.saveSession(userId, userName, userEmail, role = "USER")
             
-            // Simular latencia
             kotlinx.coroutines.delay(2000)
             
             _snackbarMessage.value = "¡Bienvenido via $provider!"
@@ -313,4 +336,3 @@ class RegisterViewModel @Inject constructor(
         _alertState.value = _alertState.value.copy(isVisible = false)
     }
 }
-

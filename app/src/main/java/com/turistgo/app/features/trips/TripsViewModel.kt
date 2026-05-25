@@ -250,8 +250,21 @@ El usuario indicó un presupuesto de ${extractedBudget} COP, que es menor al mí
                     .replace(Regex("SUGGESTED_IDS:\\s*\\[.*?\\]", RegexOption.DOT_MATCHES_ALL), "")
                     .trim()
 
-                // 11. Cruzar IDs con posts aprobados (evita mostrar posts no aprobados)
-                val suggestedPosts = allApprovedPosts.filter { it.id in suggestedIds }
+                // 11. Cruzar IDs con posts aprobados
+                //     Si la IA no devolvió SUGGESTED_IDS, hacemos fallback: 
+                //     buscamos qué posts del catálogo menciona la IA por nombre.
+                var suggestedPosts = allApprovedPosts.filter { it.id in suggestedIds }
+
+                if (suggestedPosts.isEmpty()) {
+                    // Fallback: detectar posts mencionados por nombre en la respuesta
+                    val responseNormalized = cleanContent.lowercase()
+                    suggestedPosts = allApprovedPosts.filter { post ->
+                        val postNameNormalized = post.name.lowercase()
+                        // Coincidencia si al menos 3 palabras del nombre del post aparecen en la respuesta
+                        val words = postNameNormalized.split(" ").filter { it.length > 3 }
+                        words.isNotEmpty() && words.any { word -> responseNormalized.contains(word) }
+                    }.take(4) // Máximo 4 tarjetas por fallback
+                }
 
                 val aiMessage = ChatMessage(
                     id = UUID.randomUUID().toString(),

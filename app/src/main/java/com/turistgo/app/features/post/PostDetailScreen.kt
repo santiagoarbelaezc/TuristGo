@@ -268,7 +268,7 @@ fun PostDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = description, color = MaterialTheme.colorScheme.onSurfaceVariant, lineHeight = 22.sp)
 
-                    // Mapa de ubicación interactivo
+                    // Mapa de ubicación interactivo con botón de trazado de ruta
                     if (post?.latitude != null && post?.longitude != null) {
                         Spacer(modifier = Modifier.height(24.dp))
                         SectionHeader("Ubicación en el Mapa")
@@ -296,6 +296,51 @@ fun PostDetailScreen(
                                 Marker(
                                     state = MarkerState(position = postLocation),
                                     title = title
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Botón premium para abrir en Google Maps con trazado de ruta
+                        Button(
+                            onClick = {
+                                try {
+                                    val intentUri = android.net.Uri.parse("google.navigation:q=${post!!.latitude},${post!!.longitude}")
+                                    val mapIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, intentUri).apply {
+                                        setPackage("com.google.android.apps.maps")
+                                    }
+                                    context.startActivity(mapIntent)
+                                } catch (e: Exception) {
+                                    // Fallback: Abrir en navegador usando direcciones de Google Maps
+                                    val mapWebUri = android.net.Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${post!!.latitude},${post!!.longitude}")
+                                    val browserIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, mapWebUri)
+                                    context.startActivity(browserIntent)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Trazar ruta",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Cómo llegar (Trazar ruta en Google Maps)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
                                 )
                             }
                         }

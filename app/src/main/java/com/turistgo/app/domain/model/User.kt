@@ -25,5 +25,6 @@ data class User(
     val likedPostIds: List<String> = emptyList(),
     val followingIds: List<String> = emptyList(),
     val followerIds: List<String> = emptyList(),
-    val pendingFollowRequestIds: List<String> = emptyList()
+    val pendingFollowRequestIds: List<String> = emptyList(),
+    val points: Int = 0
 )

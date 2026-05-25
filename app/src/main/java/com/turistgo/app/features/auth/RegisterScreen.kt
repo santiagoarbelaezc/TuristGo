@@ -444,6 +444,29 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
+    // Calcular reglas cumplidas dinámicamente
+    val hasMinLength = password.length >= 8
+    val hasUpperAndLower = password.any { it.isLowerCase() } && password.any { it.isUpperCase() }
+    val hasDigit = password.any { it.isDigit() }
+    val hasSpecial = password.any { "@#$%^&+=!_-*?&()".contains(it) }
+
+    val rulesMet = listOf(hasMinLength, hasUpperAndLower, hasDigit, hasSpecial).count { it }
+    val strengthProgress = rulesMet.toFloat() / 4f
+    val strengthColor = when (rulesMet) {
+        0 -> Color.LightGray
+        1 -> Color(0xFFE53935) // Rojo
+        2 -> Color(0xFFFB8C00) // Naranja
+        3 -> Color(0xFFFDD835) // Amarillo
+        else -> Color(0xFF4CAF50) // Verde
+    }
+    val strengthLabel = when (rulesMet) {
+        0 -> "Muy Débil"
+        1 -> "Débil"
+        2 -> "Media"
+        3 -> "Buena"
+        else -> "Excelente y Segura"
+    }
+
     OutlinedTextField(
         value = password,
         onValueChange = { viewModel.onPasswordChange(it) },
@@ -461,6 +484,44 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         singleLine = true,
         enabled = !isLoading
     )
+
+    // Barra de progreso de fortaleza e indicaciones
+    if (password.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Seguridad: $strengthLabel",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = strengthColor
+                )
+                Text(
+                    text = "${(strengthProgress * 100).toInt()}%",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            LinearProgressIndicator(
+                progress = { strengthProgress },
+                modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                color = strengthColor,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Sugerencias de reglas dinámicas
+            PasswordRuleRow(label = "Al menos 8 caracteres", met = hasMinLength)
+            PasswordRuleRow(label = "Una mayúscula y una minúscula", met = hasUpperAndLower)
+            PasswordRuleRow(label = "Al menos un número", met = hasDigit)
+            PasswordRuleRow(label = "Un carácter especial (ej: @, #, $, %, etc. - No acepta puntos)", met = hasSpecial)
+        }
+    }
 
     Spacer(modifier = Modifier.height(16.dp))
 
@@ -482,6 +543,28 @@ private fun PasswordSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         enabled = !isLoading
     )
 }
+
+@Composable
+private fun PasswordRuleRow(label: String, met: Boolean) {
+    Row(
+        modifier = Modifier.padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = if (met) Icons.Default.Check else Icons.Default.Close,
+            contentDescription = null,
+            tint = if (met) Color(0xFF4CAF50) else MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = if (met) Color(0xFF2E7D32) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+        )
+    }
+}
+
 
 @Composable
 private fun RegisterActions(

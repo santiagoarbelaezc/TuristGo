@@ -142,6 +142,36 @@ fun ModeratorDashboard(
                     }
                 }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Publicaciones Recientemente Aprobadas",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A1A)
+                )
+            }
+
+            val approvedPosts = posts.filter { it.status == PostStatus.APPROVED }
+                .sortedByDescending { it.createdAt }
+
+            if (approvedPosts.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(40.dp), 
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No hay publicaciones aprobadas recientemente", color = Color.Gray)
+                    }
+                }
+            } else {
+                items(approvedPosts) { post ->
+                    ModeratorPostCardRedesigned(post) {
+                        onReviewPost(post.id)
+                    }
+                }
+            }
         }
     }
 }
@@ -259,9 +289,9 @@ fun ModeratorPostCardRedesigned(post: Post, onClick: () -> Unit) {
                 }
             }
             Icon(
-                imageVector = Icons.Default.HourglassEmpty,
+                imageVector = if (post.status == PostStatus.APPROVED) Icons.Default.CheckCircle else Icons.Default.HourglassEmpty,
                 contentDescription = null,
-                tint = Color(0xFFE57373), // Soft red/orange
+                tint = if (post.status == PostStatus.APPROVED) Color(0xFF2E7D32) else Color(0xFFE57373), // Green for approved, Soft red/orange for pending
                 modifier = Modifier.size(24.dp)
             )
         }

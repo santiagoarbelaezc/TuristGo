@@ -19,7 +19,7 @@ class ModeratorViewModel @Inject constructor(
     private val repository: AppDataRepository
 ) : ViewModel() {
 
-    val posts: StateFlow<List<Post>> = repository.getPosts(PostStatus.PENDING)
+    val posts: StateFlow<List<Post>> = repository.getPosts(null)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

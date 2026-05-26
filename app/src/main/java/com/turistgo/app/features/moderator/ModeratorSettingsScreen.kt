@@ -21,6 +21,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.automirrored.filled.Logout
 import coil.compose.AsyncImage
+import com.turistgo.app.core.locale.AppLanguage
+import com.turistgo.app.core.locale.LanguageState
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +34,101 @@ fun ModeratorSettingsScreen(
 ) {
     val scrollState = rememberScrollState()
     val brandLogoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
+
+    val context = LocalContext.current
+    val lang by LanguageState.current
+
+    var showLanguagePicker by remember { mutableStateOf(false) }
+    var showPoliciesDialog by remember { mutableStateOf(false) }
+    var alertsEnabled by remember { mutableStateOf(true) }
+
+    if (showLanguagePicker) {
+        AlertDialog(
+            onDismissRequest = { showLanguagePicker = false },
+            title = { Text("Seleccionar idioma", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    AppLanguage.entries.forEach { language ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = lang == language,
+                                onClick = {
+                                    LanguageState.current.value = language
+                                    showLanguagePicker = false
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(language.displayName, fontSize = 15.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguagePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    if (showPoliciesDialog) {
+        AlertDialog(
+            onDismissRequest = { showPoliciesDialog = false },
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Shield, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Guía de Moderación", fontWeight = FontWeight.Bold) 
+                }
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        "Como moderador de TuristGo, debes asegurar que el contenido compartido cumpla con los estándares de la comunidad:",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.5f))
+                    ModerationRule(
+                        number = "1.",
+                        title = "Contenido Temático",
+                        desc = "Solo se permiten publicaciones relacionadas con turismo, eventos, gastronomía, naturaleza o cultura en Colombia."
+                    )
+                    ModerationRule(
+                        number = "2.",
+                        title = "Respeto y Convivencia",
+                        desc = "Rechaza inmediatamente cualquier post con contenido violento, discriminatorio, ofensivo o de odio."
+                    )
+                    ModerationRule(
+                        number = "3.",
+                        title = "Información Verídica",
+                        desc = "Verifica que la ubicación geográfica y descripción correspondan a un lugar o evento real."
+                    )
+                    ModerationRule(
+                        number = "4.",
+                        title = "Calidad de Imagen",
+                        desc = "Las fotos deben ser nítidas y descriptivas del lugar o evento. Evita imágenes borrosas o inapropiadas."
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showPoliciesDialog = false },
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -109,17 +208,27 @@ fun ModeratorSettingsScreen(
             SettingsItemCard(
                 icon = Icons.Default.Language, 
                 title = "Idioma de la interfaz", 
-                subtitle = "Español"
+                subtitle = lang.displayName,
+                onClick = { showLanguagePicker = true }
             )
             SettingsItemCard(
                 icon = Icons.Default.Notifications, 
                 title = "Alertas de revisión", 
-                subtitle = "Activado"
+                subtitle = if (alertsEnabled) "Activado" else "Desactivado",
+                onClick = {
+                    alertsEnabled = !alertsEnabled
+                    Toast.makeText(
+                        context, 
+                        "Alertas de revisión ${if (alertsEnabled) "activadas" else "desactivadas"}", 
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             )
             SettingsItemCard(
                 icon = Icons.Default.Shield, 
                 title = "Políticas de moderación", 
-                subtitle = "Ver guía"
+                subtitle = "Ver guía",
+                onClick = { showPoliciesDialog = true }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -161,9 +270,14 @@ fun ModeratorSettingsScreen(
 }
 
 @Composable
-fun SettingsItemCard(icon: ImageVector, title: String, subtitle: String) {
+fun SettingsItemCard(
+    icon: ImageVector, 
+    title: String, 
+    subtitle: String,
+    onClick: () -> Unit
+) {
     Surface(
-        onClick = {},
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 6.dp),
@@ -200,6 +314,34 @@ fun SettingsItemCard(icon: ImageVector, title: String, subtitle: String) {
                 null, 
                 Modifier.size(18.dp), 
                 Color.LightGray
+            )
+        }
+    }
+}
+
+@Composable
+fun ModerationRule(number: String, title: String, desc: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = number,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp
+        )
+        Column {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            Text(
+                text = desc,
+                fontSize = 13.sp,
+                color = Color.Gray,
+                lineHeight = 18.sp
             )
         }
     }

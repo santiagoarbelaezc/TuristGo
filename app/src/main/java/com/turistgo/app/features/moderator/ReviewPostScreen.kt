@@ -23,6 +23,7 @@ import coil.compose.AsyncImage
 import com.turistgo.app.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.turistgo.app.core.components.SuccessModal
+import com.turistgo.app.core.components.ConfirmationModal
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -47,15 +48,22 @@ fun ReviewPostScreen(
         viewModel.loadPost(postId)
     }
 
-    var showApprovedModal by remember { mutableStateOf(false) }
+    var showConfirmApproveDialog by remember { mutableStateOf(false) }
 
-    if (showApprovedModal) {
-        SuccessModal(
-            title = "Aprobado con éxito",
-            message = "La publicación ha sido aprobada y el autor ha sido notificado.",
-            onDismiss = {
-                showApprovedModal = false
-                onBack()
+    if (showConfirmApproveDialog) {
+        ConfirmationModal(
+            title = "¿Aprobar publicación?",
+            message = "¿Estás seguro de aprobar la publicación?",
+            confirmText = "Aprobar",
+            cancelText = "Cancelar",
+            onConfirm = {
+                showConfirmApproveDialog = false
+                viewModel.approvePost {
+                    onBack()
+                }
+            },
+            onCancel = {
+                showConfirmApproveDialog = false
             }
         )
     }
@@ -166,7 +174,7 @@ fun ReviewPostScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
-                    onClick = { viewModel.approvePost { showApprovedModal = true } },
+                    onClick = { showConfirmApproveDialog = true },
                     modifier = Modifier.weight(1.1f).height(56.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
                     shape = RoundedCornerShape(16.dp)

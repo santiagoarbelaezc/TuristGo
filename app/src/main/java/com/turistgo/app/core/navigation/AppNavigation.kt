@@ -509,10 +509,16 @@ fun AppNavigation(
                     initialLat = initialLat,
                     initialLng = initialLng,
                     onLocationSelected = { lat, lng ->
-                        navController.previousBackStackEntry?.savedStateHandle?.set("selected_location", "$lat,$lng")
-                        navController.popBackStack()
+                        prevBackStackEntry?.savedStateHandle?.set("selected_location", "$lat,$lng")
+                        prevBackStackEntry?.let { entry ->
+                            navController.popBackStack(entry.destination.id, false)
+                        }
                     },
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = {
+                        prevBackStackEntry?.let { entry ->
+                            navController.popBackStack(entry.destination.id, false)
+                        }
+                    }
                 )
             }
             composable<MainRoutes.Settings> {

@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,26 +93,11 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally, // Centra horizontalmente los elementos
             verticalArrangement = Arrangement.Top // Alinea al inicio verticalmente
         ) {
-            // --- Selector de idioma (esquina superior derecha) ---
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp), // Ocupa todo el ancho, padding superior
-                horizontalArrangement = Arrangement.End // Alinea a la derecha
-            ) {
-                TextButton(onClick = {
-                    // Alterna entre español e inglés
-                    LanguageState.current.value = if (lang == AppLanguage.SPANISH) AppLanguage.ENGLISH else AppLanguage.SPANISH
-                }) {
-                    Text(
-                        text = if (lang == AppLanguage.SPANISH) "EN" else "ES", // Muestra "EN" si está en español, "ES" si está en inglés
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(24.dp))
             
             // --- Logo (con animación de video al hacer clic) ---
             Box(
-                modifier = Modifier.size(120.dp), // Tamaño fijo de 120x120dp
+                modifier = Modifier.size(180.dp), // Tamaño fijo de 180x180dp
                 contentAlignment = Alignment.Center
             ) {
                 var isVideoReady by remember { mutableStateOf(false) } // Estado para saber si el video está listo
@@ -120,7 +107,7 @@ fun HomeScreen(
                     // URI del video almacenado en recursos raw (video_login.mp4)
                     val videoUri = "android.resource://${LocalContext.current.packageName}/${com.turistgo.app.R.raw.video_login}"
                     Surface(
-                        modifier = Modifier.size(120.dp),
+                        modifier = Modifier.size(180.dp),
                         shape = CircleShape, // Forma circular igual que el logo
                         color = MaterialTheme.colorScheme.background,
                         border = androidx.compose.foundation.BorderStroke(
@@ -245,6 +232,33 @@ fun HomeScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Selector de idioma (abajo) ---
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        LanguageState.current.value = if (lang == AppLanguage.SPANISH) AppLanguage.ENGLISH else AppLanguage.SPANISH
+                    }
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Language,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (lang == AppLanguage.SPANISH) "Cambiar idioma a Inglés" else "Change language to English",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // --- Footer (información institucional) ---

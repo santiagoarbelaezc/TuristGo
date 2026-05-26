@@ -60,6 +60,11 @@ fun NotificationsScreen(
         }
     }
 
+    // Marcar todas como leídas al entrar a la pantalla → el badge de la nav desaparece
+    LaunchedEffect(Unit) {
+        viewModel.markAllAsRead()
+    }
+
     // Agrupa las notificaciones por fecha (HOY, AYER, o fecha específica)
     val groupedNotifications = remember(notifications) {
         groupNotificationsByDate(notifications)

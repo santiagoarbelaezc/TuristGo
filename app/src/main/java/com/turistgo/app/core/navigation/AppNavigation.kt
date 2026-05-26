@@ -174,7 +174,8 @@ fun AppNavigation(
                                     
                                     BadgedBox(
                                         badge = {
-                                            if (item.isNotification && unreadCount > 0) {
+                                            // Ocultar badge cuando el usuario ya está en la pantalla de notificaciones
+                                            if (item.isNotification && unreadCount > 0 && !isSelected) {
                                                 Badge {
                                                     Text(unreadCount.toString())
                                                 }

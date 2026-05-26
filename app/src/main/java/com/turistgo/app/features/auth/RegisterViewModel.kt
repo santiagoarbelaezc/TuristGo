@@ -346,6 +346,13 @@ class RegisterViewModel @Inject constructor(
                 val firebaseUser = result.user
                     ?: throw Exception("Firebase no retornó usuario")
 
+                // Enviar correo de confirmación de cuenta
+                try {
+                    firebaseUser.sendEmailVerification().await()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
                 val uid = firebaseUser.uid
                 val generatedUsername = trimmedEmail
                     .substringBefore("@")

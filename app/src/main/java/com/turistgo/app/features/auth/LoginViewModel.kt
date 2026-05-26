@@ -116,29 +116,35 @@ class LoginViewModel @Inject constructor(
                 val firebaseUser = result.user
 
                 if (firebaseUser != null) {
+                    // Recargar usuario para sincronizar estado de verificación
+                    try {
+                        firebaseUser.reload().await()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+
+                    val isVerified = firebaseUser.isEmailVerified
+
                     // Obtener datos completos del usuario desde Firestore
                     val user = repository.getUserById(firebaseUser.uid)
 
                     if (user != null) {
                         val isAdmin = user.role == "ADMIN"
-                        repository.saveActivityLog(
-                            com.turistgo.app.domain.model.ActivityLog(
-                                id = java.util.UUID.randomUUID().toString(),
-                                type = "LOGIN",
+                        
+                        if (!isVerified) {
+                            // Guardar datos temporales para continuar si decide no verificar
+                            _pendingUserSession.value = PendingSession(
                                 userId = user.id,
-                                userName = "${user.name} ${user.lastName}",
-                                details = "Inicio de sesión exitoso con correo electrónico",
-                                timestamp = System.currentTimeMillis()
+                                name = "${user.name} ${user.lastName}",
+                                email = user.email,
+                                photoUrl = user.profilePhotoUrl,
+                                role = user.role,
+                                isAdmin = isAdmin
                             )
-                        )
-                        sessionManager.saveSession(
-                            userId = user.id,
-                            name = "${user.name} ${user.lastName}",
-                            email = user.email,
-                            photoUrl = user.profilePhotoUrl,
-                            role = user.role
-                        )
-                        onSuccess(isAdmin)
+                            _showVerificationDialog.value = true
+                        } else {
+                            completeLogin(user, isAdmin, onSuccess)
+                        }
                     } else {
                         _alertState.value = AlertState(
                             title = "Usuario no encontrado",
@@ -284,4 +290,90 @@ class LoginViewModel @Inject constructor(
     fun clearSnackbarMessage() { 
         _snackbarMessage.value = null 
     }
+
+    private val _showVerificationDialog = mutableStateOf(false)
+    val showVerificationDialog: State<Boolean> = _showVerificationDialog
+
+    private val _pendingUserSession = mutableStateOf<PendingSession?>(null)
+    val pendingUserSession: State<PendingSession?> = _pendingUserSession
+
+    fun dismissVerificationDialog() {
+        _showVerificationDialog.value = false
+        _pendingUserSession.value = null
+    }
+
+    fun continueWithoutVerification(onSuccess: (Boolean) -> Unit) {
+        val pending = _pendingUserSession.value ?: return
+        _showVerificationDialog.value = false
+        _pendingUserSession.value = null
+        
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                sessionManager.saveSession(
+                    userId = pending.userId,
+                    name = pending.name,
+                    email = pending.email,
+                    photoUrl = pending.photoUrl,
+                    role = pending.role
+                )
+                repository.saveActivityLog(
+                    com.turistgo.app.domain.model.ActivityLog(
+                        id = java.util.UUID.randomUUID().toString(),
+                        type = "LOGIN",
+                        userId = pending.userId,
+                        userName = pending.name,
+                        details = "Inicio de sesión sin verificar cuenta",
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+                onSuccess(pending.isAdmin)
+            } catch (e: Exception) {
+                _snackbarMessage.value = "Error al iniciar sesión: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun resendVerificationEmail() {
+        viewModelScope.launch {
+            try {
+                firebaseAuth.currentUser?.sendEmailVerification()?.await()
+                _snackbarMessage.value = "Enlace de verificación enviado a tu Gmail."
+            } catch (e: Exception) {
+                _snackbarMessage.value = "Error al enviar: ${e.localizedMessage ?: "inténtalo más tarde."}"
+            }
+        }
+    }
+
+    private suspend fun completeLogin(user: User, isAdmin: Boolean, onSuccess: (Boolean) -> Unit) {
+        repository.saveActivityLog(
+            com.turistgo.app.domain.model.ActivityLog(
+                id = java.util.UUID.randomUUID().toString(),
+                type = "LOGIN",
+                userId = user.id,
+                userName = "${user.name} ${user.lastName}",
+                details = "Inicio de sesión exitoso con correo electrónico",
+                timestamp = System.currentTimeMillis()
+            )
+        )
+        sessionManager.saveSession(
+            userId = user.id,
+            name = "${user.name} ${user.lastName}",
+            email = user.email,
+            photoUrl = user.profilePhotoUrl,
+            role = user.role
+        )
+        onSuccess(isAdmin)
+    }
 }
+
+data class PendingSession(
+    val userId: String,
+    val name: String,
+    val email: String,
+    val photoUrl: String?,
+    val role: String,
+    val isAdmin: Boolean
+)

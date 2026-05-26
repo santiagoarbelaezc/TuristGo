@@ -36,6 +36,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import androidx.compose.ui.res.stringResource // Para obtener strings desde resources
 import com.turistgo.app.R
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 // Marca que se usan APIs experimentales de Material 3 (como CenterAlignedTopAppBar)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,11 +59,26 @@ fun ProfileScreen(
     val userSession by viewModel.userSession.collectAsState(initial = null)
     val userProfile by viewModel.userProfile.collectAsState(initial = null)
     val stats by viewModel.profileStats.collectAsState()
+    
+    val isEmailVerified by viewModel.isEmailVerified.collectAsState()
+    val verificationMessage by viewModel.verificationMessage.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(verificationMessage) {
+        verificationMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.clearVerificationMessage()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkEmailVerificationStatus()
+    }
 
     // Prioridad para la URL de la foto de perfil: primero la del perfil, luego la de sesión, luego una por defecto
     val profileImageUrl = userProfile?.profilePhotoUrl 
         ?: userSession?.photoUrl 
-        ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
+        ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"5397996.jpg"
 
     // Columna principal que ocupa toda la pantalla
     Column(
@@ -160,7 +177,96 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // --- ESTADO DE VERIFICACIÓN DE EMAIL ---
+                Spacer(modifier = Modifier.height(8.dp))
+                if (isEmailVerified) {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFFE8F5E9), // Light green background
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Verified,
+                                contentDescription = "Verificado",
+                                tint = Color(0xFF2E7D32),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Cuenta Verificada",
+                                color = Color(0xFF2E7D32),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                } else {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning,
+                                    contentDescription = "No Verificado",
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(horizontalAlignment = Alignment.Start) {
+                                    Text(
+                                        text = "Cuenta no verificada",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onErrorContainer
+                                    )
+                                    Text(
+                                        text = "Verifica tu correo para asegurar tu cuenta.",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+                            }
+                            Button(
+                                onClick = { viewModel.sendVerificationEmail() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                    contentColor = Color.White
+                                ),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                modifier = Modifier.height(32.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "Verificar",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Fila de estadísticas: posts, seguidores, seguidos
                 Row(

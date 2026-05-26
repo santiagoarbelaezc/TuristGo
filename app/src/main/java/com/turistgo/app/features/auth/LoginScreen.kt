@@ -116,6 +116,58 @@ fun LoginScreen(
         onDismiss = { viewModel.dismissAlert() }
     )
 
+    // --- MODAL DE ADVERTENCIA DE VERIFICACIÓN DE EMAIL ---
+    val showVerificationDialog by viewModel.showVerificationDialog
+    if (showVerificationDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissVerificationDialog() },
+            title = {
+                Text(
+                    text = "Verifica tu cuenta",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            text = {
+                Text(
+                    text = "Tu cuenta de correo aún no ha sido confirmada. Te enviamos un enlace de verificación a tu Gmail (revisa también tu carpeta de spam).\n\n¿Quieres reenviar el enlace o continuar de todos modos?",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.continueWithoutVerification { isAdmin ->
+                            if (isAdmin) {
+                                onNavigateToDashboard()
+                            } else {
+                                onNavigateToFeed()
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Continuar", color = Color.White)
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { viewModel.resendVerificationEmail() }) {
+                        Text("Reenviar", color = MaterialTheme.colorScheme.primary)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { viewModel.dismissVerificationDialog() }) {
+                        Text("Cancelar", color = Color.Gray)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(20.dp),
+            containerColor = Color.White
+        )
+    }
+
     // URLs de las imágenes (logo principal y logo de carga)
     val imageUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771997914/logo-turist_x5xgsq.png"
     val loadingLogoUrl = "https://res.cloudinary.com/doxdjiyvi/image/upload/v1771977314/turistgo-logo_evi36h.png"

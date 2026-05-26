@@ -10,13 +10,60 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.tasks.await
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val sessionManager: UserSessionManager,
-    private val repository: AppDataRepository
+    private val repository: AppDataRepository,
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
     val userSession = sessionManager.userSession
+
+    private val _isEmailVerified = MutableStateFlow(false)
+    val isEmailVerified: StateFlow<Boolean> = _isEmailVerified.asStateFlow()
+
+    private val _verificationMessage = MutableStateFlow<String?>(null)
+    val verificationMessage: StateFlow<String?> = _verificationMessage.asStateFlow()
+
+    init {
+        checkEmailVerificationStatus()
+    }
+
+    fun checkEmailVerificationStatus() {
+        viewModelScope.launch {
+            try {
+                val firebaseUser = firebaseAuth.currentUser
+                if (firebaseUser != null) {
+                    firebaseUser.reload().await()
+                    _isEmailVerified.value = firebaseUser.isEmailVerified
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun sendVerificationEmail() {
+        viewModelScope.launch {
+            try {
+                val firebaseUser = firebaseAuth.currentUser
+                if (firebaseUser != null) {
+                    firebaseUser.sendEmailVerification().await()
+                    _verificationMessage.value = "Enlace de verificación enviado a tu Gmail."
+                } else {
+                    _verificationMessage.value = "Error: Usuario no autenticado."
+                }
+            } catch (e: Exception) {
+                _verificationMessage.value = "Error al enviar: ${e.localizedMessage ?: "inténtalo más tarde."}"
+            }
+        }
+    }
+
+    fun clearVerificationMessage() {
+        _verificationMessage.value = null
+    }
 
     private val _userId = userSession.map { it.userId }
 

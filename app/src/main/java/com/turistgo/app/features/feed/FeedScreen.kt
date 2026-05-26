@@ -282,6 +282,19 @@ fun FeedScreen(
                         viewModel.markNotificationAsRead(notification.id)
                     }
                 )
+            } else if (notification.type == com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST) {
+                TuristGoDialog(
+                    state = AlertState(
+                        title = "Tienes una nueva solicitud",
+                        message = notification.message,
+                        type = AlertType.INFO,
+                        isVisible = true
+                    ),
+                    onDismiss = {
+                        dismissedNotificationId = notification.id
+                        viewModel.markNotificationAsRead(notification.id)
+                    }
+                )
             }
         }
     }

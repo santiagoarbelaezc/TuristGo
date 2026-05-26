@@ -119,7 +119,9 @@ class FeedViewModel @Inject constructor(
                 list.firstOrNull { 
                     !it.read && 
                     it.id !in dismissedIds &&
-                    (it.type == NotificationType.POST_APPROVED || it.type == NotificationType.POST_REJECTED) 
+                    (it.type == NotificationType.POST_APPROVED || 
+                     it.type == NotificationType.POST_REJECTED || 
+                     it.type == NotificationType.FOLLOW_REQUEST) 
                 }
             }
         } else flowOf(null)

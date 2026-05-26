@@ -111,65 +111,13 @@ class LoginViewModel @Inject constructor(
                     _email.value
                 }
 
-                // Autenticar con Firebase Authentication (con auto-creación para el administrador por defecto si no existe)
-                val result = try {
-                    firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
-                } catch (signInException: Exception) {
-                    if (emailToUse == com.turistgo.app.BuildConfig.ADMIN_EMAIL && _password.value == com.turistgo.app.BuildConfig.ADMIN_PASSWORD) {
-                        try {
-                            val createResult = firebaseAuth.createUserWithEmailAndPassword(emailToUse, _password.value).await()
-                            val uid = createResult.user?.uid
-                            if (uid != null) {
-                                val adminUser = User(
-                                    id = uid,
-                                    name = "Santiago",
-                                    lastName = "Arbelaez",
-                                    age = "25",
-                                    country = "Colombia",
-                                    city = "Armenia",
-                                    department = "Quindío",
-                                    phone = "3054078225",
-                                    email = com.turistgo.app.BuildConfig.ADMIN_EMAIL,
-                                    username = "santiarco",
-                                    password = com.turistgo.app.BuildConfig.ADMIN_PASSWORD,
-                                    role = "ADMIN",
-                                    isVerified = true
-                                )
-                                repository.saveUser(adminUser)
-                            }
-                            createResult
-                        } catch (_: Exception) {
-                            throw signInException
-                        }
-                    } else {
-                        throw signInException
-                    }
-                }
+                // Autenticar con Firebase Authentication
+                val result = firebaseAuth.signInWithEmailAndPassword(emailToUse, _password.value).await()
                 val firebaseUser = result.user
 
                 if (firebaseUser != null) {
-                    // Obtener datos completos del usuario desde Firestore (y auto-crear documento si falta)
-                    var user = repository.getUserById(firebaseUser.uid)
-                    
-                    if (user == null && firebaseUser.email == com.turistgo.app.BuildConfig.ADMIN_EMAIL) {
-                        val adminUser = User(
-                            id = firebaseUser.uid,
-                            name = "Santiago",
-                            lastName = "Arbelaez",
-                            age = "25",
-                            country = "Colombia",
-                            city = "Armenia",
-                            department = "Quindío",
-                            phone = "3054078225",
-                            email = com.turistgo.app.BuildConfig.ADMIN_EMAIL,
-                            username = "santiarco",
-                            password = com.turistgo.app.BuildConfig.ADMIN_PASSWORD,
-                            role = "ADMIN",
-                            isVerified = true
-                        )
-                        repository.saveUser(adminUser)
-                        user = adminUser
-                    }
+                    // Obtener datos completos del usuario desde Firestore
+                    val user = repository.getUserById(firebaseUser.uid)
 
                     if (user != null) {
                         val isAdmin = user.role == "ADMIN"

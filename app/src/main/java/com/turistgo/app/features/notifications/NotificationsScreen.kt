@@ -101,7 +101,7 @@ fun NotificationsScreen(
                     )
                     
                     // Botón "Marcar todas como leídas" (solo visible si hay notificaciones no leídas)
-                    if (notifications.any { !it.isRead }) {
+                    if (notifications.any { !it.read }) {
                         Surface(
                             onClick = { viewModel.markAllAsRead() }, // Marca todas como leídas
                             shape = CircleShape,
@@ -180,7 +180,7 @@ fun NotificationCard(
     }
 
     // Indica si la notificación no ha sido leída
-    val isUnread = !notification.isRead
+    val isUnread = !notification.read
 
     // Tarjeta con sombra, bordes redondeados y efecto de gradiente si no está leída
     Box(
@@ -253,7 +253,7 @@ fun NotificationCard(
                 )
                 
                 // --- Botones de acción para solicitudes de seguimiento (solo si no leída) ---
-                if (notification.type == NotificationType.FOLLOW_REQUEST && !notification.isRead) {
+                if (notification.type == NotificationType.FOLLOW_REQUEST && !notification.read) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),

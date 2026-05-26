@@ -117,7 +117,7 @@ class FeedViewModel @Inject constructor(
         if (userId != null) {
             repository.getNotifications(userId).map { list ->
                 list.firstOrNull { 
-                    !it.isRead && 
+                    !it.read && 
                     it.id !in dismissedIds &&
                     (it.type == NotificationType.POST_APPROVED || it.type == NotificationType.POST_REJECTED) 
                 }

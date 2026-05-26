@@ -6,7 +6,7 @@ data class Notification(
     val title: String = "",
     val message: String = "",
     val type: NotificationType = NotificationType.SYSTEM,
-    val isRead: Boolean = false,
+    val read: Boolean = false,
     val timestamp: Long = System.currentTimeMillis(),
     val postId: String? = null,
     val senderId: String? = null,

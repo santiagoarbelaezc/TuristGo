@@ -587,7 +587,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
 
     override suspend fun markNotificationAsRead(notificationId: String) {
         notifications.value = notifications.value.map {
-            if (it.id == notificationId) it.copy(isRead = true) else it
+            if (it.id == notificationId) it.copy(read = true) else it
         }
     }
 

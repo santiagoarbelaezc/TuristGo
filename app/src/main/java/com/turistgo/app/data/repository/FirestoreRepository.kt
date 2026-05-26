@@ -293,21 +293,14 @@ class FirestoreRepository @Inject constructor(
     override suspend fun markNotificationAsRead(notificationId: String) {
         try {
             val docRef = notificationsCol.document(notificationId)
-            val snap = docRef.get().await()
-            val notification = snap.toObject(Notification::class.java)
-            if (notification != null) {
-                docRef.set(notification.copy(isRead = true)).await()
-            } else {
-                docRef.update("isRead", true).await()
-                docRef.update("read", true).await()
-            }
+            docRef.update("read", true).await()
         } catch (e: Exception) {
             e.printStackTrace()
             try {
-                notificationsCol.document(notificationId).update("isRead", true).await()
+                notificationsCol.document(notificationId).update("read", true).await()
             } catch (_: Exception) {}
             try {
-                notificationsCol.document(notificationId).update("read", true).await()
+                notificationsCol.document(notificationId).update("isRead", true).await()
             } catch (_: Exception) {}
         }
     }

@@ -27,7 +27,7 @@ class NotificationsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     
     val unreadCount: StateFlow<Int> = notifications
-        .map { list -> list.count { !it.isRead } }
+        .map { list -> list.count { !it.read } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private val _navigationEvent = MutableSharedFlow<NotificationNavigationEvent>()
@@ -82,7 +82,7 @@ class NotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             val current = notifications.value
             current.forEach { 
-                if (!it.isRead) repository.markNotificationAsRead(it.id)
+                if (!it.read) repository.markNotificationAsRead(it.id)
             }
         }
     }

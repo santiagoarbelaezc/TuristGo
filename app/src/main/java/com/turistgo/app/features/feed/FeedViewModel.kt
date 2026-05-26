@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class FeedFilter {
+    EXPLORE, FOLLOWING
+}
+
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val sessionManager: UserSessionManager,
@@ -28,6 +32,9 @@ class FeedViewModel @Inject constructor(
     
     private val _searchCategory = MutableStateFlow("All")
     val searchCategory: StateFlow<String> = _searchCategory.asStateFlow()
+    
+    private val _feedFilter = MutableStateFlow(FeedFilter.EXPLORE)
+    val feedFilter: StateFlow<FeedFilter> = _feedFilter.asStateFlow()
     
     // Original Posts
     private val allPosts = repository.getPosts(PostStatus.APPROVED)
@@ -59,10 +66,18 @@ class FeedViewModel @Inject constructor(
     val filteredPosts: StateFlow<List<Post>> = combine(
         allPosts,
         _searchQuery,
-        _searchCategory
-    ) { posts, query, category ->
+        _searchCategory,
+        _feedFilter,
+        currentUser
+    ) { posts, query, category, filter, user ->
         var list = posts
         
+        // Filter by feed filter (Explore vs Following)
+        if (filter == FeedFilter.FOLLOWING) {
+            val following = user?.followingIds ?: emptyList()
+            list = list.filter { it.authorId in following }
+        }
+
         // Filter by category
         val isAllCategory = category == "All" || category == "Todo" || category == "Todos"
         if (!isAllCategory) {
@@ -88,6 +103,10 @@ class FeedViewModel @Inject constructor(
 
     fun updateSearchCategory(category: String) {
         _searchCategory.value = category
+    }
+
+    fun updateFeedFilter(filter: FeedFilter) {
+        _feedFilter.value = filter
     }
 
     fun toggleSave(postId: String) {

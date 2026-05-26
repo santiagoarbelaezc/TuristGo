@@ -29,7 +29,7 @@
     <string name="my_profile">Mi Perfil</string>
     <string name="settings">Configuración</string>
     <string name="edit_profile">Editar Datos Personales</string>
-    <string name="favorites">Favoritos</string>
+    <string name="favorites">Guardados</string>
     <string name="detailed_stats">Estadísticas Detalladas</string>
     <string name="my_badges">Mis Insignias</string>
     <string name="logout">Cerrar Sesión</string>
@@ -40,7 +40,7 @@
     <string name="stat_posts">Posts</string>
     <string name="stat_followers">Seguidores</string>
     <string name="stat_following">Seguidos</string>
-    <string name="stat_favorites">Favoritos</string>
+    <string name="stat_favorites">Guardados</string>
     <string name="stat_likes">Me gusta</string>
     <string name="tab_likes">Me gusta</string>
     <string name="points_to_next">Faltan 250 pts para Nivel 3: Aventurero</string>

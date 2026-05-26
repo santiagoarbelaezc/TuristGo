@@ -53,6 +53,7 @@ fun PostDetailScreen(
     val comments by viewModel.comments.collectAsState()
     val moderationAlert by viewModel.moderationAlert.collectAsState()
     val pointsEarned by viewModel.pointsEarned.collectAsState()
+    val isSubmittingComment by viewModel.isSubmittingComment.collectAsState()
 
     if (pointsEarned != null) {
         com.turistgo.app.core.components.PointsEarnedModal(
@@ -91,6 +92,16 @@ fun PostDetailScreen(
     var isImportant by remember { mutableStateOf(false) }
     var votesCount by remember { mutableIntStateOf(42) }
     var commentText by remember { mutableStateOf("") }
+    
+    val sharePost = {
+        post?.let { p ->
+            val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_TEXT, "¡Mira este lugar en TuristGo! https://turistgo.app/post/${p.id}")
+            }
+            context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir destino"))
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -106,7 +117,7 @@ fun PostDetailScreen(
                 }
             },
             actions = {
-                IconButton(onClick = { /* Share */ }) {
+                IconButton(onClick = { sharePost() }) {
                     Icon(Icons.Default.Share, contentDescription = "Compartir")
                 }
                 IconButton(onClick = { /* Save */ }) {
@@ -214,7 +225,7 @@ fun PostDetailScreen(
                         }
                         
                         IconButton(
-                            onClick = { /* Share */ },
+                            onClick = { sharePost() },
                             modifier = Modifier
                                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
                                 .size(40.dp)
@@ -378,22 +389,39 @@ fun PostDetailScreen(
                     }
                     OutlinedTextField(
                         value = commentText,
-                        onValueChange = { commentText = it },
+                        onValueChange = { if (!isSubmittingComment) commentText = it },
                         modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(stringResource(R.string.write_experience)) },
+                        enabled = !isSubmittingComment,
                         leadingIcon = {
-                            IconButton(onClick = { 
-                                photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) 
-                            }) {
+                            IconButton(
+                                onClick = { 
+                                    photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) 
+                                },
+                                enabled = !isSubmittingComment
+                            ) {
                                 Icon(Icons.Default.Image, "Adjuntar foto", tint = MaterialTheme.colorScheme.primary)
                             }
                         },
                         trailingIcon = {
-                            if (commentText.isNotEmpty() || selectedImageUri != null) {
+                            if (isSubmittingComment) {
+                                // Indicador de carga mientras la IA valida
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp).padding(end = 4.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            } else if (commentText.isNotEmpty() || selectedImageUri != null) {
                                 IconButton(onClick = { 
-                                    viewModel.addComment(context, commentText, selectedImageUri?.toString())
-                                    commentText = "" 
-                                    selectedImageUri = null
+                                    viewModel.addComment(
+                                        context,
+                                        commentText,
+                                        selectedImageUri?.toString(),
+                                        onSuccess = {
+                                            commentText = ""
+                                            selectedImageUri = null
+                                        }
+                                    )
                                 }) {
                                     Icon(Icons.Default.Send, null, tint = MaterialTheme.colorScheme.primary)
                                 }
@@ -415,7 +443,7 @@ fun PostDetailScreen(
                              CommentItem(
                                 author = comment.authorName, 
                                 content = comment.content, 
-                                time = "Justo ahora",
+                                time = formatCommentTime(comment.timestamp),
                                 authorPhoto = comment.authorPhotoUrl,
                                 imageUrl = comment.imageUrl,
                                 onProfileClick = { onNavigateToUserProfile(comment.authorId) }
@@ -559,6 +587,22 @@ fun RelatedPostCard(destination: Destination) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.BottomStart).padding(12.dp)
             )
+        }
+    }
+}
+
+/** Convierte un timestamp en texto relativo legible en español. */
+fun formatCommentTime(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    return when {
+        diff < 60_000L              -> "Justo ahora"
+        diff < 3_600_000L           -> "${diff / 60_000}m"
+        diff < 86_400_000L          -> "${diff / 3_600_000}h"
+        diff < 7 * 86_400_000L      -> "${diff / 86_400_000}d"
+        else -> {
+            val sdf = java.text.SimpleDateFormat("dd MMM", java.util.Locale("es", "CO"))
+            sdf.format(java.util.Date(timestamp))
         }
     }
 }

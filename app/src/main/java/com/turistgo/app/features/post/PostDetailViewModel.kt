@@ -75,80 +75,91 @@ class PostDetailViewModel @Inject constructor(
     private val _moderationAlert = MutableStateFlow(com.turistgo.app.core.models.AlertState())
     val moderationAlert: StateFlow<com.turistgo.app.core.models.AlertState> = _moderationAlert.asStateFlow()
 
+    private val _isSubmittingComment = MutableStateFlow(false)
+    val isSubmittingComment: StateFlow<Boolean> = _isSubmittingComment.asStateFlow()
+
     fun dismissModerationAlert() {
         _moderationAlert.value = _moderationAlert.value.copy(isVisible = false)
     }
 
-    fun addComment(context: android.content.Context, content: String, imageUrl: String? = null) {
+    fun addComment(context: android.content.Context, content: String, imageUrl: String? = null, onSuccess: () -> Unit = {}) {
         val post = _post.value ?: return
         viewModelScope.launch {
-            // --- MODERACIÓN POR IA (TEXTO) ---
-            val textSafety = com.turistgo.app.data.GeminiService.isTextSafe(content)
-            if (!textSafety.isSafe) {
-                _moderationAlert.value = com.turistgo.app.core.models.AlertState(
-                    title = "Contenido Bloqueado",
-                    message = textSafety.reason ?: "Este comentario no cumple con nuestras normas.",
-                    type = com.turistgo.app.core.models.AlertType.WARNING,
-                    isVisible = true
-                )
-                return@launch
-            }
-
-            // --- MODERACIÓN POR IA (IMAGEN REAL) ---
-            if (imageUrl != null) {
-                val imageSafety = com.turistgo.app.data.GeminiService.isImageSafe(context, imageUrl)
-                if (!imageSafety.isSafe) {
+            _isSubmittingComment.value = true
+            try {
+                // --- MODERACIÓN POR IA (TEXTO) ---
+                val textSafety = com.turistgo.app.data.GeminiService.isTextSafe(content)
+                if (!textSafety.isSafe) {
                     _moderationAlert.value = com.turistgo.app.core.models.AlertState(
-                        title = "Imagen Rechazada",
-                        message = imageSafety.reason ?: "La imagen adjunta no cumple con nuestras políticas de seguridad.",
+                        title = "Contenido Bloqueado",
+                        message = textSafety.reason ?: "Este comentario no cumple con nuestras normas.",
                         type = com.turistgo.app.core.models.AlertType.WARNING,
                         isVisible = true
                     )
                     return@launch
                 }
-            }
 
-            val session = sessionManager.userSession.firstOrNull() ?: return@launch
-            val userId = session.userId ?: return@launch
-            val userName = session.name ?: "Usuario"
+                // --- MODERACIÓN POR IA (IMAGEN REAL) ---
+                if (imageUrl != null) {
+                    val imageSafety = com.turistgo.app.data.GeminiService.isImageSafe(context, imageUrl)
+                    if (!imageSafety.isSafe) {
+                        _moderationAlert.value = com.turistgo.app.core.models.AlertState(
+                            title = "Imagen Rechazada",
+                            message = imageSafety.reason ?: "La imagen adjunta no cumple con nuestras políticas de seguridad.",
+                            type = com.turistgo.app.core.models.AlertType.WARNING,
+                            isVisible = true
+                        )
+                        return@launch
+                    }
+                }
 
-            val newComment = Comment(
-                id = java.util.UUID.randomUUID().toString(),
-                postId = post.id,
-                authorId = userId,
-                authorName = userName,
-                authorPhotoUrl = session.photoUrl,
-                content = content,
-                imageUrl = imageUrl
-            )
-            repository.addComment(newComment)
-            _pointsEarned.value = 1
+                val session = sessionManager.userSession.firstOrNull() ?: return@launch
+                val userId = session.userId ?: return@launch
+                val userName = session.name ?: "Usuario"
 
-            // Trigger Notification for author (if not same person)
-            if (post.authorId != userId) {
+                val newComment = Comment(
+                    id = java.util.UUID.randomUUID().toString(),
+                    postId = post.id,
+                    authorId = userId,
+                    authorName = userName,
+                    authorPhotoUrl = session.photoUrl,
+                    content = content,
+                    imageUrl = imageUrl
+                )
+                repository.addComment(newComment)
+                _pointsEarned.value = 1
+
+                // Notificar al autor del post (si no es el mismo usuario)
+                if (post.authorId != userId) {
+                    repository.addNotification(
+                        Notification(
+                            id = java.util.UUID.randomUUID().toString(),
+                            userId = post.authorId,
+                            title = "Nuevo comentario",
+                            message = "$userName ha comentado en tu publicación: ${post.name}",
+                            type = NotificationType.COMMENT,
+                            postId = post.id
+                        )
+                    )
+                }
+
+                // Notificación de confirmación al comentarista
                 repository.addNotification(
                     Notification(
                         id = java.util.UUID.randomUUID().toString(),
-                        userId = post.authorId,
-                        title = "Nuevo comentario",
-                        message = "$userName ha comentado en tu publicación: ${post.name}",
+                        userId = userId,
+                        title = "Comentario enviado",
+                        message = "Has comentado en la publicación: ${post.name}",
                         type = NotificationType.COMMENT,
                         postId = post.id
                     )
                 )
-            }
 
-            // Trigger Confirmation Notification for commenter (as requested by user)
-            repository.addNotification(
-                Notification(
-                    id = java.util.UUID.randomUUID().toString(),
-                    userId = userId,
-                    title = "Comentario enviado",
-                    message = "Has comentado en la publicación: ${post.name}",
-                    type = NotificationType.COMMENT,
-                    postId = post.id
-                )
-            )
+                // Solo limpiamos el campo cuando todo salió bien
+                onSuccess()
+            } finally {
+                _isSubmittingComment.value = false
+            }
         }
     }
 

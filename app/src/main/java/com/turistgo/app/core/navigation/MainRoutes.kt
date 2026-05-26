@@ -27,6 +27,7 @@ sealed class MainRoutes {
     @Serializable data class EditPost(val postId: String)
     @Serializable data class PostDetail(val postId: String)
     @Serializable data class PublicProfile(val userId: String)
+    @Serializable data class Connections(val userId: String, val initialTab: Int = 0)
     @Serializable data object Badges
     @Serializable data object ProgressGuide
     @Serializable data object MapPicker

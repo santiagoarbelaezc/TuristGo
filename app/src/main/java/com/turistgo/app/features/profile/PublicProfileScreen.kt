@@ -39,6 +39,7 @@ fun PublicProfileScreen(
     userId: String, // ID del usuario cuyo perfil se está visualizando
     onBack: () -> Unit, // Callback para volver a la pantalla anterior
     onNavigateToDetail: (String) -> Unit, // Callback para navegar al detalle de un post (recibe ID)
+    onNavigateToConnections: (String, Int) -> Unit = { _, _ -> }, // Callback para conexiones
     viewModel: PublicProfileViewModel = hiltViewModel() // ViewModel inyectado por Hilt
 ) {
     // Observa los estados del ViewModel (perfil del usuario, sus posts, estadísticas)
@@ -139,8 +140,16 @@ fun PublicProfileScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(label = stringResource(R.string.stat_posts), value = stats.postsCount.toString())
-                    StatItem(label = stringResource(R.string.stat_followers), value = stats.followersCount.toString())
-                    StatItem(label = stringResource(R.string.stat_following), value = stats.followingCount.toString())
+                    StatItem(
+                        label = stringResource(R.string.stat_followers), 
+                        value = stats.followersCount.toString(),
+                        onClick = { onNavigateToConnections(userId, 0) }
+                    )
+                    StatItem(
+                        label = stringResource(R.string.stat_following), 
+                        value = stats.followingCount.toString(),
+                        onClick = { onNavigateToConnections(userId, 1) }
+                    )
                 }
 
                 // Estados de la relación entre el usuario actual y el perfil visitado

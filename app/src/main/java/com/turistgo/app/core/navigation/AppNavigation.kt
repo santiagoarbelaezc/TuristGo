@@ -430,7 +430,8 @@ fun AppNavigation(
                     onNavigateToProgressGuide = { navController.navigate(MainRoutes.ProgressGuide) },
                     onNavigateToStats = { navController.navigate(MainRoutes.Stats) },
                     onNavigateToEditPost = { postId -> navController.navigate(MainRoutes.EditPost(postId)) },
-                    onNavigateToPostDetail = { postId -> navController.navigate(MainRoutes.PostDetail(postId)) }
+                    onNavigateToPostDetail = { postId -> navController.navigate(MainRoutes.PostDetail(postId)) },
+                    onNavigateToConnections = { uid, tab -> navController.navigate(MainRoutes.Connections(uid, tab)) }
                 )
             }
 
@@ -460,7 +461,8 @@ fun AppNavigation(
                     onBack = { navController.popBackStack() },
                     onNavigateToDetail = { postId ->
                         navController.navigate(MainRoutes.PostDetail(postId))
-                    }
+                    },
+                    onNavigateToConnections = { uid, tab -> navController.navigate(MainRoutes.Connections(uid, tab)) }
                 )
             }
 
@@ -536,8 +538,23 @@ fun AppNavigation(
                 )
             }
             composable<MainRoutes.PrivacyPolicy> { PrivacyPolicyScreen(onBack = { navController.popBackStack() }) }
-            composable<MainRoutes.UsagePolicy> { UsagePolicyScreen(onBack = { navController.popBackStack() }) }
-            composable<MainRoutes.HelpSupport> { HelpSupportScreen(onBack = { navController.popBackStack() }) }
+            composable<MainRoutes.UsagePolicy> {
+                UsagePolicyScreen(onBack = { navController.popBackStack() })
+            }
+            
+            composable<MainRoutes.HelpSupport> {
+                HelpSupportScreen(onBack = { navController.popBackStack() })
+            }
+            
+            composable<MainRoutes.Connections> { backStackEntry ->
+                val route = backStackEntry.toRoute<MainRoutes.Connections>()
+                com.turistgo.app.features.profile.ConnectionsScreen(
+                    userId = route.userId,
+                    initialTab = route.initialTab,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToProfile = { uid -> navController.navigate(MainRoutes.PublicProfile(uid)) }
+                )
+            }
             
             composable<MainRoutes.EditPost> { backStackEntry ->
                 val route = backStackEntry.toRoute<MainRoutes.EditPost>()

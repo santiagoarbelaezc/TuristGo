@@ -37,6 +37,7 @@ fun DestinationCard(
     isLiked: Boolean = false,
     onSaveToggle: () -> Unit = {},
     onLikeToggle: () -> Unit = {},
+    onShareClick: () -> Unit = {},
     onClick: () -> Unit
 ) {
     Card(
@@ -188,7 +189,7 @@ fun DestinationCard(
                     }
                     Text(destination.commentCount.toString(), fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.width(16.dp))
-                    IconButton(onClick = { /* Share */ }) {
+                    IconButton(onClick = onShareClick) {
                         Icon(Icons.Default.Share, contentDescription = "Compartir", tint = MaterialTheme.colorScheme.secondary)
                     }
                 }

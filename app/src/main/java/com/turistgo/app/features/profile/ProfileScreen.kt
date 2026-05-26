@@ -53,6 +53,7 @@ fun ProfileScreen(
     onNavigateToStats: () -> Unit, // Callback para ver estadísticas detalladas
     onNavigateToEditPost: (String) -> Unit, // Callback para editar un post (recibe ID)
     onNavigateToPostDetail: (String) -> Unit, // Callback para ver detalle de post (recibe ID)
+    onNavigateToConnections: (String, Int) -> Unit, // Callback para ver conexiones
     viewModel: ProfileViewModel = hiltViewModel() // ViewModel inyectado por Hilt
 ) {
     // Observa los estados del ViewModel (sesión, perfil, estadísticas)
@@ -276,8 +277,16 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     StatItem(label = stringResource(R.string.stat_posts), value = stats.postsCount.toString())
-                    StatItem(label = stringResource(R.string.stat_followers), value = stats.followersCount.toString())
-                    StatItem(label = stringResource(R.string.stat_following), value = stats.followingCount.toString())
+                    StatItem(
+                        label = stringResource(R.string.stat_followers), 
+                        value = stats.followersCount.toString(),
+                        onClick = { userSession?.userId?.let { uid -> onNavigateToConnections(uid, 0) } }
+                    )
+                    StatItem(
+                        label = stringResource(R.string.stat_following), 
+                        value = stats.followingCount.toString(),
+                        onClick = { userSession?.userId?.let { uid -> onNavigateToConnections(uid, 1) } }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -676,8 +685,11 @@ fun MyPostItem(
 
 // Componente para mostrar un ítem de estadística (ej: "10" "Posts")
 @Composable
-fun StatItem(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+fun StatItem(label: String, value: String, onClick: () -> Unit = {}) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick).padding(8.dp)
+    ) {
         Text(
             text = value,
             fontSize = 20.sp,

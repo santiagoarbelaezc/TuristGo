@@ -62,6 +62,7 @@ fun FeedScreen(
     // Estados de búsqueda y filtrado
     val searchQuery by viewModel.searchQuery.collectAsState() // Texto de búsqueda
     val selectedCategory by viewModel.searchCategory.collectAsState() // Categoría/filtro seleccionado
+    val feedFilter by viewModel.feedFilter.collectAsState() // Filtro de Explorar/Siguiendo
     val filteredPosts by viewModel.filteredPosts.collectAsState() // Lista de posts filtrados
 
     // Estados locales de UI
@@ -164,8 +165,41 @@ fun FeedScreen(
             windowInsets = WindowInsets(0, 0, 0, 0)
         )
 
-        // --- Barra de búsqueda ---
+        // --- Compartir ---
         val context = LocalContext.current
+        val sharePost = { postId: String ->
+            val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_TEXT, "¡Mira este lugar en TuristGo! https://turistgo.app/post/$postId")
+            }
+            context.startActivity(android.content.Intent.createChooser(shareIntent, "Compartir destino"))
+        }
+
+        // --- TabRow Explorar / Siguiendo ---
+        if (!isSearchActive && !isMapView) {
+            TabRow(
+                selectedTabIndex = if (feedFilter == FeedFilter.EXPLORE) 0 else 1,
+                containerColor = MaterialTheme.colorScheme.background,
+                divider = {}
+            ) {
+                Tab(
+                    selected = feedFilter == FeedFilter.EXPLORE,
+                    onClick = { viewModel.updateFeedFilter(FeedFilter.EXPLORE) },
+                    text = { Text("Explorar", fontWeight = if (feedFilter == FeedFilter.EXPLORE) FontWeight.Bold else FontWeight.Normal) },
+                    unselectedContentColor = MaterialTheme.colorScheme.secondary,
+                    selectedContentColor = MaterialTheme.colorScheme.primary
+                )
+                Tab(
+                    selected = feedFilter == FeedFilter.FOLLOWING,
+                    onClick = { viewModel.updateFeedFilter(FeedFilter.FOLLOWING) },
+                    text = { Text("Siguiendo", fontWeight = if (feedFilter == FeedFilter.FOLLOWING) FontWeight.Bold else FontWeight.Normal) },
+                    unselectedContentColor = MaterialTheme.colorScheme.secondary,
+                    selectedContentColor = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        // --- Barra de búsqueda ---
         FeedSearchBar(
             query = searchQuery,
             onQueryChange = { 
@@ -429,6 +463,7 @@ fun FeedScreen(
                             isLiked = likedPostIds.contains(post.id), // Indica si al usuario le gusta el post
                             onSaveToggle = { viewModel.toggleSave(post.id) }, // Alterna guardado
                             onLikeToggle = { viewModel.toggleLike(post.id) }, // Alterna like
+                            onShareClick = { sharePost(post.id) }, // Comparte post
                             onClick = { onNavigateToDetail(post.id) } // Navega al detalle
                         )
                     }

@@ -442,12 +442,13 @@ private fun ContactSection(viewModel: RegisterViewModel, isLoading: Boolean) {
         ExposedDropdownMenuBox(
             expanded = phoneExpanded,
             onExpandedChange = { if (!isLoading) phoneExpanded = !phoneExpanded },
-            modifier = Modifier.width(108.dp)
+            modifier = Modifier.width(110.dp)
         ) {
             OutlinedTextField(
                 value = phoneExtension,
                 onValueChange = {},
                 readOnly = true,
+                label = { Text("Ext.") },
                 modifier = Modifier.menuAnchor().fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 enabled = !isLoading,

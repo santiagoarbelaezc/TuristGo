@@ -11,6 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,10 +32,12 @@ import com.turistgo.app.features.moderator.StatsGridCard
 @OptIn(ExperimentalMaterial3Api::class)
 // Declara la función composable principal de la pantalla de estadísticas del usuario
 @Composable
-fun UserStatsScreen(onBack: () -> Unit = {}) { // Callback para volver atrás (opcional con valor por defecto vacío)
-    // Estado para el scroll vertical (permite desplazarse manualmente)
+fun UserStatsScreen(
+    onBack: () -> Unit = {},
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val stats by viewModel.profileStats.collectAsState()
     val scrollState = rememberScrollState()
-    // Color de fondo cálido para toda la pantalla
     val warmBg = Color(0xFFFBFAF5)
 
     // Scaffold proporciona la estructura base con top bar y contenido
@@ -80,23 +85,21 @@ fun UserStatsScreen(onBack: () -> Unit = {}) { // Callback para volver atrás (o
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp) // Espacio horizontal de 16dp entre tarjetas
             ) {
-                // Tarjeta: Lugares Visitados
                 StatsGridCard(
-                    label = "Lugares Visitados",
-                    value = "24", // Número de lugares visitados (ejemplo estático)
-                    delta = "+3", // Incremento respecto al período anterior (ejemplo estático)
-                    icon = Icons.Default.Place, // Ícono de ubicación/marcador
-                    color = Color(0xFFE8EAF6), // Color azul muy claro
-                    modifier = Modifier.weight(1f) // Ocupa la mitad del ancho disponible
+                    label = "Lugares Publicados",
+                    value = stats.postsCount.toString(),
+                    delta = "+0",
+                    icon = Icons.Default.Place,
+                    color = Color(0xFFE8EAF6),
+                    modifier = Modifier.weight(1f)
                 )
-                // Tarjeta: Reseñas Dadas
                 StatsGridCard(
-                    label = "Reseñas Dadas",
-                    value = "12", // Número de reseñas escritas (ejemplo estático)
-                    delta = "+2", // Incremento respecto al período anterior (ejemplo estático)
-                    icon = Icons.Default.Star, // Ícono de estrella
-                    color = Color(0xFFFFF3E0), // Color naranja/ámbar muy claro
-                    modifier = Modifier.weight(1f) // Ocupa la otra mitad
+                    label = "Lugares Guardados",
+                    value = stats.savedCount.toString(),
+                    delta = "+0",
+                    icon = Icons.Default.Star,
+                    color = Color(0xFFFFF3E0),
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -106,8 +109,8 @@ fun UserStatsScreen(onBack: () -> Unit = {}) { // Callback para volver atrás (o
             AnalyticsCard(title = "Evolución de Puntos") {
                 // Gráfico de líneas mostrando la progresión de puntos a lo largo del tiempo
                 LineChart(
-                    data = listOf(0.1f, 0.2f, 0.5f, 0.45f, 0.7f, 0.85f, 1.0f), // Datos de ejemplo (valores normalizados)
-                    modifier = Modifier.fillMaxWidth().height(180.dp) // Ocupa todo el ancho con altura fija
+                    data = listOf(0.1f, 0.2f, 0.3f, 0.5f, 0.7f, 0.8f, stats.levelProgress.coerceAtLeast(0.1f)),
+                    modifier = Modifier.fillMaxWidth().height(180.dp)
                 )
             }
 
@@ -119,10 +122,10 @@ fun UserStatsScreen(onBack: () -> Unit = {}) { // Callback para volver atrás (o
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     // Barra de comparación que muestra el progreso hacia el siguiente nivel
                     ComparisonBar(
-                        label = "Explorador (Nivel 2)", // Nivel actual del usuario (ejemplo)
-                        percentage = 0.65f, // Progreso: 65% completado (ejemplo)
-                        color = Color(0xFF5C6BC0), // Color azul índigo
-                        count = "1,250 / 2,000 pts" // Puntos actuales / puntos necesarios (ejemplo)
+                        label = "${stats.levelName} (Nivel ${stats.levelNumber})",
+                        percentage = stats.levelProgress,
+                        color = Color(0xFF5C6BC0),
+                        count = "${stats.points} / ${stats.nextLevelPoints} pts"
                     )
                     // Texto informativo sobre puntos necesarios para el siguiente nivel
                     Text(

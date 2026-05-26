@@ -56,7 +56,7 @@ android {
             firebaseAppDistribution {
                 artifactType = "APK"
                 testers = "santiarco2611@gmail.com, juand.jdg3@gmail.com, elianay.hernandezo@uqvirtual.edu.co, santiago.arbelaezc@uqvirtual.edu.co"
-                releaseNotes = "TuristGo v1.0.2 — Filtro de Amigos (Explorar/Siguiendo), compartir posts nativo y cambios en Perfil"
+                releaseNotes = "TuristGo v1.0.3 — Nueva pantalla de Conexiones (Seguidores y Siguiendo) interactiva desde el Perfil."
             }
         }
     }

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.turistgo.app.R
@@ -44,6 +45,7 @@ fun PostDetailScreen(
     destinationId: String?, 
     onBack: () -> Unit,
     onNavigateToUserProfile: (String) -> Unit = {},
+    onNavigateToPostDetail: (String) -> Unit = {},
     viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     val post by viewModel.post.collectAsState()
@@ -51,6 +53,8 @@ fun PostDetailScreen(
     val isLiked by viewModel.isLiked.collectAsState()
     val isSaved by viewModel.isSaved.collectAsState()
     val comments by viewModel.comments.collectAsState()
+    val relatedPosts by viewModel.relatedPosts.collectAsState()
+    val userSuggestions by viewModel.userSuggestions.collectAsState()
     val moderationAlert by viewModel.moderationAlert.collectAsState()
     val pointsEarned by viewModel.pointsEarned.collectAsState()
     val isSubmittingComment by viewModel.isSubmittingComment.collectAsState()
@@ -251,7 +255,7 @@ fun PostDetailScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AsyncImage(
-                                    model = post!!.authorPhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+                                    model = post!!.authorPhotoUrl ?: com.turistgo.app.R.raw.usuario,
                                     contentDescription = null,
                                     modifier = Modifier.size(48.dp).clip(CircleShape),
                                     contentScale = ContentScale.Crop
@@ -349,9 +353,11 @@ fun PostDetailScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "Cómo llegar (Trazar ruta en Google Maps)",
+                                    text = "Abrir en Google Maps",
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    fontSize = 14.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
@@ -460,24 +466,48 @@ fun PostDetailScreen(
             }
 
             // Publicaciones relacionadas
-            item {
-                Column(modifier = Modifier.padding(vertical = 20.dp)) {
-                    Text(
-                        text = stringResource(R.string.related_posts),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
-                    )
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        val related = listOf(
-                            Destination("2", "San Andrés", "Isla", "4.8", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/playa_qg2ifb.jpg"),
-                            Destination("6", "Cartagena", "Bolívar", "4.7", "https://res.cloudinary.com/doxdjiyvi/image/upload/v1776142341/indias_ym97lb.jpg")
+            if (relatedPosts.isNotEmpty()) {
+                item {
+                    Column(modifier = Modifier.padding(vertical = 20.dp)) {
+                        Text(
+                            text = stringResource(R.string.related_posts),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
                         )
-                        items(related) { dest ->
-                            RelatedPostCard(dest)
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(relatedPosts) { p ->
+                                val dest = Destination(p.id, p.name, p.location, p.rating, p.imageUrl, p.commentCount)
+                                RelatedPostCard(destination = dest, onClick = { onNavigateToPostDetail(p.id) })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Sugerencias de amistad
+            if (userSuggestions.isNotEmpty()) {
+                item {
+                    Column(modifier = Modifier.padding(bottom = 20.dp)) {
+                        Text(
+                            text = "Sugerencias de amistad",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+                        )
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(userSuggestions) { user ->
+                                com.turistgo.app.features.feed.components.UserSuggestionItem(
+                                    user = user, 
+                                    onClick = { onNavigateToUserProfile(user.id) }
+                                )
+                            }
                         }
                     }
                 }
@@ -522,7 +552,7 @@ fun CommentItem(
 ) {
     Row(modifier = Modifier.padding(vertical = 8.dp)) {
         AsyncImage(
-            model = authorPhoto ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+            model = authorPhoto ?: com.turistgo.app.R.raw.usuario,
             contentDescription = null,
             modifier = Modifier
                 .size(40.dp)
@@ -564,9 +594,9 @@ fun CommentItem(
 }
 
 @Composable
-fun RelatedPostCard(destination: Destination) {
+fun RelatedPostCard(destination: Destination, onClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier.size(200.dp, 150.dp),
+        modifier = Modifier.size(200.dp, 150.dp).clickable { onClick() },
         shape = RoundedCornerShape(16.dp)
     ) {
         Box {

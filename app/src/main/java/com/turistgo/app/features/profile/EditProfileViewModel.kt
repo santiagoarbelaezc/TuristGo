@@ -38,6 +38,9 @@ class EditProfileViewModel @Inject constructor(
     private val _city = mutableStateOf("")
     val city: State<String> = _city
 
+    private val _photoUrl = mutableStateOf<String?>(null)
+    val photoUrl: State<String?> = _photoUrl
+
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
 
@@ -66,6 +69,7 @@ class EditProfileViewModel @Inject constructor(
                         _phone.value = user.phone
                         _country.value = user.country
                         _city.value = user.city
+                        _photoUrl.value = user.profilePhotoUrl
                     }
                 } else {
                     // Fallback a los datos de la sesión si no está en el repositorio
@@ -84,6 +88,8 @@ class EditProfileViewModel @Inject constructor(
     fun onPhoneChange(v: String) { _phone.value = v }
     fun onCountryChange(v: String) { _country.value = v }
     fun onCityChange(v: String) { _city.value = v }
+    fun onPhotoChange(uri: String?) { _photoUrl.value = uri }
+    fun onRemovePhoto() { _photoUrl.value = null }
 
     fun saveChanges(onSuccess: () -> Unit) {
         val user = currentUser ?: return
@@ -116,11 +122,12 @@ class EditProfileViewModel @Inject constructor(
                 lastName = _lastName.value,
                 phone = _phone.value,
                 country = _country.value,
-                city = _city.value
+                city = _city.value,
+                profilePhotoUrl = _photoUrl.value
             )
             
             repository.updateUser(updatedUser)
-            sessionManager.saveSession(updatedUser.id, updatedUser.name, updatedUser.email)
+            sessionManager.saveSession(updatedUser.id, updatedUser.name, updatedUser.email, updatedUser.profilePhotoUrl, updatedUser.role)
             
             _alertState.value = AlertState(
                 title = "¡Éxito!",

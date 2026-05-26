@@ -50,6 +50,16 @@ class PostDetailViewModel @Inject constructor(
         else flowOf(emptyList())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val relatedPosts = combine(_post, repository.getPosts(com.turistgo.app.domain.model.PostStatus.APPROVED)) { currentPost, allPosts ->
+        if (currentPost == null) emptyList()
+        else allPosts.filter { it.id != currentPost.id }.shuffled().take(5)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val userSuggestions = combine(currentUser, repository.getUsers()) { current, allUsers ->
+        if (current == null) emptyList()
+        else allUsers.filter { it.id != current.id && !current.followingIds.contains(it.id) }.shuffled().take(5)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun loadPost(postId: String) {
         viewModelScope.launch {
             _post.value = repository.getPostById(postId)

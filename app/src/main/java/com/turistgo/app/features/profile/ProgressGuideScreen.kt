@@ -46,7 +46,11 @@ fun ProgressGuideScreen(onBack: () -> Unit) {
                         Icon(Icons.Default.ArrowBack, contentDescription = null)
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = warmBg) // Mismo color de fondo
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = warmBg,
+                    titleContentColor = Color(0xFF222222),
+                    navigationIconContentColor = Color(0xFF222222)
+                )
             )
         },
         containerColor = warmBg // Color de fondo del Scaffold
@@ -69,19 +73,25 @@ fun ProgressGuideScreen(onBack: () -> Unit) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.tab_levels), fontWeight = FontWeight.Bold) } // "Niveles"
+                    text = { Text(stringResource(R.string.tab_levels), fontWeight = FontWeight.Bold) },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = Color(0xFF555555)
                 )
                 // Pestaña 1: Reputación
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.tab_reputation), fontWeight = FontWeight.Bold) } // "Reputación"
+                    text = { Text(stringResource(R.string.tab_reputation), fontWeight = FontWeight.Bold) },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = Color(0xFF555555)
                 )
                 // Pestaña 2: Insignias
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    text = { Text(stringResource(R.string.tab_badges), fontWeight = FontWeight.Bold) } // "Insignias"
+                    text = { Text(stringResource(R.string.tab_badges), fontWeight = FontWeight.Bold) },
+                    selectedContentColor = MaterialTheme.colorScheme.primary,
+                    unselectedContentColor = Color(0xFF555555)
                 )
             }
 
@@ -103,9 +113,9 @@ fun LevelsGuide() {
     // Columna con scroll vertical para poder ver todo el contenido
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         // Título de la sección
-        Text(stringResource(R.string.level_guide_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(stringResource(R.string.level_guide_title), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222))
         // Descripción introductoria
-        Text(stringResource(R.string.level_guide_desc), fontSize = 14.sp, color = Color.Gray)
+        Text(stringResource(R.string.level_guide_desc), fontSize = 14.sp, color = Color(0xFF555555))
         
         Spacer(modifier = Modifier.height(24.dp)) // Espaciado
         
@@ -140,9 +150,9 @@ fun ReputationGuide() {
     // Columna con scroll vertical
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         // Título de la sección
-        Text("Sistema de Reputación", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("Sistema de Reputación", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222))
         // Descripción introductoria
-        Text("Gana puntos por cada acción positiva que realices.", fontSize = 14.sp, color = Color.Gray)
+        Text("Gana puntos por cada acción positiva que realices.", fontSize = 14.sp, color = Color(0xFF555555))
         
         Spacer(modifier = Modifier.height(24.dp))
         
@@ -166,9 +176,9 @@ fun BadgesGuide() {
     // Columna con scroll vertical
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         // Título de la sección
-        Text("Manual de Insignias", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("Manual de Insignias", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFF222222))
         // Descripción introductoria
-        Text("Logros especiales por hitos específicos.", fontSize = 14.sp, color = Color.Gray)
+        Text("Logros especiales por hitos específicos.", fontSize = 14.sp, color = Color(0xFF555555))
         
         Spacer(modifier = Modifier.height(24.dp))
         
@@ -207,9 +217,9 @@ fun LevelStep(level: String, requirement: String, description: String, icon: Ima
         Spacer(modifier = Modifier.width(16.dp)) // Espacio entre ícono y texto
         // Columna con la información del nivel
         Column {
-            Text(level, fontWeight = FontWeight.Bold, fontSize = 16.sp)           // Nombre del nivel
+            Text(level, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF222222))           // Nombre del nivel
             Text(requirement, color = color, fontSize = 12.sp, fontWeight = FontWeight.Bold) // Requisito
-            Text(description, fontSize = 13.sp, color = Color.DarkGray)          // Descripción
+            Text(description, fontSize = 13.sp, color = Color(0xFF555555))          // Descripción
         }
     }
 }
@@ -233,7 +243,7 @@ fun ReputationCard(action: String, points: String, icon: ImageVector, isComingSo
             Spacer(modifier = Modifier.width(16.dp))
             // Columna con el nombre de la acción y etiqueta "Próximamente" si aplica
             Column(modifier = Modifier.weight(1f)) {
-                Text(action, fontWeight = FontWeight.Bold)
+                Text(action, fontWeight = FontWeight.Bold, color = Color(0xFF222222))
                 if (isComingSoon) Text(stringResource(R.string.coming_soon), fontSize = 10.sp, color = Color.Gray)
             }
             // Puntos que otorga la acción
@@ -261,8 +271,8 @@ fun BadgeRowGuide(name: String, requirement: String, icon: ImageVector) {
         Spacer(modifier = Modifier.width(16.dp))
         // Columna con nombre y requisito de la insignia
         Column {
-            Text(name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-            Text(requirement, fontSize = 12.sp, color = Color.Gray)
+            Text(name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF222222))
+            Text(requirement, fontSize = 12.sp, color = Color(0xFF555555))
         }
     }
 }

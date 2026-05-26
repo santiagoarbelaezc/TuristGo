@@ -94,7 +94,7 @@ fun UserSuggestionItem(user: User, onClick: () -> Unit) {
     ) {
         Box(contentAlignment = Alignment.Center) {
             AsyncImage(
-                model = user.profilePhotoUrl ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg",
+                model = user.profilePhotoUrl ?: com.turistgo.app.R.raw.usuario,
                 contentDescription = null,
                 modifier = Modifier
                     .size(64.dp)

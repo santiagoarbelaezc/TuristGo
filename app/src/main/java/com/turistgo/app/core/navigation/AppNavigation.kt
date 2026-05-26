@@ -449,6 +449,9 @@ fun AppNavigation(
                     onBack = { navController.popBackStack() },
                     onNavigateToUserProfile = { userId ->
                         navController.navigate(MainRoutes.PublicProfile(userId))
+                    },
+                    onNavigateToPostDetail = { postId ->
+                        navController.navigate(MainRoutes.PostDetail(postId))
                     }
                 )
             }

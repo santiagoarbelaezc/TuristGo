@@ -15,6 +15,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import com.turistgo.app.R
 import com.turistgo.app.core.components.TuristGoDialog
 
@@ -29,9 +36,16 @@ fun EditProfileScreen(
     val phone by viewModel.phone
     val country by viewModel.country
     val city by viewModel.city
+    val photoUrl by viewModel.photoUrl
     val isLoading by viewModel.isLoading
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
     val alertState by viewModel.alertState.collectAsState()
+    
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        uri?.let { viewModel.onPhotoChange(it.toString()) }
+    }
     
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -72,7 +86,32 @@ fun EditProfileScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            
+            // AVATAR SECTION
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(bottom = 24.dp)) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    AsyncImage(
+                        model = photoUrl ?: R.raw.usuario,
+                        contentDescription = "Profile Photo",
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        TextButton(onClick = { photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                            Text("Cambiar")
+                        }
+                        if (photoUrl != null) {
+                            TextButton(onClick = { viewModel.onRemovePhoto() }, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                                Text("Eliminar")
+                            }
+                        }
+                    }
+                }
+            }
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { viewModel.onNameChange(it) },

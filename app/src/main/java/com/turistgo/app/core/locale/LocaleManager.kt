@@ -498,20 +498,19 @@ fun LocaleWrapper(content: @Composable () -> Unit) {
     val lang by LanguageState.current
     val context = LocalContext.current
     
-    // Update the resources configuration of the active activity context in-place
     val locale = java.util.Locale(lang.code)
     java.util.Locale.setDefault(locale)
-    val resources = context.resources
-    val configuration = resources.configuration
+    
+    val configuration = android.content.res.Configuration(context.resources.configuration)
     configuration.setLocale(locale)
-    resources.updateConfiguration(configuration, resources.displayMetrics)
+    val newContext = context.createConfigurationContext(configuration)
 
     CompositionLocalProvider(
-        LocalAppLanguage provides lang
+        LocalAppLanguage provides lang,
+        LocalContext provides newContext,
+        androidx.compose.ui.platform.LocalConfiguration provides configuration
     ) {
-        key(lang) {
-            content()
-        }
+        content()
     }
 }
 

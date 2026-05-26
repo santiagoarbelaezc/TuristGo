@@ -184,7 +184,7 @@ fun DestinationCard(
                             tint = if (isLiked) Color.Red else MaterialTheme.colorScheme.secondary
                         )
                     }
-                    IconButton(onClick = { /* Comment */ }) {
+                    IconButton(onClick = onClick) {
                         Icon(Icons.Outlined.ChatBubbleOutline, contentDescription = "Comentar", tint = MaterialTheme.colorScheme.secondary)
                     }
                     Text(destination.commentCount.toString(), fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)

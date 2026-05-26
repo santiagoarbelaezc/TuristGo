@@ -78,7 +78,7 @@ fun ProfileScreen(
     // Prioridad para la URL de la foto de perfil: primero la del perfil, luego la de sesión, luego una por defecto
     val profileImageUrl = userProfile?.profilePhotoUrl 
         ?: userSession?.photoUrl 
-        ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"5397996.jpg"
+        ?: "https://res.cloudinary.com/doxdjiyvi/image/upload/v1769405400/english-notebook/profiles/profile_69658edf82ad881040292fe6_1769405397996.jpg"
 
     // Columna principal que ocupa toda la pantalla
     Column(

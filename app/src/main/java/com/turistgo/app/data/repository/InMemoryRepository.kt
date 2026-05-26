@@ -494,11 +494,11 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     }
 
     override suspend fun sendFollowRequest(senderId: String, senderName: String, targetUserId: String) {
-        // Track the pending request for the sender
+        // Track the pending request for the target user (received requests)
         users.value = users.value.map { user ->
-            if (user.id == senderId) {
-                if (!user.pendingFollowRequestIds.contains(targetUserId)) {
-                    user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds + targetUserId)
+            if (user.id == targetUserId) {
+                if (!user.pendingFollowRequestIds.contains(senderId)) {
+                    user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds + senderId)
                 } else user
             } else user
         }
@@ -531,10 +531,10 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
     }
 
     private suspend fun processFollowRequest(senderId: String, targetId: String, accepted: Boolean, notificationId: String?) {
-        // Remove from sender's pending list regardless of result
+        // Remove from target's pending list regardless of result
         users.value = users.value.map { user ->
-            if (user.id == senderId) {
-                user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds - targetId)
+            if (user.id == targetId) {
+                user.copy(pendingFollowRequestIds = user.pendingFollowRequestIds - senderId)
             } else user
         }
 
@@ -552,7 +552,7 @@ class InMemoryRepository @Inject constructor() : AppDataRepository {
                     userId = senderId,
                     title = "¡Ahora son amigos!",
                     message = "$targetName aceptó tu solicitud. ¡Ya pueden ver sus publicaciones!",
-                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST,
+                    type = com.turistgo.app.domain.model.NotificationType.FOLLOW_ACCEPTED,
                     senderId = targetId
                 )
             )

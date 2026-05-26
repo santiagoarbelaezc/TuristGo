@@ -186,11 +186,11 @@ class FirestoreRepository @Inject constructor(
     }
 
     override suspend fun sendFollowRequest(senderId: String, senderName: String, targetUserId: String) {
-        val sender = getUserById(senderId) ?: return
-        if (!sender.pendingFollowRequestIds.contains(targetUserId)) {
-            usersCol.document(senderId).update(
+        val target = getUserById(targetUserId) ?: return
+        if (!target.pendingFollowRequestIds.contains(senderId)) {
+            usersCol.document(targetUserId).update(
                 "pendingFollowRequestIds",
-                sender.pendingFollowRequestIds + targetUserId
+                target.pendingFollowRequestIds + senderId
             ).await()
         }
         addNotification(
@@ -227,13 +227,14 @@ class FirestoreRepository @Inject constructor(
         senderId: String, targetId: String,
         accepted: Boolean, notificationId: String?
     ) {
-        val sender = getUserById(senderId) ?: return
-        usersCol.document(senderId).update(
+        val target = getUserById(targetId) ?: return
+        usersCol.document(targetId).update(
             "pendingFollowRequestIds",
-            sender.pendingFollowRequestIds - targetId
+            target.pendingFollowRequestIds - senderId
         ).await()
         if (accepted) {
             toggleFollow(senderId, targetId)
+            toggleFollow(targetId, senderId)
             val targetName = getUserById(targetId)?.username ?: "Alguien"
             addNotification(
                 Notification(

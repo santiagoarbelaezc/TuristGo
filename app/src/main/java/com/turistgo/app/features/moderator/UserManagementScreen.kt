@@ -34,36 +34,40 @@ fun UserManagementScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        // Header matches Feed/Dashboard style
+    var userToDelete by remember { mutableStateOf<ModeratorUser?>(null) }
+    var deleteConfirmationInput by remember { mutableStateOf("") }
+    
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 24.dp)
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            Text(
-                text = "Gestión",
-                fontSize = 13.sp,
-                color = MaterialTheme.colorScheme.secondary
-            )
-            Text(
-                text = "Usuarios",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Administra los permisos y acceso a la plataforma",
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
-            )
-        }
+            // Header matches Feed/Dashboard style
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
+            ) {
+                Text(
+                    text = "Gestión",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = "Usuarios",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Administra los permisos y acceso a la plataforma",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                )
+            }
 
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -83,14 +87,113 @@ fun UserManagementScreen(
                             }
                         },
                         onDelete = {
+                            userToDelete = user
+                        }
+                    )
+                }
+            }
+        }
+        
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+        )
+
+        if (userToDelete != null) {
+            val user = userToDelete!!
+            AlertDialog(
+                onDismissRequest = {
+                    userToDelete = null
+                    deleteConfirmationInput = ""
+                },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Advertencia de Seguridad",
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Estás a punto de eliminar permanentemente al usuario:",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "${user.name} (${user.email})",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "⚠️ IMPORTANTE:\nEsta acción no se puede deshacer. Se borrarán de forma definitiva todas sus publicaciones, comentarios, notificaciones, historial de actividad y sus puntos acumulados en TuristGo.",
+                            color = Color.Gray,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Para confirmar la eliminación, escribe la palabra eliminar abajo:",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = deleteConfirmationInput,
+                            onValueChange = { deleteConfirmationInput = it },
+                            placeholder = { Text("Escribe 'eliminar'") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
                             viewModel.deleteUser(user.id)
                             scope.launch {
                                 snackbarHostState.showSnackbar("Usuario ${user.name} eliminado")
                             }
+                            userToDelete = null
+                            deleteConfirmationInput = ""
+                        },
+                        enabled = deleteConfirmationInput.trim().lowercase() == "eliminar",
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Eliminar definitivamente", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            userToDelete = null
+                            deleteConfirmationInput = ""
                         }
-                    )
-                }
-                
+                    ) {
+                        Text("Cancelar", fontWeight = FontWeight.Medium)
+                    }
+                },
+                shape = RoundedCornerShape(24.dp),
+                containerColor = Color.White
+            )
         }
     }
 }

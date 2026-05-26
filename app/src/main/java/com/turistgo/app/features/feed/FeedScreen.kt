@@ -26,6 +26,7 @@ import com.turistgo.app.core.components.DestinationCard
 import com.turistgo.app.features.feed.components.FeedSearchBar
 import com.turistgo.app.features.feed.components.SearchContent
 import com.turistgo.app.core.components.SuccessModal
+import com.turistgo.app.core.components.FollowRequestModal
 import com.turistgo.app.core.components.TuristGoDialog
 import com.turistgo.app.core.models.AlertState
 import com.turistgo.app.core.models.AlertType
@@ -467,13 +468,9 @@ fun FeedScreen(
                     }
                 )
             } else if (notification.type == com.turistgo.app.domain.model.NotificationType.FOLLOW_REQUEST) {
-                TuristGoDialog(
-                    state = AlertState(
-                        title = "Tienes una nueva solicitud",
-                        message = notification.message,
-                        type = AlertType.INFO,
-                        isVisible = true
-                    ),
+                FollowRequestModal(
+                    title = "Tienes una nueva solicitud",
+                    message = notification.message,
                     onDismiss = {
                         dismissedNotificationId = notification.id
                         viewModel.markNotificationAsRead(notification.id)

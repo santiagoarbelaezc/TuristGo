@@ -287,8 +287,18 @@ fun AppNavigation(
                 )
             }
 
-            composable<MainRoutes.Register> {
+            composable<MainRoutes.Register> { backStackEntry ->
+                val mapResult = backStackEntry.savedStateHandle.get<String>("selected_location")
                 RegisterScreen(
+                    mapResult = mapResult,
+                    onConsumeMapResult = { backStackEntry.savedStateHandle.remove<String>("selected_location") },
+                    onNavigateToMapPicker = { lat, lng ->
+                        if (lat != null && lng != null) {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("initial_map_lat", lat)
+                            navController.currentBackStackEntry?.savedStateHandle?.set("initial_map_lng", lng)
+                        }
+                        navController.navigate(MainRoutes.MapPicker)
+                    },
                     onNavigateToCompleteProfile = { userId ->
                         navController.navigate(MainRoutes.CompleteProfile(userId)) {
                             popUpTo(MainRoutes.Home) { inclusive = true }

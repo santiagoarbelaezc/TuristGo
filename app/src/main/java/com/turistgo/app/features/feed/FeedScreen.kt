@@ -33,6 +33,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.turistgo.app.R
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.clickable
+import kotlinx.coroutines.launch
 
 // Marca que se usan APIs experimentales de Material 3
 @OptIn(ExperimentalMaterial3Api::class)
@@ -203,11 +213,185 @@ fun FeedScreen(
                     onNavigateToProfile = onNavigateToUserProfile
                 )
             } else if (isMapView) {
-                // Modo: Vista de mapa - muestra ubicaciones en un mapa
-                val destinations = filteredPosts.map { 
-                    Destination(it.id, it.name, it.location, it.rating, it.imageUrl)
+                // Modo: Vista de mapa interactiva con Google Maps
+                val postsWithCoordinates = remember(filteredPosts) {
+                    filteredPosts.filter { it.latitude != null && it.longitude != null }
                 }
-                MapPlaceholder(destinations) // Placeholder del mapa (implementación simplificada)
+                
+                val defaultLocation = LatLng(6.2442, -75.5812) // Medellín
+                val initialCameraLocation = remember(postsWithCoordinates) {
+                    if (postsWithCoordinates.isNotEmpty()) {
+                        LatLng(postsWithCoordinates.first().latitude!!, postsWithCoordinates.first().longitude!!)
+                    } else {
+                        defaultLocation
+                    }
+                }
+                
+                val cameraPositionState = rememberCameraPositionState {
+                    position = CameraPosition.fromLatLngZoom(initialCameraLocation, 12f)
+                }
+                
+                var selectedPostPreview by remember { mutableStateOf<com.turistgo.app.domain.model.Post?>(null) }
+                val coroutineScope = rememberCoroutineScope()
+                
+                Box(modifier = Modifier.fillMaxSize()) {
+                    GoogleMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraPositionState = cameraPositionState,
+                        properties = MapProperties(
+                            isMyLocationEnabled = false,
+                            mapType = MapType.NORMAL
+                        ),
+                        uiSettings = MapUiSettings(
+                            zoomControlsEnabled = false,
+                            myLocationButtonEnabled = false,
+                            compassEnabled = false,
+                            mapToolbarEnabled = false
+                        ),
+                        onMapClick = {
+                            selectedPostPreview = null
+                        }
+                    ) {
+                        postsWithCoordinates.forEach { post ->
+                            Marker(
+                                state = MarkerState(position = LatLng(post.latitude!!, post.longitude!!)),
+                                title = post.name,
+                                snippet = post.city ?: post.location,
+                                onClick = { marker ->
+                                    selectedPostPreview = post
+                                    coroutineScope.launch {
+                                        cameraPositionState.animate(
+                                            CameraUpdateFactory.newLatLngZoom(marker.position, 14f),
+                                            800
+                                        )
+                                    }
+                                    true
+                                }
+                            )
+                        }
+                    }
+                    
+                    // Botón flotante para centrar mapa en la ubicación inicial
+                    if (postsWithCoordinates.isNotEmpty()) {
+                        FloatingActionButton(
+                            onClick = {
+                                coroutineScope.launch {
+                                    cameraPositionState.animate(
+                                        CameraUpdateFactory.newLatLngZoom(initialCameraLocation, 12f),
+                                        800
+                                    )
+                                }
+                            },
+                            containerColor = Color.White,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(16.dp)
+                                .size(44.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MyLocation,
+                                contentDescription = "Centrar",
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    
+                    // Tarjeta flotante de previsualización para el destino seleccionado
+                    selectedPostPreview?.let { post ->
+                        Card(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                                .clickable { onNavigateToDetail(post.id) },
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = post.imageUrl,
+                                    contentDescription = post.name,
+                                    modifier = Modifier
+                                        .size(80.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
+                                    contentScale = ContentScale.Crop
+                                )
+                                
+                                Spacer(modifier = Modifier.width(12.dp))
+                                
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = post.name,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp,
+                                        color = Color.Black,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = post.city ?: post.location,
+                                        fontSize = 13.sp,
+                                        color = Color.Gray,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFB300),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = post.rating,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.Black
+                                        )
+                                        if (post.categories.isNotEmpty()) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Surface(
+                                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                                shape = RoundedCornerShape(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = post.categories.first(),
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                IconButton(
+                                    onClick = { selectedPostPreview = null },
+                                    modifier = Modifier.align(Alignment.Top)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Cerrar",
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             } else {
                 // Modo: Vista de lista (feed principal)
                 val savedPostIds by viewModel.savedPostIds.collectAsState() // IDs de posts guardados por el usuario
@@ -297,19 +481,5 @@ fun FeedScreen(
                 )
             }
         }
-    }
-}
-
-// Placeholder del mapa (implementación simplificada)
-@Composable
-fun MapPlaceholder(destinations: List<com.turistgo.app.core.components.Destination>) {
-    // Contenedor que simula un mapa
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5)), // Fondo gris claro
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Mapa Interactivo cargado con ${destinations.size} destinos") // Texto informativo
     }
 }

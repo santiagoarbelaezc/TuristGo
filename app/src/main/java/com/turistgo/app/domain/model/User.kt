@@ -27,6 +27,8 @@ data class User(
     val followerIds: List<String> = emptyList(),
     val pendingFollowRequestIds: List<String> = emptyList(),
     val points: Int = 0,
-    val fcmToken: String? = null
+    val fcmToken: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 

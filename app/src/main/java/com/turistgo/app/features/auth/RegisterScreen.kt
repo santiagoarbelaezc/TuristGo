@@ -60,6 +60,9 @@ import com.turistgo.app.core.components.TuristGoDialog
 fun RegisterScreen(
     onNavigateToCompleteProfile: (String) -> Unit,
     onBack: () -> Unit,
+    mapResult: String? = null,
+    onConsumeMapResult: () -> Unit = {},
+    onNavigateToMapPicker: (Double?, Double?) -> Unit = { _, _ -> },
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     // Estados globales y UI del Scaffold
@@ -67,8 +70,26 @@ fun RegisterScreen(
     val snackbarMessage by viewModel.snackbarMessage.collectAsState()
     val alertState by viewModel.alertState.collectAsState()
     
+    val latitude by viewModel.latitude
+    val longitude by viewModel.longitude
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+
+    // Escucha el resultado del selector de mapa
+    LaunchedEffect(mapResult) {
+        mapResult?.let { result ->
+            val coords = result.split(",")
+            if (coords.size == 2) {
+                val lat = coords[0].toDoubleOrNull()
+                val lng = coords[1].toDoubleOrNull()
+                if (lat != null && lng != null) {
+                    viewModel.onCoordinatesSelected(lat, lng)
+                }
+            }
+            onConsumeMapResult()
+        }
+    }
 
     // Manejo de notificaciones con Snackbar
     LaunchedEffect(snackbarMessage) {
@@ -107,7 +128,11 @@ fun RegisterScreen(
                 PersonalDataSection(viewModel = viewModel, isLoading = isLoading)
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                LocationSection(viewModel = viewModel, isLoading = isLoading)
+                LocationSection(
+                    viewModel = viewModel,
+                    isLoading = isLoading,
+                    onNavigateToMapPicker = onNavigateToMapPicker
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 ContactSection(viewModel = viewModel, isLoading = isLoading)
@@ -197,7 +222,11 @@ private fun PersonalDataSection(viewModel: RegisterViewModel, isLoading: Boolean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
+private fun LocationSection(
+    viewModel: RegisterViewModel,
+    isLoading: Boolean,
+    onNavigateToMapPicker: (Double?, Double?) -> Unit
+) {
     val age by viewModel.age
     val country by viewModel.country
     val department by viewModel.department
@@ -350,17 +379,50 @@ private fun LocationSection(viewModel: RegisterViewModel, isLoading: Boolean) {
     Spacer(modifier = Modifier.height(16.dp))
 
     // CAMPO DE DIRECCIÓN
+    val latitude by viewModel.latitude
+    val longitude by viewModel.longitude
+
     OutlinedTextField(
         value = address,
         onValueChange = { viewModel.onAddressChange(it) },
         label = { Text(stringResource(R.string.address_label)) },
         leadingIcon = { Icon(Icons.Default.Home, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        trailingIcon = {
+            IconButton(onClick = { onNavigateToMapPicker(latitude, longitude) }) {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = "Fijar en Mapa",
+                    tint = if (latitude != null) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                )
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         singleLine = true,
         placeholder = { Text(stringResource(R.string.address_placeholder)) },
         enabled = !isLoading
     )
+
+    if (latitude != null && longitude != null) {
+        Row(
+            modifier = Modifier.padding(top = 4.dp, start = 4.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = Color(0xFF4CAF50),
+                modifier = Modifier.size(14.dp)
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Ubicación GPS fijada en mapa",
+                fontSize = 11.sp,
+                color = Color(0xFF4CAF50),
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -20,12 +20,18 @@ import java.util.UUID
 import javax.inject.Inject
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.tasks.await
+import android.location.Geocoder
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
     private val repository: AppDataRepository,
     private val sessionManager: UserSessionManager,
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    @ApplicationContext private val appContext: Context
 ) : ViewModel() {
     private val _name = mutableStateOf("")
     val name: State<String> = _name
@@ -47,6 +53,12 @@ class RegisterViewModel @Inject constructor(
 
     private val _city = mutableStateOf("")
     val city: State<String> = _city
+
+    private val _latitude = mutableStateOf<Double?>(null)
+    val latitude: State<Double?> = _latitude
+
+    private val _longitude = mutableStateOf<Double?>(null)
+    val longitude: State<Double?> = _longitude
     
     private val _phoneExtension = mutableStateOf("+57")
     val phoneExtension: State<String> = _phoneExtension
@@ -124,6 +136,79 @@ class RegisterViewModel @Inject constructor(
     
     fun onCityChange(v: String)            { _city.value = v }
     fun onAddressChange(v: String)         { _address.value = v }
+    
+    fun onCoordinatesSelected(lat: Double, lng: Double) {
+        _latitude.value = lat
+        _longitude.value = lng
+        
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                @Suppress("DEPRECATION")
+                val geocoder = Geocoder(appContext, java.util.Locale.getDefault())
+                val results = geocoder.getFromLocation(lat, lng, 1)
+                val addressObj = results?.firstOrNull()
+                if (addressObj != null) {
+                    val adminArea = addressObj.adminArea
+                    val locality = addressObj.locality
+                    val subAdminArea = addressObj.subAdminArea
+                    val countryName = addressObj.countryName ?: ""
+                    
+                    val resolvedAddress = when {
+                        addressObj.thoroughfare != null -> {
+                            val num = addressObj.subThoroughfare?.let { " #$it" } ?: ""
+                            "${addressObj.thoroughfare}$num"
+                        }
+                        else -> addressObj.getAddressLine(0)?.substringBefore(",") ?: ""
+                    }
+                    
+                    val matchedCountry = when {
+                        countryName.contains("Colombia", ignoreCase = true) -> "Colombia"
+                        countryName.contains("Argentina", ignoreCase = true) -> "Argentina"
+                        countryName.contains("Brasil", ignoreCase = true) || countryName.contains("Brazil", ignoreCase = true) -> "Brasil"
+                        else -> "Colombia"
+                    }
+                    
+                    withContext(Dispatchers.Main) {
+                        onCountryChange(matchedCountry)
+                        if (matchedCountry == "Colombia" && adminArea != null) {
+                            val matchedDept = ColombiaGeography.getDepartments().firstOrNull { dept ->
+                                adminArea.contains(dept, ignoreCase = true) || dept.contains(adminArea, ignoreCase = true)
+                            }
+                            if (matchedDept != null) {
+                                onDepartmentChange(matchedDept)
+                                val matchedCity = ColombiaGeography.getCities(matchedDept).firstOrNull { city ->
+                                    locality?.contains(city, ignoreCase = true) == true || 
+                                    city.contains(locality ?: "", ignoreCase = true) ||
+                                    subAdminArea?.contains(city, ignoreCase = true) == true ||
+                                    city.contains(subAdminArea ?: "", ignoreCase = true)
+                                }
+                                if (matchedCity != null) {
+                                    onCityChange(matchedCity)
+                                }
+                            }
+                        } else {
+                            val citiesList = if (matchedCountry == "Argentina") argentinaCities else brasilCities
+                            val matchedCity = citiesList.firstOrNull { city ->
+                                locality?.contains(city, ignoreCase = true) == true ||
+                                city.contains(locality ?: "", ignoreCase = true) ||
+                                subAdminArea?.contains(city, ignoreCase = true) == true ||
+                                city.contains(subAdminArea ?: "", ignoreCase = true)
+                            }
+                            if (matchedCity != null) {
+                                onCityChange(matchedCity)
+                            }
+                        }
+                        if (resolvedAddress.isNotEmpty()) {
+                            _address.value = resolvedAddress
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun onPhoneExtensionChange(v: String)  { _phoneExtension.value = v }
     fun onPhoneChange(v: String)           { if (v.length <= 10 && v.all { it.isDigit() }) _phone.value = v }
     fun onEmailChange(v: String)           { _email.value = v }
@@ -279,7 +364,9 @@ class RegisterViewModel @Inject constructor(
                     phone = "${_phoneExtension.value} ${trimmedPhone}",
                     email = trimmedEmail,
                     password = null,  // nunca guardar contraseña en Firestore
-                    username = generatedUsername
+                    username = generatedUsername,
+                    latitude = _latitude.value,
+                    longitude = _longitude.value
                 )
 
                 // Guardar perfil en Firestore

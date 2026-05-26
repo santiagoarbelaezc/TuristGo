@@ -581,7 +581,7 @@ private fun RegisterActions(
         shape = MaterialTheme.shapes.medium,
         enabled = !isLoading
     ) {
-        Text("Empezar ahora", fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.start_now), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
     }
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -589,9 +589,9 @@ private fun RegisterActions(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("¿Ya tienes cuenta?", fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
+        Text(stringResource(R.string.already_have_account), fontSize = 14.sp, color = MaterialTheme.colorScheme.secondary)
         TextButton(onClick = onBackClick, enabled = !isLoading) {
-            Text("Inicia sesión", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.login_action), fontSize = 14.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
     }
     
@@ -604,7 +604,7 @@ private fun RegisterActions(
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
         Text(
-            text = "O continúa con",
+            text = stringResource(R.string.or_continue_with),
             modifier = Modifier.padding(horizontal = 16.dp),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary

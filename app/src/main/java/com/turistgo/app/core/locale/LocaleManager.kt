@@ -2,6 +2,12 @@ package com.turistgo.app.core.locale
 
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 
 // Supported languages
 enum class AppLanguage(val code: String, val displayName: String) {
@@ -486,3 +492,26 @@ val EnglishStrings = Strings(
     tripsQuickPlan2 = "Family adventure 🏕️",
     tripsInputPlaceholder = "What trip do you want to plan?",
 )
+
+@Composable
+fun LocaleWrapper(content: @Composable () -> Unit) {
+    val lang by LanguageState.current
+    val context = LocalContext.current
+    
+    // Update the resources configuration of the active activity context in-place
+    val locale = java.util.Locale(lang.code)
+    java.util.Locale.setDefault(locale)
+    val resources = context.resources
+    val configuration = resources.configuration
+    configuration.setLocale(locale)
+    resources.updateConfiguration(configuration, resources.displayMetrics)
+
+    CompositionLocalProvider(
+        LocalAppLanguage provides lang
+    ) {
+        key(lang) {
+            content()
+        }
+    }
+}
+

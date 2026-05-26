@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.turistgo.app.core.navigation.AppNavigation
 import com.turistgo.app.core.theme.TuristGoTheme
+import com.turistgo.app.core.locale.LocaleWrapper
 import com.turistgo.app.data.datastore.UserSessionManager
 import com.turistgo.app.domain.repository.AppDataRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -42,7 +43,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TuristGoTheme {
-                AppNavigation()
+                LocaleWrapper {
+                    AppNavigation()
+                }
             }
         }
     }

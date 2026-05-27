@@ -503,11 +503,12 @@ fun LocaleWrapper(content: @Composable () -> Unit) {
     
     val configuration = android.content.res.Configuration(context.resources.configuration)
     configuration.setLocale(locale)
-    val newContext = context.createConfigurationContext(configuration)
+    
+    @Suppress("DEPRECATION")
+    context.resources.updateConfiguration(configuration, context.resources.displayMetrics)
 
     CompositionLocalProvider(
         LocalAppLanguage provides lang,
-        LocalContext provides newContext,
         androidx.compose.ui.platform.LocalConfiguration provides configuration
     ) {
         content()

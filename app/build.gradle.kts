@@ -26,8 +26,8 @@ android {
         applicationId = "com.turistgo.app"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -56,7 +56,7 @@ android {
             firebaseAppDistribution {
                 artifactType = "APK"
                 testers = "santiarco2611@gmail.com, juand.jdg3@gmail.com, elianay.hernandezo@uqvirtual.edu.co, santiago.arbelaezc@uqvirtual.edu.co"
-                releaseNotes = "TuristGo v1.0.3 — Nueva pantalla de Conexiones (Seguidores y Siguiendo) interactiva desde el Perfil."
+                releaseNotes = "TuristGo v1.0.5 — Solución de error crítico (crash) al abrir la app. Se ha arreglado el fallo al cambiar de idioma donde la app reiniciaba la pantalla sacando al usuario, además de todas las correcciones previas."
             }
         }
     }

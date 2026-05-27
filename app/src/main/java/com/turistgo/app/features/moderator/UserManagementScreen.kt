@@ -57,9 +57,10 @@ fun UserManagementScreen(
                 )
                 Text(
                     text = "Usuarios",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = (-0.5).sp
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
@@ -262,13 +263,24 @@ fun UserCardRedesigned(
                 }
             }
             Row {
-                if (!user.isVerified) {
-                    IconButton(onClick = onVerify) {
-                        Icon(Icons.Default.Verified, contentDescription = "Verificar", tint = Color(0xFF4CAF50))
+                if (user.role.lowercase() != "admin") {
+                    if (!user.isVerified) {
+                        IconButton(onClick = onVerify) {
+                            Icon(Icons.Default.Verified, contentDescription = "Verificar", tint = Color(0xFF4CAF50))
+                        }
                     }
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF5350))
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF5350))
+                    }
+                } else {
+                    // Muestra etiqueta de Admin en lugar de acciones
+                    Text(
+                        text = "Protegido",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
                 }
             }
         }

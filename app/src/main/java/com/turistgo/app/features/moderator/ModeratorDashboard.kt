@@ -63,9 +63,10 @@ fun ModeratorDashboard(
                 )
                 Text(
                     text = "Moderador",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    letterSpacing = (-0.5).sp
                 )
             }
             IconButton(
@@ -121,8 +122,9 @@ fun ModeratorDashboard(
                 Text(
                     text = "Publicaciones Pendientes",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = (-0.5).sp
                 )
             }
 
@@ -148,8 +150,9 @@ fun ModeratorDashboard(
                 Text(
                     text = "Publicaciones Recientemente Aprobadas",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1A1A)
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    letterSpacing = (-0.5).sp
                 )
             }
 
